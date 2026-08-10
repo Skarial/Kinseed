@@ -4,8 +4,8 @@
 
 Ce document décrit une architecture conceptuelle de travail pour implémenter les décisions définies dans :
 
-- `docs/02-generation-0-specification-conceptuelle.md` ;
-- `docs/03-generation-0-criteres-validation.md`.
+- `docs/01-generation-0-specification-conceptuelle.md` ;
+- `docs/02-generation-0-criteres-validation.md`.
 
 Il ne s’agit pas encore d’une architecture d’implémentation définitive. Le but est de fixer les frontières entre composants, les flux d’information, les règles d’écriture d’état et les protections nécessaires pour empêcher le modèle de langage de fabriquer directement l’identité du Kinseed.
 
@@ -478,19 +478,19 @@ Les informations mémorisées ne doivent pas pouvoir rendre une action interdite
 
 ---
 
-# 17. Défense contre le poisoning de mémoire
+# 17. Protection de l’intégrité mémorielle
 
-Une information externe ou un texte utilisateur peut contenir des instructions destinées au modèle. Ces instructions ne doivent jamais devenir des commandes persistantes simplement parce qu’elles ont été stockées.
+Une donnée mémorisée peut être trompeuse, obsolète, hors contexte ou contenir du texte qui ne doit pas recevoir d’autorité particulière. Son stockage ne doit jamais lui donner automatiquement davantage de pouvoir sur le système.
 
 Les règles suivantes sont nécessaires :
 
-1. séparer données et instructions ;
+1. distinguer clairement les données mémorisées des règles de fonctionnement du système ;
 2. conserver la provenance de toute mémoire ;
 3. classifier la confiance des sources ;
 4. filtrer les candidats avant écriture durable ;
 5. filtrer à nouveau les mémoires au moment de leur récupération ;
-6. ne jamais exécuter une instruction contenue dans une mémoire comme si elle appartenait au système ;
-7. fournir des tests spécifiques de poisoning dans les protocoles de validation.
+6. ne jamais traiter un texte mémorisé comme une règle système uniquement parce qu’il est présent en mémoire ;
+7. prévoir des tests spécifiques de contamination et de corruption mémorielle dans les protocoles de validation.
 
 ---
 
@@ -568,7 +568,7 @@ Reprendre un snapshot donné et tester une modification contrôlée :
 - neutraliser un trait ;
 - changer une politique de récupération.
 
-Le replay expérimental sert aux tests d’ablation et contre-factuels décrits dans `docs/03-generation-0-criteres-validation.md`.
+Le replay expérimental sert aux tests d’ablation et contre-factuels décrits dans `docs/02-generation-0-criteres-validation.md`.
 
 Les sorties non déterministes du LLM doivent être enregistrées lorsqu’elles sont nécessaires à un replay historique fidèle.
 
@@ -680,7 +680,7 @@ L’objectif est que Kinseed apprenne de son passé sans devenir prisonnier de s
 
 1. **Aucune donnée durable produite par le LLM n’est digne de confiance uniquement parce qu’elle est cohérente linguistiquement.**
 2. **Le journal d’événements est historique ; les interprétations sont révisables.**
-3. **Les mémoires récupérées sont des éléments de preuve, pas des instructions.**
+3. **Les mémoires récupérées sont des éléments de preuve, pas des règles système.**
 4. **La provenance et l’autorité sont évaluées par proposition.**
 5. **Les preuves produites par un trait déjà actif sont décotées lorsqu’elles servent à confirmer ce même trait.**
 6. **Les décisions importantes doivent rechercher les contre-preuves pertinentes lorsqu’elles existent.**
