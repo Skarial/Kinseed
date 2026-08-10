@@ -2,7 +2,7 @@
 
 ## Statut du document
 
-Ce document transforme la spécification conceptuelle de `docs/02-generation-0-specification-conceptuelle.md` en **critères observables et testables**.
+Ce document transforme la spécification conceptuelle de `docs/01-generation-0-specification-conceptuelle.md` en **critères observables et testables**.
 
 L'objectif n'est pas de démontrer une conscience phénoménale. Il s'agit de vérifier que les mécanismes fonctionnels annoncés par Kinseed existent réellement dans l'architecture et ne sont pas seulement simulés par le langage du modèle.
 
