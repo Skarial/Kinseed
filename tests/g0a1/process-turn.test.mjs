@@ -164,6 +164,24 @@ test("G0-A1 deterministic protocol replays T1 through T7 without AI context leak
   assert.equal(events.find((event) => event.id === "E-T1-input")?.payload.text, messages.t1);
   assert.equal(events.filter((event) => event.type === "human_message_received").length, 7);
   assert.equal(events.filter((event) => event.type === "kinseed_message_emitted").length, 7);
+  assert.equal(events.filter((event) => event.type === "validation_decision_recorded").length, 7);
+  for (const turnId of ["T1", "T2", "T3", "T4", "T5", "T6", "T7"]) {
+    const checkpoint = events.find(
+      (event) => event.turnId === turnId && event.id === `E-${turnId}-temporary-evidence`,
+    );
+    const intention = events.find(
+      (event) => event.turnId === turnId && event.type === "intention_selected",
+    );
+    assert.equal(checkpoint?.type, "validation_decision_recorded");
+    assert.equal(checkpoint?.payloadSchemaVersion, 2);
+    assert.equal(checkpoint?.payload.scope, "temporary_evidence");
+    assert.equal(checkpoint?.payload.completed, true);
+    assert.ok(checkpoint && intention && checkpoint.sequence < intention.sequence);
+  }
+  const acceptedT1 = events.find((event) => event.id === "E-T1-temporary-evidence")?.payload.outcomes?.[0];
+  assert.equal(acceptedT1?.decision, "accept");
+  assert.equal(Object.hasOwn(acceptedT1?.candidateSnapshot ?? {}, "eventId"), false);
+  assert.equal(Object.hasOwn(acceptedT1?.candidateSnapshot ?? {}, "sourceId"), false);
   for (const emitted of events.filter((event) => event.type === "kinseed_message_emitted")) {
     const intention = events.find(
       (event) => event.turnId === emitted.turnId && event.type === "intention_selected",
@@ -171,7 +189,7 @@ test("G0-A1 deterministic protocol replays T1 through T7 without AI context leak
     assert.ok(intention);
     assert.ok(intention.sequence < emitted.sequence);
   }
-  assert.doesNotMatch(JSON.stringify(events), /SelfHypothesis|HumanHypothesis|preference|value/);
+  assert.doesNotMatch(JSON.stringify(events), /SelfHypothesis|HumanHypothesis|preference/);
 
   assert.equal(ai.resetCount, 6);
   for (const input of ai.extractionInputs) {
@@ -336,8 +354,14 @@ test("G0-A1 rejects an unsupported extracted value without mutating state or lea
   const events = await store.readEventsByTurn(kinseedId, "T-GROUNDING-HOSTILE");
   const decision = events.find((event) => event.type === "validation_decision_recorded");
   const intention = events.find((event) => event.type === "intention_selected");
-  assert.equal(decision?.payload.decision, "reject");
-  assert.deepEqual(decision?.payload.reasonCodes, ["proposition_value_not_in_supporting_excerpt"]);
+  assert.equal(decision?.payloadSchemaVersion, 2);
+  assert.equal(decision?.payload.scope, "temporary_evidence");
+  assert.equal(decision?.payload.completed, true);
+  assert.deepEqual(decision?.payload.outcomes, [{
+    candidateId: "CAND-T-GROUNDING-HOSTILE-1",
+    decision: "reject",
+    reasonCodes: ["proposition_value_not_in_supporting_excerpt"],
+  }]);
   assert.ok(decision && intention && decision.sequence < intention.sequence);
   assert.equal(events.filter((event) => event.type === "processing_failure_recorded").length, 0);
   assert.equal(events.find((event) => event.type === "state_commit_completed")?.payload.changed, false);
@@ -365,11 +389,233 @@ test("G0-A1 rejects empty, invented, and value-less supporting excerpts", async 
     await runTurn(store, ai, `T-GROUNDING-${index}`, message, 21 + index);
     const events = await store.readEventsByTurn(kinseedId, `T-GROUNDING-${index}`);
     assert.deepEqual(
-      events.find((event) => event.type === "validation_decision_recorded")?.payload.reasonCodes,
-      [reasonCode],
+      events.find((event) => event.type === "validation_decision_recorded")?.payload.outcomes,
+      [{ candidateId: `CAND-T-GROUNDING-${index}-1`, decision: "reject", reasonCodes: [reasonCode] }],
     );
     assert.equal(await store.getStateVersion(kinseedId), 0);
   }
+});
+
+class OrderedCandidatesEngine extends FakeAIEngine {
+  async extractEvidence(input) {
+    this.extractionInputs.push(input);
+    return [
+      {
+        kind: "testimony",
+        proposition: employmentStartProposition(2021),
+        supportingExcerpt: "2021",
+        extractionConfidence: "high",
+        extractorVersion: "ordered-test-v1",
+      },
+      hostileCandidate("2021"),
+    ];
+  }
+}
+
+test("G0-A1 checkpoints accept and reject outcomes in candidate order", async () => {
+  const { store } = await createScenario();
+  const ai = new OrderedCandidatesEngine();
+  const message = "J’ai commencé à travailler à l’Atelier Nova en 2021.";
+  await runTurn(store, ai, "T-CHECKPOINT-ORDER", message, 29);
+  const checkpoint = (await store.readEventsByTurn(kinseedId, "T-CHECKPOINT-ORDER")).find(
+    (event) => event.id === "E-T-CHECKPOINT-ORDER-temporary-evidence",
+  );
+  assert.deepEqual(checkpoint?.payload.outcomes?.map((outcome) => [outcome.candidateId, outcome.decision]), [
+    ["CAND-T-CHECKPOINT-ORDER-1", "accept"],
+    ["CAND-T-CHECKPOINT-ORDER-2", "reject"],
+  ]);
+  assert.equal(Object.hasOwn(checkpoint?.payload.outcomes?.[0]?.candidateSnapshot ?? {}, "eventId"), false);
+  assert.equal(Object.hasOwn(checkpoint?.payload.outcomes?.[0]?.candidateSnapshot ?? {}, "sourceId"), false);
+});
+
+test("R1: a rejected candidate checkpoint survives a formulation failure and retry", async () => {
+  const { store } = await createScenario();
+  const message = "J’ai commencé à travailler à l’Atelier Nova en 2021.";
+  const ai = new GroundingTestEngine(hostileCandidate(message));
+  ai.failNextFormulation();
+
+  await assert.rejects(() => runTurn(store, ai, "T-R1", message, 30), /formulation failure/);
+  const first = await store.readEventsByTurn(kinseedId, "T-R1");
+  assert.equal(ai.extractionInputs.length, 1);
+  assert.equal(first.filter((event) => event.id === "E-T-R1-temporary-evidence").length, 1);
+  assert.deepEqual(
+    first.find((event) => event.id === "E-T-R1-temporary-evidence")?.payload.outcomes,
+    [{ candidateId: "CAND-T-R1-1", decision: "reject", reasonCodes: ["proposition_value_not_in_supporting_excerpt"] }],
+  );
+
+  await runTurn(store, ai, "T-R1", message, 30);
+  const completed = await store.readEventsByTurn(kinseedId, "T-R1");
+  assert.equal(ai.extractionInputs.length, 1);
+  assert.equal(completed.filter((event) => event.id === "E-T-R1-temporary-evidence").length, 1);
+  assert.equal(completed.filter((event) => event.type === "kinseed_message_emitted").length, 1);
+});
+
+test("R2: a rejected candidate is not re-extracted or reformulated after emission before commit", async () => {
+  const { store } = await createScenario(new FailBeforeCommitStore());
+  const message = "J’ai commencé à travailler à l’Atelier Nova en 2021.";
+  const ai = new GroundingTestEngine(hostileCandidate(message));
+
+  await assert.rejects(() => runTurn(store, ai, "T-R2", message, 31), /Injected failure before commit/);
+  assert.equal(ai.extractionInputs.length, 1);
+  assert.equal(ai.formulationInputs.length, 1);
+
+  const resumed = await runTurn(store, ai, "T-R2", message, 31);
+  assert.equal(resumed.stateVersion, 0);
+  assert.equal(ai.extractionInputs.length, 1);
+  assert.equal(ai.formulationInputs.length, 1);
+  const events = await store.readEventsByTurn(kinseedId, "T-R2");
+  assert.equal(events.filter((event) => event.id === "E-T-R2-temporary-evidence").length, 1);
+  assert.equal(events.filter((event) => event.type === "kinseed_message_emitted").length, 1);
+  assert.equal(events.find((event) => event.type === "state_commit_completed")?.payload.changed, false);
+});
+
+class AlternatingEvidenceEngine extends FakeAIEngine {
+  async extractEvidence(input) {
+    this.extractionInputs.push(input);
+    const year = this.extractionInputs.length === 1 ? 2021 : 2022;
+    return [{
+      kind: "testimony",
+      proposition: employmentStartProposition(year),
+      supportingExcerpt: String(year),
+      extractionConfidence: "high",
+      extractorVersion: "alternating-test-v1",
+    }];
+  }
+}
+
+test("R3: commit uses the accepted checkpoint snapshot, never an alternate extraction", async () => {
+  const { store } = await createScenario(new FailBeforeCommitStore());
+  const ai = new AlternatingEvidenceEngine();
+  const message = "J’ai commencé à travailler à l’Atelier Nova en 2021.";
+
+  await assert.rejects(() => runTurn(store, ai, "T-R3", message, 32), /Injected failure before commit/);
+  await runTurn(store, ai, "T-R3", message, 32);
+
+  assert.equal(ai.extractionInputs.length, 1);
+  assert.equal((await store.readEvidenceItem(kinseedId, "EV-START-2021"))?.proposition.value, 2021);
+  assert.equal(await store.readEvidenceItem(kinseedId, "EV-START-2022"), null);
+  assert.equal(
+    (await store.readActiveBeliefByKey(kinseedId, buildBeliefKey(employmentStartProposition(2021))))?.proposition.value,
+    2021,
+  );
+});
+
+class EmptyEvidenceEngine extends FakeAIEngine {
+  async extractEvidence(input) {
+    this.extractionInputs.push(input);
+    return [];
+  }
+}
+
+test("R4: an empty extraction is checkpointed and finalizes without durable evidence", async () => {
+  const { store } = await createScenario(new FailBeforeCommitStore());
+  const ai = new EmptyEvidenceEngine();
+  const message = "Question sans fait autobiographique.";
+
+  await assert.rejects(() => runTurn(store, ai, "T-R4", message, 33), /Injected failure before commit/);
+  await runTurn(store, ai, "T-R4", message, 33);
+
+  assert.equal(ai.extractionInputs.length, 1);
+  const events = await store.readEventsByTurn(kinseedId, "T-R4");
+  assert.deepEqual(events.find((event) => event.id === "E-T-R4-temporary-evidence")?.payload.outcomes, []);
+  assert.equal(events.find((event) => event.type === "state_commit_completed")?.payload.changed, false);
+  assert.equal(await store.getStateVersion(kinseedId), 0);
+});
+
+class ExtractionFailureEngine extends FakeAIEngine {
+  async extractEvidence(input) {
+    this.extractionInputs.push(input);
+    throw new Error("Injected extraction failure");
+  }
+}
+
+class ValidationFailureStore extends InMemoryStore {
+  failValidationOnce = true;
+
+  async readEventById(kinseed, eventId) {
+    if (this.failValidationOnce) {
+      this.failValidationOnce = false;
+      throw new Error("Injected validation failure");
+    }
+    return super.readEventById(kinseed, eventId);
+  }
+}
+
+test("R5: technical extraction and validation failures are recorded before intention", async (t) => {
+  await t.test("extraction", async () => {
+    const { store } = await createScenario();
+    const ai = new ExtractionFailureEngine();
+    await assert.rejects(() => runTurn(store, ai, "T-R5-EXTRACT", messages.t1, 34), /Injected extraction failure/);
+    const events = await store.readEventsByTurn(kinseedId, "T-R5-EXTRACT");
+    assert.equal(events.find((event) => event.type === "processing_failure_recorded")?.payload.stage, "evidence_extraction");
+    assert.equal(events.some((event) => event.type === "intention_selected"), false);
+    assert.equal(events.some((event) => event.type === "kinseed_message_emitted"), false);
+    assert.equal(await store.getStateVersion(kinseedId), 0);
+  });
+  await t.test("validation", async () => {
+    const { store, ai } = await createScenario(new ValidationFailureStore());
+    await assert.rejects(() => runTurn(store, ai, "T-R5-VALIDATE", messages.t1, 35), /Injected validation failure/);
+    const events = await store.readEventsByTurn(kinseedId, "T-R5-VALIDATE");
+    assert.equal(events.find((event) => event.type === "processing_failure_recorded")?.payload.stage, "evidence_validation");
+    assert.equal(events.some((event) => event.type === "intention_selected"), false);
+    assert.equal(events.some((event) => event.type === "kinseed_message_emitted"), false);
+    assert.equal(await store.getStateVersion(kinseedId), 0);
+  });
+});
+
+test("R6: an intention or emitted response without a checkpoint fails closed", async () => {
+  for (const [turnId, includeEmission] of [["T-R6-INTENTION", false], ["T-R6-EMITTED", true]]) {
+    const { store, ai } = await createScenario();
+    await store.appendEvent({
+      id: `E-${turnId}-input`, kinseedId, sequence: 2, type: "human_message_received",
+      occurredAt: "2026-08-11T08:36:00.000Z", turnId, sourceId: humanSourceId, actorRef: humanId,
+      causedByEventIds: [], observedStateVersion: 0, payload: { text: messages.t1 }, payloadSchemaVersion: 1,
+      engineVersion, idempotencyKey: `${turnId}:input`,
+    });
+    await store.appendEvent({
+      id: `E-${turnId}-intention`, kinseedId, sequence: 3, type: "intention_selected",
+      occurredAt: "2026-08-11T08:36:00.000Z", turnId, sourceId: systemSourceId, actorRef: null,
+      causedByEventIds: [`E-${turnId}-input`], observedStateVersion: 0,
+      payload: { intentionId: `I-${turnId}`, kind: "answer_question", motivation: "record_first_testimony" },
+      payloadSchemaVersion: 1, engineVersion, idempotencyKey: `${turnId}:intention`,
+    });
+    if (includeEmission) {
+      await store.appendEvent({
+        id: `E-${turnId}-emitted`, kinseedId, sequence: 4, type: "kinseed_message_emitted",
+        occurredAt: "2026-08-11T08:36:00.000Z", turnId, sourceId: systemSourceId, actorRef: null,
+        causedByEventIds: [`E-${turnId}-input`, `E-${turnId}-intention`], observedStateVersion: 0,
+        payload: { text: "Réponse historique", intentionId: `I-${turnId}` }, payloadSchemaVersion: 1,
+        engineVersion, idempotencyKey: `${turnId}:response`,
+      });
+    }
+    await assert.rejects(() => runTurn(store, ai, turnId, messages.t1, 36), /temporary evidence checkpoint/);
+    assert.equal(ai.extractionInputs.length, 0);
+    const events = await store.readEventsByTurn(kinseedId, turnId);
+    assert.equal(events.find((event) => event.type === "processing_failure_recorded")?.payload.stage, "evidence_validation");
+    assert.equal(await store.getStateVersion(kinseedId), 0);
+  }
+});
+
+test("G0-A1 treats a malformed historical checkpoint as an evidence validation anomaly", async () => {
+  const { store, ai } = await createScenario();
+  const turnId = "T-MALFORMED-CHECKPOINT";
+  await store.appendEvent({
+    id: `E-${turnId}-input`, kinseedId, sequence: 2, type: "human_message_received",
+    occurredAt: "2026-08-11T08:37:00.000Z", turnId, sourceId: humanSourceId, actorRef: humanId,
+    causedByEventIds: [], observedStateVersion: 0, payload: { text: messages.t1 }, payloadSchemaVersion: 1,
+    engineVersion, idempotencyKey: `${turnId}:input`,
+  });
+  await store.appendEvent({
+    id: `E-${turnId}-temporary-evidence`, kinseedId, sequence: 3, type: "validation_decision_recorded",
+    occurredAt: "2026-08-11T08:37:00.000Z", turnId, sourceId: systemSourceId, actorRef: null,
+    causedByEventIds: [`E-${turnId}-input`], observedStateVersion: 0,
+    payload: { scope: "temporary_evidence", completed: true, outcomes: [{ candidateId: `CAND-${turnId}-1`, decision: "accept" }] },
+    payloadSchemaVersion: 2, engineVersion, idempotencyKey: `${turnId}:temporary-evidence`,
+  });
+  await assert.rejects(() => runTurn(store, ai, turnId, messages.t1, 37), /candidate snapshot/);
+  assert.equal(ai.extractionInputs.length, 0);
+  const events = await store.readEventsByTurn(kinseedId, turnId);
+  assert.equal(events.find((event) => event.type === "processing_failure_recorded")?.payload.stage, "evidence_validation");
 });
 
 function assertTurnEventCounts(events, expected) {

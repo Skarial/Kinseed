@@ -16,8 +16,13 @@ import type {
   CommitMutations,
   PersistencePort,
 } from "../ports/persistence.js";
-import type { GroundingRejectionCode } from "../domain/evidence-grounding.js";
 import { validateEvidenceItem } from "./validate-evidence.js";
+import {
+  acceptedCandidatesFromCheckpoint,
+  buildTemporaryEvidencePayload,
+  findTemporaryEvidenceCheckpoint,
+  type TemporaryEvidenceOutcome,
+} from "./temporary-evidence-checkpoint.js";
 
 const EMPLOYMENT_START_YEAR = "employment_start_year";
 const HISTORY_DENIAL = "denies_prior_employment_start_year_testimony";
@@ -37,11 +42,6 @@ export interface ProcessTurnResult {
   readonly response: string;
   readonly stateVersion: StateVersion;
   readonly replayed: boolean;
-}
-
-interface RejectedTemporaryCandidate {
-  readonly candidateId: EntityId;
-  readonly reasonCode: GroundingRejectionCode;
 }
 
 export async function processTurn(
@@ -84,53 +84,95 @@ export async function processTurn(
       },
     ));
 
-  const rawCandidates = await aiEngine.extractEvidence({
-    turnId: input.turnId,
-    message: input.message,
-    sourceId: input.humanSourceId,
-    eventId: inputEvent.id,
-    allowedContext: {},
-  });
-  const { acceptedCandidates, rejectedCandidates } = await validateTemporaryCandidates(
-    input,
-    inputEvent,
-    rawCandidates,
-    persistence,
-  );
-  const stateVersion = await persistence.getStateVersion(input.kinseedId);
-  for (const rejected of rejectedCandidates) {
-    await appendEvent(persistence, input.kinseedId, {
-      id: `E-${input.turnId}-validation-${rejected.candidateId}`,
-      type: "validation_decision_recorded",
-      occurredAt: input.occurredAt,
-      turnId: input.turnId,
-      sourceId: input.systemSourceId,
-      actorRef: null,
-      causedByEventIds: [inputEvent.id],
-      observedStateVersion: stateVersion,
-      payload: {
-        candidateId: rejected.candidateId,
-        decision: "reject",
-        reasonCodes: [rejected.reasonCode],
-      },
-      engineVersion: input.engineVersion,
-      idempotencyKey: `${input.turnId}:validation:${rejected.candidateId}`,
-    });
+  let checkpoint;
+  try {
+    checkpoint = findTemporaryEvidenceCheckpoint(existingEvents, input.turnId, inputEvent.id);
+  } catch (error) {
+    await recordFailureIfAbsent(input, persistence, "evidence_validation", [inputEvent.id], error);
+    throw error;
   }
+
+  const existingIntentionEvent = existingEvents.find((event) => event.type === "intention_selected");
+  if (checkpoint === null && (existingIntentionEvent !== undefined || emittedEvent !== undefined)) {
+    const error = new DomainInvariantError(
+      `Turn ${input.turnId} has downstream events without a temporary evidence checkpoint`,
+    );
+    await recordFailureIfAbsent(input, persistence, "evidence_validation", [inputEvent.id], error);
+    throw error;
+  }
+
+  let acceptedCandidates: readonly CandidateEvidenceItem[];
+  let noValidGroundedEvidence: boolean;
+  if (checkpoint !== null) {
+    try {
+      acceptedCandidates = acceptedCandidatesFromCheckpoint(checkpoint);
+      noValidGroundedEvidence = checkpoint.outcomes.length > 0 && acceptedCandidates.length === 0;
+    } catch (error) {
+      await recordFailureIfAbsent(input, persistence, "evidence_validation", [inputEvent.id], error);
+      throw error;
+    }
+  } else {
+    let rawCandidates: readonly CandidateEvidenceItem[];
+    try {
+      rawCandidates = await aiEngine.extractEvidence({
+        turnId: input.turnId,
+        message: input.message,
+        sourceId: input.humanSourceId,
+        eventId: inputEvent.id,
+        allowedContext: {},
+      });
+    } catch (error) {
+      await recordFailureIfAbsent(input, persistence, "evidence_extraction", [inputEvent.id], error);
+      throw error;
+    }
+
+    try {
+      const validation = await validateTemporaryCandidates(input, inputEvent, rawCandidates, persistence);
+      const stateVersion = await persistence.getStateVersion(input.kinseedId);
+      const checkpointEvent = await appendEvent(persistence, input.kinseedId, {
+        id: `E-${input.turnId}-temporary-evidence`,
+        type: "validation_decision_recorded",
+        occurredAt: input.occurredAt,
+        turnId: input.turnId,
+        sourceId: input.systemSourceId,
+        actorRef: null,
+        causedByEventIds: [inputEvent.id],
+        observedStateVersion: stateVersion,
+        payload: buildTemporaryEvidencePayload(validation.outcomes),
+        payloadSchemaVersion: 2,
+        engineVersion: input.engineVersion,
+        idempotencyKey: `${input.turnId}:temporary-evidence`,
+      });
+      checkpoint = findTemporaryEvidenceCheckpoint([checkpointEvent], input.turnId, inputEvent.id);
+      if (checkpoint === null) {
+        throw new DomainInvariantError(`Turn ${input.turnId} did not persist its temporary evidence checkpoint`);
+      }
+      acceptedCandidates = acceptedCandidatesFromCheckpoint(checkpoint);
+      noValidGroundedEvidence = checkpoint.outcomes.length > 0 && acceptedCandidates.length === 0;
+    } catch (error) {
+      await recordFailureIfAbsent(input, persistence, "evidence_validation", [inputEvent.id], error);
+      throw error;
+    }
+  }
+
+  const stateVersion = await persistence.getStateVersion(input.kinseedId);
   const beliefContext = await readBeliefContext(
     persistence,
     input.kinseedId,
     input.humanActorRef,
     stateVersion,
   );
-  const intention = selectIntention(
-    input,
-    inputEvent.id,
-    acceptedCandidates,
-    beliefContext.currentBelief,
-    stateVersion,
-    rawCandidates.length > 0 && acceptedCandidates.length === 0,
-  );
+  const intention =
+    existingIntentionEvent === undefined
+      ? selectIntention(
+          input,
+          inputEvent.id,
+          acceptedCandidates,
+          beliefContext.currentBelief,
+          stateVersion,
+          noValidGroundedEvidence,
+        )
+      : reconstructHistoricalIntention(input, inputEvent.id, existingIntentionEvent, beliefContext.currentBelief);
   const formulationContext: FormulationContext = {
     ...beliefContext,
     stateVersion,
@@ -140,7 +182,6 @@ export async function processTurn(
     })),
   };
 
-  const existingIntentionEvent = existingEvents.find((event) => event.type === "intention_selected");
   const intentionEvent =
     existingIntentionEvent ??
     (await appendEvent(persistence, input.kinseedId, {
@@ -174,28 +215,13 @@ export async function processTurn(
         context: formulationContext,
       });
     } catch (error) {
-      const hasFailure = existingEvents.some(
-        (event) => event.type === "processing_failure_recorded",
+      await recordFailureIfAbsent(
+        input,
+        persistence,
+        "language_generation",
+        [inputEvent.id, intentionEvent.id],
+        error,
       );
-      if (!hasFailure) {
-        await appendEvent(persistence, input.kinseedId, {
-          id: `E-${input.turnId}-failure`,
-          type: "processing_failure_recorded",
-          occurredAt: input.occurredAt,
-          turnId: input.turnId,
-          sourceId: input.systemSourceId,
-          actorRef: null,
-          causedByEventIds: [inputEvent.id, intentionEvent.id],
-          observedStateVersion: stateVersion,
-          payload: {
-            stage: "language_generation",
-            errorClass: error instanceof Error ? error.name : "UnknownError",
-            retryable: true,
-          },
-          engineVersion: input.engineVersion,
-          idempotencyKey: `${input.turnId}:failure`,
-        });
-      }
       throw error;
     }
 
@@ -233,28 +259,13 @@ export async function processTurn(
           commitKey,
         );
   } catch (error) {
-    const hasFailure = existingEvents.some(
-      (event) => event.type === "processing_failure_recorded",
+    await recordFailureIfAbsent(
+      input,
+      persistence,
+      "state_commit",
+      [inputEvent.id, intentionEvent.id, responseEvent.id],
+      error,
     );
-    if (!hasFailure) {
-      await appendEvent(persistence, input.kinseedId, {
-        id: `E-${input.turnId}-failure`,
-        type: "processing_failure_recorded",
-        occurredAt: input.occurredAt,
-        turnId: input.turnId,
-        sourceId: input.systemSourceId,
-        actorRef: null,
-        causedByEventIds: [inputEvent.id, intentionEvent.id, responseEvent.id],
-        observedStateVersion: stateVersion,
-        payload: {
-          stage: "state_commit",
-          errorClass: error instanceof Error ? error.name : "UnknownError",
-          retryable: true,
-        },
-        engineVersion: input.engineVersion,
-        idempotencyKey: `${input.turnId}:failure`,
-      });
-    }
     throw error;
   }
 
@@ -371,11 +382,9 @@ async function validateTemporaryCandidates(
   candidates: readonly CandidateEvidenceItem[],
   persistence: PersistencePort,
 ): Promise<{
-  readonly acceptedCandidates: readonly CandidateEvidenceItem[];
-  readonly rejectedCandidates: readonly RejectedTemporaryCandidate[];
+  readonly outcomes: readonly TemporaryEvidenceOutcome[];
 }> {
-  const acceptedCandidates: CandidateEvidenceItem[] = [];
-  const rejectedCandidates: RejectedTemporaryCandidate[] = [];
+  const outcomes: TemporaryEvidenceOutcome[] = [];
   for (const [index, candidate] of candidates.entries()) {
     const candidateId = `CAND-${input.turnId}-${index + 1}`;
     const groundingRejection = await validateEvidenceItem(
@@ -396,12 +405,12 @@ async function validateTemporaryCandidates(
       persistence,
     );
     if (groundingRejection === null) {
-      acceptedCandidates.push(candidate);
+      outcomes.push({ candidateId, decision: "accept", candidate });
     } else {
-      rejectedCandidates.push({ candidateId, reasonCode: groundingRejection });
+      outcomes.push({ candidateId, decision: "reject", reasonCodes: [groundingRejection] });
     }
   }
-  return { acceptedCandidates, rejectedCandidates };
+  return { outcomes };
 }
 
 async function createEvidenceItem(
@@ -571,17 +580,91 @@ function employmentStartProposition(humanActorRef: EntityId, value: number): Pro
 async function appendEvent(
   persistence: PersistencePort,
   kinseedId: EntityId,
-  event: Omit<Event, "kinseedId" | "sequence" | "payloadSchemaVersion">,
+  event: Omit<Event, "kinseedId" | "sequence" | "payloadSchemaVersion"> & {
+    readonly payloadSchemaVersion?: number;
+  },
 ): Promise<Event> {
   const events = await persistence.readEventsInSequence(kinseedId);
   const complete: Event = {
     ...event,
     kinseedId,
     sequence: (events.at(-1)?.sequence ?? 0) + 1,
-    payloadSchemaVersion: 1,
+    payloadSchemaVersion: event.payloadSchemaVersion ?? 1,
   };
   await persistence.appendEvent(complete);
   return complete;
+}
+
+type FailureStage =
+  | "evidence_extraction"
+  | "evidence_validation"
+  | "language_generation"
+  | "state_commit";
+
+async function recordFailureIfAbsent(
+  input: ProcessTurnInput,
+  persistence: PersistencePort,
+  stage: FailureStage,
+  causedByEventIds: readonly EntityId[],
+  error: unknown,
+): Promise<void> {
+  const events = await persistence.readEventsByTurn(input.kinseedId, input.turnId);
+  const alreadyRecorded = events.some(
+    (event) => event.type === "processing_failure_recorded" && event.payload.stage === stage,
+  );
+  if (alreadyRecorded) return;
+  try {
+    await appendEvent(persistence, input.kinseedId, {
+      id: `E-${input.turnId}-failure-${stage.replaceAll("_", "-")}`,
+      type: "processing_failure_recorded",
+      occurredAt: input.occurredAt,
+      turnId: input.turnId,
+      sourceId: input.systemSourceId,
+      actorRef: null,
+      causedByEventIds,
+      observedStateVersion: await persistence.getStateVersion(input.kinseedId),
+      payload: {
+        stage,
+        errorClass: error instanceof Error ? error.name : "UnknownError",
+        retryable: true,
+      },
+      engineVersion: input.engineVersion,
+      idempotencyKey: `${input.turnId}:failure:${stage}`,
+    });
+  } catch {
+    // The original failure remains authoritative when persistence cannot record it.
+  }
+}
+
+function reconstructHistoricalIntention(
+  input: ProcessTurnInput,
+  inputEventId: EntityId,
+  event: Event,
+  currentBelief: FormulationContext["currentBelief"],
+): Intention {
+  const intentionId = event.payload.intentionId;
+  const kind = event.payload.kind;
+  const motivation = event.payload.motivation;
+  if (
+    typeof intentionId !== "string" ||
+    (kind !== "answer_question" && kind !== "acknowledge_correction" && kind !== "report_record_conflict") ||
+    typeof motivation !== "string"
+  ) {
+    throw new DomainInvariantError(`Intention event ${event.id} cannot be reconstructed`);
+  }
+  return {
+    id: intentionId,
+    kinseedId: input.kinseedId,
+    kind,
+    target: input.humanActorRef,
+    triggerEventIds: [inputEventId],
+    triggerEvidenceItemIds: [],
+    triggerBeliefIds: currentBelief === null ? [] : [currentBelief.id],
+    motivation,
+    observedStateVersion: event.observedStateVersion,
+    status: "selected",
+    createdAt: event.occurredAt,
+  };
 }
 
 function readTextPayload(event: Event): string {
