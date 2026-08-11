@@ -89,7 +89,8 @@ Ordre de lecture recommandé :
 2. [`docs/02-generation-0-criteres-validation.md`](docs/02-generation-0-criteres-validation.md) — définit comment distinguer un mécanisme réel d’un comportement simplement plausible du LLM.
 3. [`docs/03-generation-0-architecture-conceptuelle.md`](docs/03-generation-0-architecture-conceptuelle.md) — définit les frontières entre mémoire, croyances, identité, décision et langage.
 4. [`docs/04-generation-0-roadmap-experimentale.md`](docs/04-generation-0-roadmap-experimentale.md) — fixe l’ordre G0-A → G0-F et les critères de sortie de chaque phase.
-5. [`docs/05-regles-fondatrices-heritage.md`](docs/05-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
+5. [`docs/05-generation-0a-structures-et-cycle-vie.md`](docs/05-generation-0a-structures-et-cycle-vie.md) — détaille les structures minimales de G0-A et leurs règles de promotion, révision et commit.
+6. [`docs/06-regles-fondatrices-heritage.md`](docs/06-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
 
 ### Convention de numérotation
 
@@ -97,7 +98,7 @@ La documentation consacrée au développement actuel est insérée **avant** le 
 
 Le fichier sur l’héritage intergénérationnel reste volontairement **le dernier document numéroté** tant que cette partie n’est pas devenue la priorité du projet.
 
-Ainsi, si un nouveau document est ajouté après le document `04`, il prend le numéro `05` et le document d’héritage est repoussé au numéro `06`, puis ainsi de suite.
+Ainsi, tout nouveau document consacré au travail actuel prend le prochain numéro disponible et le document d’héritage est repoussé d’un numéro afin de rester en dernier.
 
 ## Vision à plus long terme
 
@@ -130,4 +131,4 @@ Le projet ne considère pas ces mécanismes comme une preuve de conscience phén
 
 Le projet est actuellement en **phase de conception et de spécification expérimentale**.
 
-La priorité suivante est de détailler puis implémenter **G0-A — Continuité minimale** de manière réduite, testable et reproductible, avant d’ajouter les couches plus complexes.
+La priorité actuelle est **G0-A — Continuité minimale** : définir les structures et cycles de vie nécessaires pour qu’un Kinseed conserve une histoire fiable, forme des conclusions provisoires traçables et produise des intentions dont la cause existe avant le langage.
