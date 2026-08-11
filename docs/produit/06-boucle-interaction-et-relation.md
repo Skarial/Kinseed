@@ -639,7 +639,157 @@ Cette spécification produit ne doit pas être utilisée pour contourner le cont
 
 ---
 
-# 19. Ce qui est décidé
+# 19. Initiative hors application et notifications push
+
+Kinseed peut également prendre l’initiative lorsque l’utilisateur n’a pas l’application ouverte.
+
+La notification push ne constitue cependant **pas une nouvelle source de motivation**. Elle est uniquement un canal permettant de transmettre à l’utilisateur une initiative que Kinseed avait déjà une raison métier légitime de produire.
+
+Le principe retenu est :
+
+> **Kinseed ne notifie pas pour faire revenir l’utilisateur ; il peut notifier parce qu’une continuité réelle de son histoire ou de sa relation justifie de reprendre contact.**
+
+## 19.1 Chaîne de décision
+
+Conceptuellement :
+
+```text
+état et histoire actuels de Kinseed
+        ↓
+une raison d’initiative existe
+        ↓
+une intention est sélectionnée et traçable
+        ↓
+l’utilisateur n’est pas actuellement dans l’application
+        ↓
+les notifications sont autorisées
+        ↓
+l’horaire et les règles de fréquence l’autorisent
+        ↓
+notification push éventuelle
+```
+
+Le service de notification ne doit donc jamais décider seul qu’il est temps de relancer l’utilisateur.
+
+## 19.2 Cas légitimes
+
+Une notification peut notamment être pertinente lorsqu’elle découle de :
+
+- un événement futur explicitement attendu ;
+- une question ou une intention laissée ouverte ;
+- une décision importante que l’utilisateur devait prendre ;
+- un sujet significatif réellement non résolu ;
+- une hypothèse que Kinseed a une raison suffisante de vouloir vérifier ;
+- une continuité relationnelle ou autobiographique suffisamment importante pour justifier une reprise de contact.
+
+Exemple :
+
+L’utilisateur dit :
+
+> « Demain j’ai un entretien à 14 h. »
+
+Si le système a réellement conservé cet événement futur et qu’une intention de suivi est justifiée, Kinseed peut plus tard produire une notification telle que :
+
+> « Alors, ton entretien ? »
+
+La notification doit pouvoir être reliée à l’événement et à l’intention qui l’ont provoquée.
+
+## 19.3 Notifications de présence
+
+Des notifications plus légères, par exemple :
+
+> « J’ai une question à te poser quand tu passeras. »
+
+peuvent exister, mais uniquement si une intention réelle existe derrière cette formulation.
+
+Il est interdit d’utiliser ce type de phrase comme habillage d’une relance générique programmée uniquement pour augmenter la rétention.
+
+Une phrase telle que :
+
+> « Je pensais à un truc. »
+
+n’est acceptable que si Kinseed dispose réellement d’un sujet, d’une hypothèse, d’un souvenir ou d’une intention qui justifie cette reprise.
+
+## 19.4 Ce qui est explicitement interdit comme logique produit
+
+À éviter :
+
+```text
+24 heures sans ouverture
+        ↓
+notification automatique
+« Tu me manques »
+```
+
+De manière générale, les notifications ne doivent pas reposer principalement sur :
+
+- la culpabilisation ;
+- la peur de perdre la relation ;
+- une baisse fictive d’affection ;
+- une fausse urgence ;
+- une série quotidienne à préserver ;
+- une phrase affective inventée sans état interne correspondant ;
+- une relance générique répétée à fréquence fixe.
+
+Cette règle prolonge directement le principe défini en section 12 : l’absence quotidienne ne constitue pas en elle-même une faute ou un événement relationnel négatif.
+
+## 19.5 Contrôle par l’utilisateur
+
+Les notifications doivent être contrôlables par l’utilisateur.
+
+La direction produit minimale est :
+
+- activation ou désactivation globale ;
+- respect d’une plage horaire silencieuse ;
+- absence de notification nocturne par défaut ;
+- limitation stricte de fréquence ;
+- possibilité de réduire les notifications aux initiatives importantes ;
+- respect d’un refus explicite concernant un sujet ou un type de relance.
+
+Les horaires exacts, quotas et options d’interface restent à définir avant implémentation.
+
+## 19.6 Séparation entre décision métier et transport technique
+
+L’architecture future doit séparer :
+
+```text
+Décision métier
+« Kinseed a une intention justifiée de reprendre contact »
+```
+
+et :
+
+```text
+Décision de livraison
+« l’utilisateur est absent, les notifications sont autorisées,
+l’horaire et les limites le permettent : envoyer un push »
+```
+
+Cette séparation est importante pour :
+
+- conserver la causalité de l’initiative ;
+- pouvoir tester la logique métier sans infrastructure push ;
+- changer ultérieurement de technologie de notification sans modifier l’identité de Kinseed ;
+- éviter que le fournisseur de notifications ou un scheduler devienne une source de comportement autonome ;
+- permettre qu’une même intention soit présentée dans l’application si l’utilisateur revient avant l’envoi.
+
+Le choix de la technologie de push, du fournisseur et du mécanisme de planification n’est pas décidé dans ce document.
+
+## 19.7 Compatibilité avec G0-B
+
+Comme pour l’initiative à l’ouverture de l’application, une notification autonome nécessite un contrat événementiel permettant de prouver :
+
+- pourquoi l’évaluation a eu lieu ;
+- quel état a été observé ;
+- quelle intention a été sélectionnée ;
+- pourquoi cette intention pouvait être livrée hors application ;
+- si la notification a effectivement été envoyée, annulée, expirée ou remplacée par une interaction directe dans l’application.
+
+Ces événements et structures devront être définis pendant **G0-B — Initiative minimale** avant toute implémentation réelle de notifications push fondées sur l’état de Kinseed.
+
+---
+
+# 20. Ce qui est décidé
 
 Les décisions suivantes sont retenues :
 
@@ -654,10 +804,14 @@ Les décisions suivantes sont retenues :
 9. La relation ne doit pas être principalement représentée par des jauges visibles de type « amitié 78 % ».
 10. Les objets interactifs peuvent servir de portes vers l’histoire réelle du Kinseed et de sa relation avec l’humain.
 11. Les initiatives autonomes nécessitent un contrat événementiel dédié avant implémentation ; elles ne doivent pas être improvisées par le LLM.
+12. Kinseed pourra utiliser des notifications push pour prolonger hors application une initiative réellement justifiée par son histoire ou son état.
+13. Une notification push ne crée pas elle-même une motivation : la décision métier doit exister avant la décision technique de livraison.
+14. Les notifications ne doivent pas être fondées sur la culpabilisation, une fausse urgence, une baisse fictive d’affection ou une simple absence quotidienne.
+15. L’utilisateur doit pouvoir contrôler les notifications et leur niveau d’intrusion.
 
 ---
 
-# 20. Ce qui reste ouvert
+# 21. Ce qui reste ouvert
 
 Les points suivants ne sont pas encore décidés :
 
@@ -670,50 +824,62 @@ Les points suivants ne sont pas encore décidés :
 - stratégie exacte lorsqu’un sujet est sensible ou refusé par l’utilisateur ;
 - règles d’évolution de la relation après désaccord, conflit ou longue absence ;
 - contenu exact des activités visuelles autonomes de l’avatar ;
-- rôle éventuel des notifications hors application ;
+- technologie et fournisseur de notifications push ;
+- horaires silencieux exacts et fréquence maximale de notifications ;
+- politique précise d’expiration, annulation ou remplacement d’une notification si l’utilisateur revient dans l’application ;
 - éventuelle activité de Kinseed hors écran, qui nécessite une conception séparée et ne doit pas être simulée fictivement.
 
 Ces sujets doivent être décidés lorsqu’ils deviennent nécessaires à la phase correspondante.
 
 ---
 
-# 21. Critères produit de validation
+# 22. Critères produit de validation
 
 La boucle d’interaction devra être testée avec de vrais utilisateurs.
 
 Quelques critères importants :
 
-## 21.1 Continuité perceptible rapidement
+## 22.1 Continuité perceptible rapidement
 
 Dès les deuxième ou troisième ouvertures, l’utilisateur doit pouvoir constater que Kinseed ne se comporte plus exactement comme lors de la première rencontre lorsque l’histoire disponible justifie cette différence.
 
-## 21.2 Pas d’interrogatoire
+## 22.2 Pas d’interrogatoire
 
 Un testeur ne doit pas avoir l’impression de remplir un questionnaire de profil sous forme de conversation.
 
-## 21.3 Pas de répétition quotidienne mécanique
+## 22.3 Pas de répétition quotidienne mécanique
 
 Après plusieurs jours, les ouvertures ne doivent pas se réduire systématiquement à :
 
 > « Bonjour, comment vas-tu aujourd’hui ? »
 
-## 21.4 Traçabilité
+## 22.4 Traçabilité
 
 Lorsqu’une question ou une remarque importante est produite, le système doit pouvoir retrouver les éléments internes qui l’ont motivée.
 
-## 21.5 Respect du silence et des sujets refusés
+Une notification significative doit répondre à la même exigence : le système doit pouvoir retrouver l’intention et les éléments d’histoire ou d’état qui ont justifié son envoi.
+
+## 22.5 Respect du silence et des sujets refusés
 
 Kinseed doit pouvoir ne pas approfondir un sujet lorsque rien ne le justifie ou lorsque l’utilisateur ne souhaite pas poursuivre.
 
-## 21.6 Histoire réellement cumulative
+Ce principe s’applique également aux notifications hors application.
+
+## 22.6 Histoire réellement cumulative
 
 Après plusieurs semaines, une partie significative des interactions pertinentes doit pouvoir être expliquée par l’histoire accumulée plutôt que par une simple stratégie générique de conversation.
 
+## 22.7 Notifications non mécaniques
+
+Sur une période d’utilisation prolongée, les notifications ne doivent pas apparaître comme une cadence marketing fixe.
+
+Un testeur doit pouvoir comprendre, lorsqu’il ouvre l’application après une notification significative, pourquoi Kinseed a repris ce sujet à ce moment-là.
+
 ---
 
-# 22. Conséquence pour la roadmap
+# 23. Conséquence pour la roadmap
 
-Cette spécification ne demande pas d’implémenter immédiatement toute la relation quotidienne.
+Cette spécification ne demande pas d’implémenter immédiatement toute la relation quotidienne ni les notifications push.
 
 Elle fixe la direction produit afin d’éviter que les prochaines phases construisent des mécanismes incompatibles entre eux.
 
@@ -735,7 +901,9 @@ relation humaine plus riche
 évolution ultérieure de l’avatar et du monde
 ```
 
-La prochaine implémentation ne doit donc pas ajouter prématurément un moteur complet de relation, de confiance, de comportement quotidien ou de vie hors écran.
+Les notifications push fondées sur l’état de Kinseed dépendent de G0-B : la motivation et l’intention doivent être structurées avant que le canal de livraison hors application soit branché.
+
+La prochaine implémentation ne doit donc pas ajouter prématurément un moteur complet de relation, de confiance, de comportement quotidien, de vie hors écran ou d’infrastructure push.
 
 Le besoin immédiat est de conserver des primitives suffisamment propres pour que cette boucle puisse être construite progressivement sans casser la causalité déjà établie.
 
@@ -750,5 +918,6 @@ Pour toute future interaction conçue pour Kinseed, poser les questions suivante
 3. **L’interaction doit-elle laisser une conséquence durable, ou rester simplement un événement vécu ?**
 4. **Si elle laisse une conséquence, sa provenance est-elle traçable ?**
 5. **Cette conséquence pourra-t-elle modifier réellement une interaction future ?**
+6. **Si l’initiative est livrée par notification, aurait-elle existé même sans le canal push ?**
 
 Si ces questions n’ont pas de réponse claire, l’effet risque d’être une simulation conversationnelle convaincante mais sans véritable continuité individuelle.
