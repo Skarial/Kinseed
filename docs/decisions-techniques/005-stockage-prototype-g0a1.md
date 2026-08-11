@@ -100,15 +100,35 @@ Le port doit couvrir uniquement les besoins déjà définis dans G0-A1.
 Conceptuellement :
 
 ```text
+registerSource(...)
+readSource(...)
+
 appendEvent(...)
+readEventById(...)
 readEventsInSequence(...)
 readEventsByTurn(...)
+
 readEvidenceItem(...)
+readEvidenceLink(...)
+
 readActiveBeliefByKey(...)
 readBeliefHistoryByKey(...)
+
 atomicCommit(expectedStateVersion, mutations)
 checkIdempotencyKey(...)
 ```
+
+Les lectures directes par identifiant sont nécessaires pour auditer réellement une chaîne de provenance :
+
+```text
+Belief
+→ EvidenceLink
+→ EvidenceItem
+→ Event
+→ Source
+```
+
+Sans ces opérations, le domaine pourrait stocker des identifiants de provenance sans pouvoir vérifier efficacement qu’ils correspondent à des éléments existants et cohérents.
 
 La signature TypeScript exacte sera définie pendant l’implémentation.
 
@@ -133,7 +153,10 @@ Elle doit néanmoins reproduire les invariants du futur stockage réel :
 4. vérification de `expected_state_version` ;
 5. application atomique des mutations d’un commit ;
 6. lecture de l’historique des croyances ;
-7. au maximum une croyance `active` par `belief_key`.
+7. au maximum une croyance `active` par `belief_key` ;
+8. une `Source` référencée doit exister ;
+9. un `EvidenceItem` doit référencer des événements existants ;
+10. un `EvidenceLink` doit référencer un `EvidenceItem` et une croyance existants dans l’état résultant du commit.
 
 Un stockage en mémoire permissif qui contournerait ces règles rendrait les tests sans valeur.
 
