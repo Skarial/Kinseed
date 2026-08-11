@@ -250,6 +250,53 @@ pour un même Kinseed.
 
 Un événement déjà enregistré ne doit pas être remplacé silencieusement.
 
+Pour le checkpoint de preuves temporaires, cette règle devient :
+
+> lire avant de créer ; un `Event` historique existant est réutilisé tel quel et
+> n'est jamais reconstruit avec une nouvelle `sequence`.
+
+Le type `validation_decision_recorded` conserve ses anciens payloads de version
+1. Le checkpoint G0-A1 utilise un payload de version 2 :
+
+```text
+id: E-<turnId>-temporary-evidence
+type: validation_decision_recorded
+payload_schema_version: 2
+idempotency_key: <turnId>:temporary-evidence
+caused_by_event_ids: [<inputEventId>]
+observed_state_version: N
+payload:
+  scope: temporary_evidence
+  completed: true
+  outcomes: [<ValidationOutcome>]
+```
+
+`ValidationOutcome` est l'une des formes suivantes :
+
+```text
+{
+  candidateId,
+  decision: accept,
+  candidateSnapshot: {
+    kind,
+    proposition,
+    supportingExcerpt,
+    extractionConfidence,
+    extractorVersion
+  }
+}
+
+{
+  candidateId,
+  decision: reject,
+  reasonCodes
+}
+```
+
+`candidateSnapshot` ne contient ni `eventId` ni `sourceId`. Une extraction vide
+est enregistrée par `outcomes: []`. L'absence de checkpoint ne vaut jamais
+extraction vide.
+
 ---
 
 # 8. Contenu des messages dans G0-A1
@@ -574,6 +621,16 @@ L'ajout de `supportingExcerpt` au contrat Structured Outputs définit la policy
 `g0a1-openai-extraction-v3`. Les policies v1 et v2 ne sont ni modifiées ni
 réinterprétées.
 
+Après extraction et validation temporaire, Kinseed écrit atomiquement le
+checkpoint `temporary_evidence` avant toute sélection d'intention. Une fois ce
+checkpoint présent, `extractEvidence()` ne doit plus être appelé pour ce tour.
+Les candidats acceptés sont reconstruits exclusivement depuis leurs snapshots ;
+Kinseed leur rattache l'Event et la source du message courant.
+
+Une `intention_selected` ou un `kinseed_message_emitted` sans checkpoint complet
+est une anomalie interne. La reprise échoue fermée au lieu de relancer
+silencieusement l'extracteur.
+
 ## 16.2 Formulation
 
 Entrée :
@@ -665,6 +722,33 @@ Avant de considérer G0-A1 stable, il faut au minimum simuler :
 échec pendant commit
 retry du même turn_id
 retry de la même idempotency_key
+```
+
+Le durcissement de reprise du grounding v3 ajoute les scénarios déterministes :
+
+```text
+R1 REJECT → failure formulation → retry
+   checkpoint unique, aucune nouvelle extraction, aucune collision d'idempotence,
+   une seule réponse finalement émise
+
+R2 REJECT → réponse émise → crash avant commit → retry
+   extraction appelée une fois, réponse non réémise, changed=false,
+   checkpoint non dupliqué
+
+R3 ACCEPT → réponse émise → extraction alternative disponible au retry
+   aucun second appel, commit depuis le candidateSnapshot initial,
+   état durable conforme à la preuve ayant causé la réponse
+
+R4 extraction vide → outcomes: [] → crash après émission
+   aucune ré-extraction, aucune EvidenceItem, finalisation correcte
+
+R5 erreur technique extraction/validation avant intention
+   processing_failure_recorded au stage exact, aucune intention, réponse ou mutation
+
+R6 intention ou réponse sans checkpoint
+   échec fermé, aucune extraction silencieuse
+
+R7 protocole T1 → T7 et tests déterministes existants toujours valides
 ```
 
 Résultat attendu :

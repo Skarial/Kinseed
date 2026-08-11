@@ -316,10 +316,10 @@ Règle :
 Cette règle n'empêche pas une validation temporaire préalable. Avant
 `intention_selected`, Kinseed valide les candidats extraits du message courant
 afin qu'un candidat irrecevable ne puisse pas influencer la décision du tour.
-Un `REJECT` de grounding lexical peut donc être journalisé par
-`validation_decision_recorded` avant `intention_selected`. Il ne crée ni preuve,
-ni lien, ni croyance ; le tour continue avec les seuls candidats temporaires
-validés, éventuellement aucun.
+Le résultat complet est journalisé par un unique `validation_decision_recorded`
+de lot avant `intention_selected`. Il constitue le checkpoint `EVIDENCE_READY`.
+Un `REJECT` ne crée ni preuve, ni lien, ni croyance ; le tour continue avec les
+seuls candidats temporaires validés, éventuellement aucun.
 
 ---
 
@@ -355,6 +355,48 @@ Pour un rejet lexical de candidat temporaire, `decision` vaut `reject`. Ce n'est
 pas un `processing_failure_recorded` : ce dernier reste réservé à une anomalie
 interne, telle qu'un événement Kinseed introuvable, un payload de message
 inexploitable, une erreur de persistence ou une exception inattendue.
+
+## 12.1 Checkpoint de preuves temporaires G0-A1
+
+Le checkpoint utilise le type existant, sans ajouter d'`EventType` :
+
+```text
+type: validation_decision_recorded
+payloadSchemaVersion: 2
+id: E-<turnId>-temporary-evidence
+idempotencyKey: <turnId>:temporary-evidence
+causedByEventIds:
+  - <human_message_received.id>
+observedStateVersion: N
+
+payload:
+  scope: temporary_evidence
+  completed: true
+  outcomes:
+    - candidateId: CAND-<turnId>-1
+      decision: accept
+      candidateSnapshot:
+        kind: testimony
+        proposition: <proposition complète>
+        supportingExcerpt: <extrait exact>
+        extractionConfidence: high
+        extractorVersion: <version>
+    - candidateId: CAND-<turnId>-2
+      decision: reject
+      reasonCodes:
+        - <reason code>
+```
+
+Un résultat sans candidat est représenté par `outcomes: []`. L'absence de cet
+Event reste ambiguë et ne doit jamais être interprétée comme une extraction vide.
+
+Le `candidateSnapshot` d'un `ACCEPT` ne contient ni `eventId` ni `sourceId` :
+Kinseed les reconstruit depuis le `human_message_received` du tour. Aucun snapshot
+complet d'un `REJECT` n'est requis en G0-A1.
+
+Les payloads `validation_decision_recorded` de version 1 restent des événements
+historiques avec leur sémantique propre et ne sont pas réinterprétés comme ce
+checkpoint de lot.
 
 ---
 
@@ -437,6 +479,11 @@ Le message humain et l’intention déjà journalisés restent dans l’historiq
 
 Une nouvelle tentative ne doit pas créer un second message d’entrée identique.
 
+Les erreurs techniques antérieures à l'intention sont également journalisables.
+Une erreur d'appel de l'extracteur utilise le stage `evidence_extraction` ; une
+exception interne pendant validation ou création du checkpoint utilise
+`evidence_validation`. Un rejet lexical contrôlé n'emprunte jamais ce chemin.
+
 ---
 
 # 15. Échec après émission mais avant commit
@@ -465,6 +512,11 @@ post_validation
 ```
 
 sans régénérer ni réémettre la réponse.
+
+Il ne doit pas non plus rappeler l'extracteur, recalculer l'intention ou
+reconstruire les preuves temporaires depuis une nouvelle sortie IA. Le checkpoint,
+l'intention et la réponse historiques sont réutilisés ; le commit est produit à
+partir des mêmes `candidateSnapshot` acceptés que ceux ayant causé la réponse.
 
 Le `turn_id` et les événements déjà écrits permettent de reconstruire cette situation.
 
@@ -522,6 +574,20 @@ Les détails sensibles ou volumineux de l’erreur peuvent rester dans des logs 
 
 L’événement principal sert surtout à reconstruire l’état du pipeline.
 
+Stages minimaux G0-A1 :
+
+```text
+evidence_extraction
+evidence_validation
+language_generation
+state_commit
+```
+
+Les IDs et clés d'idempotence sont spécifiques au stage, par exemple
+`E-<turnId>-failure-evidence-validation` et
+`<turnId>:failure:evidence_validation`. Plusieurs échecs techniques successifs
+d'étapes différentes peuvent ainsi être journalisés sans collision.
+
 ---
 
 # 18. États conceptuels d’un tour
@@ -545,6 +611,44 @@ FINALIZED
 Une erreur peut apparaître entre n’importe quelles étapes.
 
 Le système doit savoir depuis quelle étape reprendre.
+
+Reprise normative :
+
+```text
+A. INPUT_RECORDED seul
+   → extraction et validation autorisées
+   → écrire le checkpoint
+
+B. EVIDENCE_READY présent, intention absente
+   → reconstruire les ACCEPT depuis le checkpoint
+   → ne pas extraire
+   → sélectionner et enregistrer l'intention
+
+C. INTENTION_SELECTED présente, réponse absente
+   → checkpoint obligatoire
+   → réutiliser l'intention historique
+   → formulation uniquement
+
+D. RESPONSE_EMITTED présente, commit absent
+   → checkpoint obligatoire
+   → réutiliser candidats, intention et réponse historiques
+   → aucune opération IA
+   → reprendre post-traitement et commit
+
+E. FINALIZED
+   → retourner le résultat historique
+   → aucun retraitement
+```
+
+Une intention ou une réponse sans checkpoint `temporary_evidence` complet est un
+état impossible. Kinseed échoue fermé et enregistre si possible un
+`processing_failure_recorded` ; il ne tente jamais une nouvelle extraction
+silencieuse.
+
+Règle d'idempotence : un Event existant est lu et réutilisé dans sa forme
+historique. Il n'est pas repassé dans un mécanisme de création qui lui attribuerait
+une nouvelle `sequence`. `IdempotencyConflictError` reste une protection contre
+une divergence réelle et ne doit pas être ignoré.
 
 ---
 
@@ -601,7 +705,7 @@ extraction de candidats temporaires
         ↓
 validation / grounding
         ↓
-validation_decision_recorded pour les REJECT pertinents
+validation_decision_recorded v2 de lot : EVIDENCE_READY
         ↓
 EvidenceItem temporaires validés
         ↓
@@ -646,6 +750,8 @@ Les invariants G0-A sont :
 8. aucun brouillon LLM rejeté traité comme parole réellement prononcée ;
 9. un crash n’efface jamais un événement déjà réellement survenu ;
 10. un crash n’invente jamais un changement identitaire non committé.
+11. toute intention et toute réponse possèdent un checkpoint `EVIDENCE_READY` antérieur ;
+12. une réponse historique et son commit utilisent les mêmes preuves temporaires validées.
 
 ---
 

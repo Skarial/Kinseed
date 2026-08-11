@@ -784,6 +784,19 @@ il ne peut influencer ni l'intention, ni la formulation, ni l'état durable. Le
 tour peut continuer avec les autres candidats validés, ou sans nouvelle preuve
 temporaire. Ce rejet est distinct d'une panne technique.
 
+Le résultat complet de l'extraction et de la validation temporaire est
+journalisé avant toute intention sous la forme d'un checkpoint atomique de lot
+`EVIDENCE_READY`. Ce checkpoint utilise `validation_decision_recorded`, avec
+`payloadSchemaVersion: 2`, et contient un résultat pour chaque candidat. Une
+extraction valide sans candidat est représentée explicitement par
+`outcomes: []` ; l'absence de checkpoint ne signifie jamais « zéro candidat ».
+
+Pour un candidat `ACCEPT`, le checkpoint conserve le snapshot minimal permettant
+de reconstruire exactement le `CandidateEvidenceItem`. Pour un `REJECT`, il
+conserve seulement son identifiant et ses reason codes. Ce journal technique ne
+constitue ni un `EvidenceItem` durable, ni une croyance, ni une promotion
+épistémique.
+
 Pipeline :
 
 ```text
@@ -795,25 +808,27 @@ Pipeline :
         ↓
 4. validation minimale d'extraction pour le tour
         ↓
-5. snapshot de l'état durable N
+5. checkpoint atomique EVIDENCE_READY
         ↓
-6. comparaison preuve du tour + état N
+6. snapshot de l'état durable N
         ↓
-7. intentions candidates
+7. comparaison preuve du tour + état N
         ↓
-8. intention sélectionnée
+8. intentions candidates
         ↓
-9. Event intention_selected
+9. intention sélectionnée
         ↓
-10. génération et validation du langage
+10. Event intention_selected
         ↓
-11. Event kinseed_message_emitted
+11. génération et validation du langage
         ↓
-12. validation durable des EvidenceItem et autres candidats
+12. Event kinseed_message_emitted
         ↓
-13. commit atomique
+13. validation durable des EvidenceItem et autres candidats
         ↓
-14. state_version N+1
+14. commit atomique
+        ↓
+15. state_version N+1
 ```
 
 Ainsi une affirmation nouvelle peut immédiatement provoquer une question de clarification sans devenir immédiatement une croyance durable.
@@ -918,6 +933,22 @@ proposition_value_not_in_supporting_excerpt
 ```
 
 Cela permettra de comprendre non seulement pourquoi une propriété existe, mais également pourquoi une propriété proposée n’a pas été créée.
+
+Dans G0-A1, les décisions relatives aux preuves temporaires sont regroupées dans
+un seul `validation_decision_recorded` de lot par tour. L'écriture atomique du
+lot évite qu'un crash ne laisse une série de décisions partielle et ambiguë.
+Chaque résultat `accept` conserve le candidat validé ; chaque résultat `reject`
+conserve ses `reason_codes`. Le tableau vide atteste explicitement que
+l'extraction et la validation sont terminées sans candidat.
+
+Règle de reprise :
+
+> **Lire avant de créer ; un Event historique existant est réutilisé tel quel et
+> n'est jamais reconstruit avec une nouvelle séquence.**
+
+Une fois le checkpoint écrit, l'extracteur ne doit plus être rappelé pour ce
+tour. La réponse historique et l'état durable produit par son tour doivent
+partager la même chaîne causale de preuves temporaires validées.
 
 ---
 
