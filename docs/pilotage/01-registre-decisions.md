@@ -71,6 +71,8 @@ Les ADR de `docs/decisions-techniques/` restent les sources canoniques pour les 
 | D-013 | Notifications | Une notification push peut livrer une initiative déjà justifiée par l’état de Kinseed ; elle ne doit pas créer artificiellement la motivation. | VALIDÉE | `docs/produit/06-boucle-interaction-et-relation.md` |
 | D-014 | Réversibilité | Le produit doit prévoir une manière cohérente de gérer une relation qui ne convient plus à l’utilisateur sans nier artificiellement la continuité passée. | VALIDÉE AU NIVEAU PRODUIT | `docs/produit/02-separation-recommencement-et-continuite.md` |
 | D-015 | Vie | Le cycle de vie, le vieillissement et la fin de vie appartiennent à la vision produit mais ne doivent pas détourner la priorité expérimentale actuelle. | VALIDÉE AU NIVEAU PRODUIT | `docs/produit/04-cycle-de-vie-vieillissement-et-fin-de-vie.md` |
+| D-016 | Grounding | Les témoignages textuels G0-A1 doivent fournir un `supportingExcerpt` vérifiable ; une validation lexicale déterministe est requise avant influence ou persistance. | EXPÉRIMENTALE | `docs/05-generation-0a-structures-et-cycle-vie.md`, `docs/08-generation-0a1-contrat-implementation.md` |
+| D-017 | Reprise causale | Le résultat de validation temporaire est checkpointé avant l’intention ; après ce checkpoint, une reprise réutilise les preuves, l’intention et la réponse historiques sans relancer silencieusement l’IA. | EXPÉRIMENTALE | `docs/06-generation-0a-contrat-tour-et-evenements.md`, `docs/08-generation-0a1-contrat-implementation.md` |
 
 ---
 

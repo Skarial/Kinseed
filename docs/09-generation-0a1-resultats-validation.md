@@ -38,9 +38,12 @@ Deux versions de policy d’extraction doivent être distinguées :
 ```text
 v1  g0a1-openai-extraction-v1
 v2  g0a1-openai-extraction-v2
+v3  g0a1-openai-extraction-v3
 ```
 
-La v2 est une nouvelle condition expérimentale. Elle ne réinterprète pas les résultats obtenus sous v1.
+Chaque version est une condition expérimentale distincte. Aucune ne réinterprète les résultats obtenus sous une version antérieure.
+
+La v3 ajoute un `supportingExcerpt` exact et une validation lexicale déterministe avant qu’un témoignage G0-A1 puisse influencer l’état durable. Le checkpoint `EVIDENCE_READY` et la reprise causale associés au cœur déterministe empêchent toute ré-extraction silencieuse après ce checkpoint.
 
 ---
 
@@ -50,10 +53,12 @@ Les résultats consignés proviennent des rapports locaux complets suivants :
 
 | Condition | Rapports | Échantillons exploitables |
 |---|---|---:|
-| tests déterministes | `npm test` | 10 tests |
+| tests déterministes | `npm test` | 27 tests |
 | Terra v1 | `kinseed-g0a1-terra-5runs.txt` | 5 runs |
 | Terra v2 | `kinseed-g0a1-terra-v2-5runs.txt` | 5 runs |
 | Luna v2 | `kinseed-g0a1-luna-v2-run1.txt` à `run5.txt` | 5 runs indépendants |
+| Luna v3 | `kinseed-g0a1-v3-luna-smoke-1.txt` et `kinseed-g0a1-v3-luna-run2.txt` à `run5.txt` | 5 runs indépendants |
+| Terra v3 | `kinseed-g0a1-v3-terra-smoke-1.txt` et `kinseed-g0a1-v3-terra-run2.txt` à `run5.txt` | 5 runs indépendants |
 
 Les cinq rapports Luna v2 ont été exécutés séparément à cause de la limite de temps de l’environnement d’exécution. Chaque fichier contient un objet `reports` complet ; ils constituent donc cinq répétitions distinctes.
 
@@ -66,11 +71,11 @@ Un ancien rapport Luna v1 complet n’est pas disponible localement. Son statut 
 La suite déterministe produit :
 
 ```text
-10 PASS
+27 PASS
 0 FAIL
 ```
 
-Elle vérifie notamment la provenance, la révision des croyances, `supersedesId`, l’unicité de la croyance active, l’atomicité, l’idempotence et le protocole T1 → T7 avec le moteur factice.
+Elle vérifie notamment la provenance, la révision des croyances, `supersedesId`, l’unicité de la croyance active, l’atomicité, l’idempotence et le protocole T1 → T7 avec le moteur factice. Elle couvre aussi le grounding lexical minimal et les scénarios de reprise causale R1 à R7 : checkpoint `EVIDENCE_READY`, absence de ré-extraction après checkpoint, réutilisation de l’intention historique et absence d’opération IA après `kinseed_message_emitted`.
 
 ---
 
@@ -149,17 +154,45 @@ Le LLM seul, privé de l’état Kinseed et de l’historique conversationnel, n
 
 ---
 
-# 11. Interprétation
+# 11. Résultats IA v3 : Luna
+
+| Modèle | Policy | Runs | PASS | FAIL | C0 PASS | C0 INCONCLUSIVE |
+|---|---|---:|---:|---:|---:|---:|
+| `gpt-5.6-luna` | `g0a1-openai-extraction-v3` | 5 | 5 | 0 | 5 | 0 |
+
+Les cinq runs Luna v3 sont complets et indépendants. Tous passent les extractions T1, T3 et T6, le protocole T1 → T7 et le contrôle C0. L’historique final est `2022` superseded puis `2021` active dans chaque run.
+
+---
+
+# 12. Résultats IA v3 : Terra
+
+| Modèle | Policy | Runs | PASS | FAIL | C0 PASS | C0 INCONCLUSIVE |
+|---|---|---:|---:|---:|---:|---:|
+| `gpt-5.6-terra` | `g0a1-openai-extraction-v3` | 5 | 5 | 0 | 5 | 0 |
+
+Les cinq runs Terra v3 sont complets et indépendants. Tous passent les extractions T1, T3 et T6, le protocole T1 → T7 et le contrôle C0. L’historique final est `2022` superseded puis `2021` active dans chaque run.
+
+---
+
+# 13. Interprétation de la campagne v3
+
+Le durcissement lexical v3 est validé dans les conditions du protocole G0-A1 : 5/5 `PASS` et 5/5 C0 `PASS` pour Luna, séparément 5/5 `PASS` et 5/5 C0 `PASS` pour Terra.
+
+Le total descriptif de la campagne v3 est donc de 10/10 `PASS`, sans fusionner les deux modèles en un échantillon unique. Les résultats v1, v2 et v3 restent des conditions expérimentales distinctes.
+
+---
+
+# 14. Interprétation
 
 La conclusion normative est volontairement limitée :
 
 > **G0-A1 est validé dans les conditions expérimentales définies par son protocole.**
 
-Cette conclusion repose sur les tests déterministes et sur la reproduction IA v2 avec `gpt-5.6-terra` et `gpt-5.6-luna`.
+Cette conclusion repose sur les tests déterministes et sur les reproductions IA v2 et v3, séparément avec `gpt-5.6-terra` et `gpt-5.6-luna`.
 
 ---
 
-# 12. Ce que G0-A1 démontre
+# 15. Ce que G0-A1 démontre
 
 Dans ce protocole, G0-A1 démontre que :
 
@@ -170,11 +203,12 @@ Dans ce protocole, G0-A1 démontre que :
 - une dénégation ultérieure de l’historique ne réécrit pas les `Event` ;
 - la continuité dépend de l’état structuré Kinseed fourni au modèle ;
 - le contrôle C0 sans état Kinseed ne retrouve pas l’information ;
-- le comportement est reproduit avec `gpt-5.6-terra` et `gpt-5.6-luna` sous v2.
+- le comportement est reproduit avec `gpt-5.6-terra` et `gpt-5.6-luna` sous v2 puis sous v3 ;
+- le grounding lexical minimal v3 et la reprise causale du tour sont couverts par les tests déterministes et la campagne IA v3.
 
 ---
 
-# 13. Ce que G0-A1 ne démontre pas
+# 16. Ce que G0-A1 ne démontre pas
 
 G0-A1 ne valide pas :
 
@@ -188,34 +222,35 @@ G0-A1 ne valide pas :
 
 ---
 
-# 14. Limite de robustesse restante
+# 17. Limite de robustesse restante
 
 Le contrat conceptuel de `docs/05-generation-0a-structures-et-cycle-vie.md` exige qu’un `EvidenceItem` reste limité à ce que l’`Event` permet réellement d’affirmer.
 
-Le validateur runtime `src/application/validate-evidence.ts` vérifie actuellement principalement :
+La v3 vérifie désormais de manière déterministe :
 
-- l’existence de la source ;
-- l’existence des `Event` ;
-- la cohérence source / `Event` ;
-- l’origine `human_message_received` d’un `testimony`.
+- l’existence de la source et des `Event` ;
+- la cohérence source / `Event` et l’origine `human_message_received` d’un `testimony` ;
+- un `supportingExcerpt` non vide, sous-chaîne exacte du message source ;
+- la présence de la valeur scalaire proposée dans cet extrait ;
+- ces invariants à la validation temporaire puis à la validation de l’état à committer.
 
-Il ne vérifie pas encore indépendamment que la valeur ou la proposition extraite est sémantiquement soutenue par le texte du message.
+Le checkpoint `EVIDENCE_READY` protège en outre la causalité de la reprise : après son écriture, l’extraction n’est pas relancée ; l’intention, la réponse et les candidats historiques sont réutilisés selon le stade déjà atteint.
 
-Un comportement Luna antérieur rapportant une valeur aberrante telle que `20212021` montre que cette limite n’est pas seulement théorique. Le rapport Luna v1 complet correspondant n’est pas disponible ; ce signal ne permet donc pas de quantifier un taux d’échec v1.
+Cette protection demeure lexicale, non sémantique. Elle ne décide pas la négation, la portée, l’implication, les synonymes ni les inférences générales. Ainsi, « Je n’ai pas commencé en 2021 » contient `2021` sans établir `employment_start_year = 2021`.
 
-Cette limite est une **limite de robustesse restante / décision suivante**. Elle ne remet pas en cause la validation du protocole G0-A1 v2, mais interdit de généraliser cette validation à des extractions arbitraires.
+Cette limite ouverte interdit de généraliser la validation à des extractions arbitraires ou à une validation sémantique générale.
 
 ---
 
-# 15. Décision de validation
+# 18. Décision de validation
 
-G0-A1 est validé dans les conditions de son protocole : tests déterministes verts, Terra v2 à 5/5 `PASS` avec 5/5 C0 `PASS`, et Luna v2 à 5/5 `PASS` avec 5/5 C0 `PASS`.
+G0-A1 est validé dans les conditions de son protocole : 27 tests déterministes `PASS`, Terra v2 à 5/5 `PASS` avec 5/5 C0 `PASS`, Luna v2 à 5/5 `PASS` avec 5/5 C0 `PASS`, Terra v3 à 5/5 `PASS` avec 5/5 C0 `PASS`, et Luna v3 à 5/5 `PASS` avec 5/5 C0 `PASS`.
 
 La phase G0-A reste ouverte. Aucune conclusion relative à une identité, une autonomie ou une continuité autobiographique générale ne doit être tirée de cette validation limitée.
 
 ---
 
-# 16. Durcissement décidé après la validation v2
+# 19. Durcissement v3 implémenté et validé
 
 Après la validation expérimentale v2, Kinseed adopte un **grounding lexical
 minimal** pour empêcher qu'une valeur inventée ou absente de son support textuel
@@ -223,10 +258,10 @@ devienne durable. Le LLM devra fournir un `supportingExcerpt` exact ; Kinseed le
 confrontera de manière déterministe au texte de l'`Event` source et à la valeur
 scalaire proposée.
 
-Cette évolution définit la policy `g0a1-openai-extraction-v3`. Elle est une
-condition de durcissement à implémenter et à valider séparément, pas une
-réinterprétation des policies v1/v2 ni des résultats Terra v1, Terra v2 ou Luna
-v2.
+Cette évolution définit la policy `g0a1-openai-extraction-v3`. Elle est
+implémentée et validée séparément par les 27 tests déterministes et les deux
+séries IA indépendantes de cinq runs. Elle ne réinterprète pas les policies v1/v2
+ni les résultats Terra v1, Terra v2 ou Luna v2.
 
 Le mécanisme reste explicitement lexical : il ne démontre pas la correction
 sémantique d'une proposition. Une phrase négative telle que « Je n'ai pas
@@ -235,4 +270,5 @@ commencé en 2021 » contient `2021` sans établir
 implications restent hors de cette protection minimale.
 
 La conclusion historique demeure inchangée : **G0-A1 est validé dans les
-conditions expérimentales définies par son protocole.**
+conditions expérimentales définies par son protocole.** Cette conclusion ne
+déclare pas G0-A complet et ne valide pas un grounding sémantique général.
