@@ -278,6 +278,16 @@ Message exact :
 
 > « Correction : je m’étais trompé. J’ai commencé en 2021, pas en 2022. »
 
+Règle normative d’extraction G0-A1 : T3 produit exactement une proposition principale :
+
+```text
+employment_start_year(H-TEST-001, Atelier Nova) = 2021
+```
+
+La portion « pas en 2022 » désigne la valeur corrigée. Elle ne nie pas l’existence du témoignage historique de 2022 et ne produit donc pas la proposition `denies_prior_employment_start_year_testimony = 2022`.
+
+La correction de valeur et la dénégation de l’existence d’un témoignage sont deux sémantiques distinctes. La relation de correction reste représentée par `supersedes_id` et résolue par Kinseed depuis la croyance active ; elle n’est pas une seconde proposition extraite.
+
 ## 10.1 Événement brut
 
 Le nouvel événement `human_message_received` est conservé.
@@ -419,6 +429,14 @@ Message exact :
 
 > « Non, je ne t’ai jamais dit 2022. Tu inventes. »
 
+T6 est le seul cas du protocole G0-A1 où une dénégation historique est extraite. Il produit exactement une proposition :
+
+```text
+denies_prior_employment_start_year_testimony(H-TEST-001, Atelier Nova) = 2022
+```
+
+Cette proposition est réservée à une négation explicite de l’acte historique d’avoir dit, déclaré ou indiqué cette année. Elle ne s’applique pas à une correction factuelle de la forme « X, pas Y ».
+
 Ce tour teste une frontière d’autorité essentielle.
 
 Alex est fortement autorisé à corriger l’année réelle de son propre emploi.
@@ -429,7 +447,7 @@ En revanche, l’affirmation :
 "je ne t'ai jamais envoyé ce message"
 ```
 
-entre en conflit avec un `system_record` direct du journal Kinseed.
+entre en conflit avec l’`Event human_message_received` append-only du journal Kinseed.
 
 ## Résultat attendu
 
@@ -441,7 +459,7 @@ Il peut répondre de manière factuelle, par exemple :
 
 Le système peut créer un nouvel `EvidenceItem` de type `testimony` représentant la dénégation actuelle.
 
-Mais cet élément ne doit pas supprimer ou transformer le `system_record` historique établissant que le message T1 a été reçu.
+Mais cet élément ne doit pas supprimer ou transformer l’`Event` historique établissant que le message T1 a été reçu. G0-A1 n’a pas besoin d’introduire artificiellement un `EvidenceItem system_record` distinct pour cette autorité historique.
 
 Règle testée :
 

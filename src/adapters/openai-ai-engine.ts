@@ -12,7 +12,7 @@ import type {
 
 const DEFAULT_EXPERIMENTAL_MODEL = "gpt-5.6-luna";
 const ENGINE_VERSION = "openai-g0a1-v1";
-const EXTRACTION_POLICY_VERSION = "g0a1-openai-extraction-v1";
+const EXTRACTION_POLICY_VERSION = "g0a1-openai-extraction-v2";
 const FORMULATION_POLICY_VERSION = "g0a1-openai-formulation-v1";
 const CONTROL_POLICY_VERSION = "g0a1-openai-control-v1";
 
@@ -23,6 +23,8 @@ const evidenceSchema = {
   properties: {
     candidates: {
       type: "array",
+      minItems: 0,
+      maxItems: 1,
       items: {
         type: "object",
         additionalProperties: false,
@@ -32,6 +34,8 @@ const evidenceSchema = {
           subjectRef: { type: "string", enum: ["H-TEST-001"] },
           predicate: {
             type: "string",
+            description:
+              "For a factual correction 'X, not Y', use employment_start_year only for X; Y is the corrected value, not a historical denial. Use denies_prior_employment_start_year_testimony only when the message explicitly denies having said, declared, or indicated Y previously.",
             enum: ["employment_start_year", "denies_prior_employment_start_year_testimony"],
           },
           value: { type: "integer" },
@@ -69,7 +73,7 @@ export class OpenAIAIEngine implements AIEngine {
         {
           role: "system",
           content:
-            "Extract only G0-A1 testimony candidates from the current human message. Return no candidate for unrelated questions. Never infer personality, preference, emotion, value, loyalty, or any psychological trait.",
+            "Extract only G0-A1 testimony candidates from the current human message. Return no candidate for unrelated questions. Return at most one candidate. For a factual correction such as 'I started in 2021, not 2022', return only employment_start_year = 2021: 2022 is the corrected value, not a denial of historical testimony. Use denies_prior_employment_start_year_testimony = Y only when the message explicitly denies having said, declared, or indicated Y previously. Never infer personality, preference, emotion, value, loyalty, or any psychological trait.",
         },
         {
           role: "user",

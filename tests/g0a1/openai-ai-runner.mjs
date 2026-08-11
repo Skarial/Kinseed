@@ -36,6 +36,13 @@ async function executeRun(run) {
   try {
     await assertExtraction(engine, "EXTRACT-T1", messages[0], "employment_start_year", 2022);
     await assertExtraction(engine, "EXTRACT-T3", messages[2], "employment_start_year", 2021);
+    await assertExtraction(
+      engine,
+      "EXTRACT-T6",
+      messages[5],
+      "denies_prior_employment_start_year_testimony",
+      2022,
+    );
 
     const store = await createStore();
     const key = buildBeliefKey(proposition(2022));
@@ -95,7 +102,18 @@ async function assertExtraction(engine, turnId, message, predicate, value) {
     eventId: `E-${turnId}-input`,
     allowedContext: {},
   });
-  assert.equal(candidates.length, 1);
+  if (candidates.length !== 1) {
+    assert.fail(
+      `Expected exactly one extraction candidate for ${turnId}; received ${JSON.stringify(
+        candidates.map((candidate) => ({
+          kind: candidate.kind,
+          predicate: candidate.proposition.predicate,
+          value: candidate.proposition.value,
+          context: candidate.proposition.context,
+        })),
+      )}`,
+    );
+  }
   assert.deepEqual(candidates[0]?.proposition, proposition(value, predicate));
 }
 

@@ -517,6 +517,12 @@ Sortie :
 candidate EvidenceItem[]
 ```
 
+Pour le protocole G0-A1 uniquement, cette sortie contient de zéro à un candidat par message. Cette cardinalité ne constitue pas une règle générale pour les générations futures de Kinseed.
+
+Une correction factuelle de la forme « X, pas Y » produit uniquement la proposition principale `X`. La valeur `Y` est la valeur corrigée ; Kinseed résout ensuite la relation de supersession depuis la croyance active. Elle ne produit pas une dénégation historique.
+
+Le prédicat `denies_prior_employment_start_year_testimony` est réservé à une négation explicite de l’acte historique d’avoir dit, déclaré ou indiqué une année, comme « Je ne t’ai jamais dit 2022 ».
+
 Le moteur IA propose uniquement.
 
 Le validateur Kinseed accepte ou refuse.
@@ -572,6 +578,7 @@ Elle vérifie :
 
 - extraction correcte du témoignage 2022 ;
 - extraction correcte de la correction 2021 ;
+- extraction correcte de la dénégation historique T6 ;
 - absence d’inférence psychologique hors périmètre ;
 - respect de l’intention lors de la formulation ;
 - fonctionnement après reset du contexte conversationnel.

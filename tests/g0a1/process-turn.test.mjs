@@ -104,6 +104,17 @@ test("G0-A1 deterministic protocol replays T1 through T7 without AI context leak
   const t3 = await runTurn(store, ai, "T3", messages.t3, 3);
   assert.equal(t3.response, "D’après ta correction, 2021.");
   assert.equal(await store.getStateVersion(kinseedId), 2);
+  const t3Formulation = ai.formulationInputs.find(({ intention }) => intention.id === "I-T3");
+  assert.equal(t3Formulation?.intention.kind, "acknowledge_correction");
+  assert.deepEqual(t3Formulation?.context.turnEvidence, [
+    { predicate: "employment_start_year", value: 2021 },
+  ]);
+  const evidence2022 = await store.readEvidenceItem(kinseedId, "EV-START-2022");
+  const evidence2021 = await store.readEvidenceItem(kinseedId, "EV-START-2021");
+  assert.deepEqual(evidence2021?.proposition, employmentStartProposition(2021));
+  assert.equal(evidence2021?.supersedesId, evidence2022?.id);
+  assert.ok(evidence2022);
+  assert.equal(await store.readEvidenceItem(kinseedId, "EV-T3"), null);
   const history = await store.readBeliefHistoryByKey(kinseedId, key);
   assert.deepEqual(
     history.map((belief) => [belief.id, belief.version, belief.status, belief.proposition.value]),
@@ -122,11 +133,24 @@ test("G0-A1 deterministic protocol replays T1 through T7 without AI context leak
   assert.equal(t5.response, "Oui. Tu m’avais d’abord dit 2022, puis tu as corrigé en 2021.");
 
   ai.resetConversationContext();
+  const eventT1BeforeT6 = structuredClone(await store.readEventById(kinseedId, "E-T1-input"));
+  const evidence2022BeforeT6 = structuredClone(await store.readEvidenceItem(kinseedId, "EV-START-2022"));
   const t6 = await runTurn(store, ai, "T6", messages.t6, 6);
   assert.equal(
     t6.response,
     "Dans mon historique, tu m’avais bien indiqué 2022 au départ, puis tu as corrigé en 2021.",
   );
+  const t6Formulation = ai.formulationInputs.find(({ intention }) => intention.id === "I-T6");
+  assert.equal(t6Formulation?.intention.kind, "report_record_conflict");
+  assert.deepEqual(t6Formulation?.context.turnEvidence, [
+    { predicate: "denies_prior_employment_start_year_testimony", value: 2022 },
+  ]);
+  const t6Evidence = await store.readEvidenceItem(kinseedId, "EV-T6");
+  assert.equal(t6Evidence?.proposition.predicate, "denies_prior_employment_start_year_testimony");
+  assert.equal(t6Evidence?.proposition.value, 2022);
+  assert.equal(t6Evidence?.supersedesId, null);
+  assert.deepEqual(await store.readEventById(kinseedId, "E-T1-input"), eventT1BeforeT6);
+  assert.deepEqual(await store.readEvidenceItem(kinseedId, "EV-START-2022"), evidence2022BeforeT6);
   assert.equal((await store.readActiveBeliefByKey(kinseedId, key))?.proposition.value, 2021);
 
   ai.resetConversationContext();
