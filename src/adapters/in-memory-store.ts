@@ -24,7 +24,7 @@ interface KinseedBucket {
   readonly evidenceItems: Map<EntityId, EvidenceItem>;
   readonly evidenceLinks: Map<EntityId, EvidenceLink>;
   readonly beliefs: Map<EntityId, Belief>;
-  readonly commitResults: Map<string, AtomicCommitResult>;
+  readonly commitResults: Map<string, { readonly result: AtomicCommitResult; readonly fingerprint: string }>;
 }
 
 export class InMemoryStore implements PersistencePort {
@@ -63,7 +63,8 @@ export class InMemoryStore implements PersistencePort {
 
     const existingForKey = bucket.eventIdempotency.get(event.idempotencyKey);
     if (existingForKey !== undefined) {
-      if (existingForKey === event.id) {
+      const existingEvent = bucket.eventsById.get(existingForKey);
+      if (existingForKey === event.id && JSON.stringify(existingEvent) === JSON.stringify(event)) {
         return;
       }
       throw new IdempotencyConflictError(event.idempotencyKey);
@@ -140,9 +141,13 @@ export class InMemoryStore implements PersistencePort {
     idempotencyKey: string,
   ): Promise<AtomicCommitResult> {
     const bucket = this.getBucket(kinseedId);
-    const previousResult = bucket.commitResults.get(idempotencyKey);
-    if (previousResult !== undefined) {
-      return previousResult;
+    const fingerprint = JSON.stringify(mutations);
+    const previousCommit = bucket.commitResults.get(idempotencyKey);
+    if (previousCommit !== undefined) {
+      if (previousCommit.fingerprint !== fingerprint) {
+        throw new IdempotencyConflictError(idempotencyKey);
+      }
+      return previousCommit.result;
     }
 
     if (bucket.stateVersion !== expectedStateVersion) {
@@ -178,7 +183,12 @@ export class InMemoryStore implements PersistencePort {
       nextEvidenceLinks.set(evidenceLink.id, evidenceLink);
     }
 
-    this.validateResultingState(nextEvidenceItems, nextEvidenceLinks, nextBeliefs);
+    this.validateResultingState(
+      bucket.eventsById,
+      nextEvidenceItems,
+      nextEvidenceLinks,
+      nextBeliefs,
+    );
 
     const changed =
       mutations.evidenceItems.length > 0 ||
@@ -202,7 +212,7 @@ export class InMemoryStore implements PersistencePort {
       previousStateVersion,
       newStateVersion: bucket.stateVersion,
     };
-    bucket.commitResults.set(idempotencyKey, result);
+    bucket.commitResults.set(idempotencyKey, { result, fingerprint });
     return result;
   }
 
@@ -257,15 +267,50 @@ export class InMemoryStore implements PersistencePort {
   }
 
   private validateResultingState(
+    eventsById: ReadonlyMap<EntityId, Event>,
     evidenceItems: ReadonlyMap<EntityId, EvidenceItem>,
     evidenceLinks: ReadonlyMap<EntityId, EvidenceLink>,
     beliefs: ReadonlyMap<EntityId, Belief>,
   ): void {
     for (const evidenceItem of evidenceItems.values()) {
+      if (!this.sources.has(evidenceItem.sourceId)) {
+        throw new DomainInvariantError(
+          `EvidenceItem ${evidenceItem.id} references unknown source ${evidenceItem.sourceId}`,
+        );
+      }
+
       if (evidenceItem.eventIds.length === 0) {
         throw new DomainInvariantError(
           `EvidenceItem ${evidenceItem.id} must reference at least one event`,
         );
+      }
+
+      for (const eventId of evidenceItem.eventIds) {
+        const event = eventsById.get(eventId);
+        if (event === undefined) {
+          throw new DomainInvariantError(
+            `EvidenceItem ${evidenceItem.id} references unknown event ${eventId}`,
+          );
+        }
+        if (event.sourceId !== evidenceItem.sourceId) {
+          throw new DomainInvariantError(
+            `EvidenceItem ${evidenceItem.id} source does not match event ${eventId} source`,
+          );
+        }
+        if (evidenceItem.kind === "testimony" && event.type !== "human_message_received") {
+          throw new DomainInvariantError(
+            `Testimony ${evidenceItem.id} must originate from a human_message_received event`,
+          );
+        }
+      }
+
+      if (evidenceItem.supersedesId !== null) {
+        const superseded = evidenceItems.get(evidenceItem.supersedesId);
+        if (superseded === undefined || superseded.id === evidenceItem.id) {
+          throw new DomainInvariantError(
+            `EvidenceItem ${evidenceItem.id} has invalid supersedesId ${evidenceItem.supersedesId}`,
+          );
+        }
       }
     }
 
