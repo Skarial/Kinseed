@@ -149,14 +149,22 @@ payload: "Je préfère généralement travailler seul."
 
 Le journal d’événements est logiquement append-only.
 
-Une correction ultérieure ne modifie pas silencieusement l’ancien événement. Elle produit un nouvel événement :
+Une correction ultérieure ne modifie pas silencieusement l’ancien événement. Elle apparaît comme un **nouvel** `human_message_received`. Le fait que ce nouveau message corrige une affirmation antérieure est ensuite représenté dans `EvidenceItem`, notamment via `supersedes_id`.
+
+Exemple :
 
 ```text
 E-000583
 
-type: correction_received
-corrects: E-000104
+type: human_message_received
+payload: "Je me suis trompé, c'était en 2021."
+
+EV-000583
+kind: testimony
+supersedes_id: EV-000104
 ```
+
+Cette règle évite de confondre le fait brut « un nouveau message a été reçu » avec l’interprétation « ce message corrige une preuve précédente ».
 
 Les besoins système liés à l’effacement ou à la confidentialité sont traités séparément de cette règle de cohérence historique.
 
@@ -998,6 +1006,7 @@ Jordan : "J'ai commencé ce travail en 2022."
 EV-700
 kind: testimony
 "Jordan affirme avoir commencé ce travail en 2022."
+supersedes_id: null
 ```
 
 Puis :
@@ -1009,6 +1018,7 @@ Jordan : "Je me suis trompé, c'était en 2021."
 EV-901
 kind: testimony
 "Jordan corrige son affirmation précédente et affirme avoir commencé ce travail en 2021."
+supersedes_id: EV-700
 ```
 
 `EV-700` n’est pas effacé : Jordan a réellement formulé cette affirmation auparavant.
@@ -1077,7 +1087,7 @@ Un succès de G0-A ne démontrera aucune conscience phénoménale. Il démontrer
 
 ---
 
-# 20. Prochaine décision
+# 20. État de la conception G0-A
 
 La couche épistémique minimale est désormais définie conceptuellement :
 
@@ -1088,6 +1098,8 @@ Event
 → Belief / SelfHypothesis / HumanHypothesis
 ```
 
-La prochaine étape consiste à définir **les types exacts d’événements G0-A et le contrat minimal d’un tour d’interaction** : quels événements sont obligatoires, dans quel ordre ils apparaissent, quelles erreurs peuvent interrompre le tour, et quel état doit rester valide si un appel LLM ou une validation échoue.
+Le contrat causal d’un tour et ses événements minimaux sont définis dans `docs/06-generation-0a-contrat-tour-et-evenements.md`.
 
-Cette étape doit précéder le choix de la base de données et le premier code applicatif.
+La première expérience exécutable est définie dans `docs/07-generation-0a1-protocole-croyance-provenance.md`.
+
+La prochaine étape ne consiste donc plus à inventer de nouvelles structures pour G0-A1, mais à traduire ce protocole en **schémas d’implémentation minimaux et tests reproductibles**, avant d’écrire le code applicatif complet.
