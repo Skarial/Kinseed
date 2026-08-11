@@ -20,10 +20,11 @@ G0-A doit pouvoir répondre à trois questions :
 
 # 1. Structures durables minimales
 
-G0-A utilise sept structures principales :
+G0-A utilise huit structures principales :
 
 - `Source` ;
 - `Event` ;
+- `EvidenceItem` ;
 - `Memory` ;
 - `Belief` ;
 - `SelfHypothesis` ;
@@ -37,11 +38,31 @@ Deux mécanismes transversaux les relient :
 
 Les structures comme émotions complexes, valeurs personnelles, grands projets ou attachement ne font pas partie de G0-A.
 
+La séparation fondamentale est :
+
+```text
+Event
+= ce qui s'est produit
+
+EvidenceItem
+= ce qui peut être extrait de cet événement sans dépasser ce qu'il permet d'affirmer
+
+Belief / Hypothesis
+= ce que Kinseed en conclut provisoirement
+```
+
+Cette couche intermédiaire empêche le passage direct :
+
+```text
+phrase humaine
+→ croyance durable
+```
+
 ---
 
 # 2. Source
 
-Une `Source` indique l’origine d’une information.
+Une `Source` indique l’origine sémantique d’une information.
 
 Schéma conceptuel minimal :
 
@@ -76,34 +97,53 @@ Règle :
 
 > **Autorité = source + type de proposition + contexte.**
 
+Il faut distinguer la **source de l’information** du mécanisme qui l’extrait.
+
+Si Jordan écrit une phrase et qu’un LLM la transforme en structure, la source reste Jordan. Le modèle utilisé pour l’extraction est enregistré comme métadonnée technique et ne devient pas artificiellement la source du contenu.
+
 ---
 
 # 3. Event : source historique primaire
 
 `Event` représente ce qui s’est réellement produit dans le système.
 
-Schéma conceptuel minimal :
+Schéma conceptuel de travail :
 
 ```text
 Event
 
 id
+sequence
 type
 occurred_at
+turn_id
 source_id
 actor_ref
+caused_by_event_ids
+observed_state_version
 payload
-parent_event_ids
-state_version
+payload_schema_version
+engine_version
 ```
+
+`sequence` fournit un ordre historique strict lorsque les horodatages ne suffisent pas.
+
+`turn_id` regroupe les événements appartenant à une même interaction.
+
+`caused_by_event_ids` exprime une causalité opérationnelle entre événements, sans remplacer les liens de preuve épistémiques.
+
+`observed_state_version` indique la version durable de Kinseed disponible lorsque l’événement décisionnel a été produit.
 
 Exemple :
 
 ```text
 E-000104
 
+sequence: 104
 type: human_message_received
+turn_id: T-0041
 source_id: SRC-HUMAN
+observed_state_version: 31
 payload: "Je préfère généralement travailler seul."
 ```
 
@@ -132,26 +172,191 @@ APPEND AU JOURNAL
 IMMUTABLE LOGIQUEMENT
 ```
 
-Un événement n’est jamais « promu » en croyance ou en trait. Il peut seulement devenir une preuve utilisée par d’autres structures.
+Un événement n’est jamais « promu » en croyance ou en trait. Il constitue la matière historique à partir de laquelle des unités de preuve peuvent être extraites.
 
 ---
 
-# 4. EvidenceLink : relation entre preuve et conclusion
+# 4. EvidenceItem : unité épistémique extraite d’un événement
 
-Une simple liste d’identifiants d’événements ne suffit pas.
+`EvidenceItem` constitue la couche intermédiaire entre le journal brut et les croyances ou hypothèses.
 
-`EvidenceLink` décrit comment une donnée soutient ou contredit une conclusion.
+Il représente une proposition limitée à ce que l’événement permet réellement d’affirmer.
+
+Schéma conceptuel minimal :
+
+```text
+EvidenceItem
+
+id
+kind
+proposition
+subject_ref
+source_id
+event_ids
+extraction_confidence
+status
+created_at
+supersedes_id
+extractor_version
+```
+
+Types initiaux autorisés en G0-A :
+
+```text
+testimony
+behavioral_observation
+system_record
+```
+
+## 4.1 Testimony
+
+Exemple d’événement brut :
+
+```text
+Jordan écrit :
+"J'aime beaucoup travailler seul."
+```
+
+L’unité de preuve correcte est :
+
+```text
+EV-014
+kind: testimony
+proposition:
+"Jordan affirme aimer beaucoup travailler seul."
+source_id: SRC-JORDAN
+event_ids: [E-104]
+```
+
+Elle ne doit pas être :
+
+```text
+"Jordan préfère réellement travailler seul."
+```
+
+Cette seconde proposition est déjà une conclusion et appartient à `Belief`.
+
+Elle ne doit pas non plus être :
+
+```text
+"Jordan est profondément indépendant."
+```
+
+Cette proposition constitue une interprétation psychologique plus large et appartient éventuellement à `HumanHypothesis`.
+
+## 4.2 Behavioral observation
+
+Une action réelle du Kinseed peut être transformée en observation comportementale.
+
+Exemple :
+
+```text
+EV-090
+kind: behavioral_observation
+proposition:
+"Dans cette situation, Kinseed a cherché une information supplémentaire avant de conclure."
+event_ids: [E-510, E-511]
+```
+
+Cette unité peut servir de preuve à une `SelfHypothesis`.
+
+En revanche :
+
+```text
+Kinseed dit : "Je suis prudent."
+```
+
+reste une auto-déclaration linguistique et ne possède pas le même poids qu’une observation comportementale indépendante.
+
+## 4.3 System record
+
+Certains faits techniques peuvent être établis directement par le système.
+
+Exemple :
+
+```text
+EV-001
+kind: system_record
+proposition:
+"Le Kinseed a été créé à l'instant T."
+event_ids: [E-001]
+```
+
+## 4.4 Ce qui est interdit dans EvidenceItem
+
+`EvidenceItem` ne doit pas contenir une inférence psychologique libre.
+
+Exemples interdits comme unités de preuve directes :
+
+```text
+"Jordan valorise profondément son autonomie."
+"Kinseed est une personne prudente."
+"Jordan était probablement triste."
+```
+
+Ces propositions nécessitent une interprétation et doivent passer par les registres de croyances ou d’hypothèses appropriés.
+
+## 4.5 Validation d’extraction
+
+Avant qu’un `EvidenceItem` devienne durable, le système vérifie notamment :
+
+- que les événements référencés existent ;
+- que la proposition est bien soutenue par ces événements ;
+- qu’elle ne transforme pas un témoignage en fait établi ;
+- qu’elle n’ajoute pas de détail absent ;
+- que son `kind` correspond réellement à sa provenance ;
+- que la source sémantique n’est pas confondue avec l’extracteur technique.
+
+Cycle de vie :
+
+```text
+candidate
+   ↓ validation d'extraction
+active
+   ↓ correction / nouvel élément
+superseded ou invalidated
+
+candidate ──→ rejected
+```
+
+Un `EvidenceItem` ancien peut rester historiquement vrai tout en cessant d’être pertinent pour l’état actuel.
+
+Exemple :
+
+```text
+"Jordan a affirmé en 2026 avoir commencé son travail en 2022."
+```
+
+reste historiquement vrai même si Jordan corrige ensuite l’année à 2021.
+
+---
+
+# 5. EvidenceLink : relation entre unité de preuve et conclusion
+
+`EvidenceLink` ne relie plus directement un événement brut à une croyance.
+
+Il relie un `EvidenceItem` validé à une conclusion déterminée.
 
 ```text
 EvidenceLink
 
-event_id
+evidence_item_id
+target_type
+target_id
 relation
-directness
 source_authority
 independence_group
 causal_contamination
+relevance
 weight_class
+```
+
+Exemples de `target_type` :
+
+```text
+belief
+self_hypothesis
+human_hypothesis
 ```
 
 Exemples de `relation` :
@@ -162,6 +367,8 @@ contradicts
 context_only
 ```
 
+`source_authority` est évaluée relativement à la conclusion ciblée.
+
 `independence_group` évite de considérer dix répétitions provenant de la même origine comme dix preuves indépendantes.
 
 `causal_contamination` indique si une action a été fortement provoquée par la conclusion qu’elle est ensuite censée confirmer.
@@ -169,12 +376,14 @@ context_only
 Exemple :
 
 ```text
-event_id: E-208
+evidence_item_id: EV-090
+target_type: self_hypothesis
+target_id: SH-004
 relation: supports
-directness: direct_behavior
 source_authority: high
 independence_group: CONTEXT-12
 causal_contamination: low
+relevance: high
 weight_class: medium
 ```
 
@@ -182,7 +391,7 @@ Aucune formule numérique définitive n’est fixée à ce stade.
 
 ---
 
-# 5. Memory : ce que Kinseed retient
+# 6. Memory : ce que Kinseed retient
 
 Un événement n’est pas automatiquement une mémoire autobiographique.
 
@@ -193,6 +402,7 @@ Memory
 
 id
 event_ids
+evidence_item_ids
 gist
 created_at
 salience
@@ -203,6 +413,8 @@ revision_of
 ```
 
 Le `gist` représente le souvenir actuel du Kinseed. Il n’est jamais la source historique primaire.
+
+Les faits contenus dans le `gist` doivent pouvoir être ramenés à des `EvidenceItem` actifs ou à des événements historiques identifiables.
 
 ## Cycle de vie G0-A
 
@@ -225,6 +437,7 @@ Un `candidate_memory` peut être proposé lorsqu’un événement possède une u
 Pour être accepté :
 
 - tous les événements référencés doivent exister ;
+- les unités de preuve utilisées doivent être traçables ;
 - le `gist` ne doit ajouter aucun détail factuel absent des sources ;
 - observation et interprétation doivent rester distinguables ;
 - la provenance doit être conservée.
@@ -233,7 +446,7 @@ Une phrase plausible du LLM ne peut pas devenir une mémoire si aucun événemen
 
 ---
 
-# 6. Belief : conclusion provisoire sur le monde ou l’humain
+# 7. Belief : conclusion provisoire sur le monde ou l’humain
 
 Schéma minimal :
 
@@ -251,6 +464,8 @@ created_at
 updated_at
 previous_version_id
 ```
+
+`evidence_for` et `evidence_against` référencent des `EvidenceLink`, et non directement le texte brut d’une conversation.
 
 Scopes initiaux :
 
@@ -284,7 +499,7 @@ candidate ──→ rejected
 La proposition doit :
 
 - être clairement formulée ;
-- posséder au moins une provenance identifiable ;
+- posséder au moins une unité de preuve validée ;
 - ne pas transformer une interprétation en observation ;
 - conserver les contre-preuves déjà connues.
 
@@ -294,7 +509,7 @@ Elle ne dépend pas d’un nombre fixe de messages.
 
 La validation examine notamment :
 
-- directivité des preuves ;
+- nature des preuves ;
 - autorité de la source pour la proposition ;
 - indépendance des preuves ;
 - cohérence entre contextes ;
@@ -307,13 +522,13 @@ Une seule preuve directe très autoritative peut parfois être suffisante pour u
 
 Une nouvelle preuve ne remplace jamais immédiatement la croyance actuelle.
 
-Le système ajoute d’abord une `EvidenceLink`, recalcule son statut, puis peut produire une nouvelle version.
+Le système ajoute d’abord une unité de preuve et un `EvidenceLink`, recalcule son statut, puis peut produire une nouvelle version.
 
 L’ancienne version reste accessible comme histoire épistémique mais ne doit plus influencer les décisions courantes si elle est `superseded`.
 
 ---
 
-# 7. SelfHypothesis : début du modèle de soi
+# 8. SelfHypothesis : début du modèle de soi
 
 G0-A ne possède pas encore de `stable_trait`.
 
@@ -333,6 +548,8 @@ updated_at
 status
 ```
 
+Les preuves sont des `EvidenceLink` vers des observations comportementales ou d’autres unités admissibles.
+
 Stages autorisés en G0-A :
 
 ```text
@@ -351,7 +568,7 @@ Une déclaration du type :
 "Je suis prudent."
 ```
 
-peut devenir un événement linguistique, mais ne peut pas promouvoir directement une `SelfHypothesis`.
+peut devenir un événement linguistique et éventuellement un `EvidenceItem` de type témoignage sur sa propre représentation actuelle, mais ne peut pas promouvoir directement une `SelfHypothesis`.
 
 Même règle si l’humain déclare :
 
@@ -359,7 +576,7 @@ Même règle si l’humain déclare :
 "Tu es prudent."
 ```
 
-Cette phrase renseigne d’abord sur la représentation que l’humain possède du Kinseed.
+Cette phrase constitue d’abord un témoignage concernant le regard de l’humain sur Kinseed. Elle ne vaut pas observation comportementale indépendante.
 
 ## Promotion `observation → hypothesis`
 
@@ -376,12 +593,14 @@ Le validateur examine notamment :
 
 ## Discount causal
 
-Si `SH-004` influence fortement une action, cette action reçoit un poids réduit lorsqu’elle sert ensuite à confirmer `SH-004`.
+Si `SH-004` influence fortement une action, l’`EvidenceItem` comportemental issu de cette action reçoit un poids réduit lorsqu’il sert ensuite à confirmer `SH-004`.
 
 ```text
 SH-004 "je tends à chercher plus d'informations"
     ↓ cause partielle
 ACTION A
+    ↓
+EV-090 observation comportementale
     ↓
 preuve de SH-004 = décotée
 ```
@@ -396,7 +615,7 @@ Le passage vers un véritable trait relativement stable appartient à une phase 
 
 ---
 
-# 8. HumanHypothesis : interprétation sur l’humain
+# 9. HumanHypothesis : interprétation sur l’humain
 
 Schéma minimal :
 
@@ -418,11 +637,11 @@ Cette structure ne remplace pas les faits déclarés par l’humain.
 Exemple :
 
 ```text
-human claim:
-"J'aime souvent travailler seul."
+EvidenceItem testimony:
+"Jordan affirme aimer souvent travailler seul."
 ```
 
-peut produire une croyance concernant ce témoignage.
+peut soutenir une croyance prudente concernant cette préférence déclarée.
 
 Mais :
 
@@ -431,7 +650,7 @@ HumanHypothesis:
 "Mon humain valorise fortement son autonomie."
 ```
 
-constitue une interprétation plus large et nécessite davantage de preuves.
+constitue une interprétation plus large et nécessite davantage de preuves indépendantes.
 
 ## Cycle de vie
 
@@ -450,7 +669,7 @@ G0-A doit rester conservateur dans ces promotions afin d’éviter une pseudo-ps
 
 ---
 
-# 9. Intention : cause enregistrée avant le langage
+# 10. Intention : cause enregistrée avant le langage
 
 Schéma minimal :
 
@@ -461,9 +680,10 @@ id
 kind
 target
 trigger_event_ids
+trigger_evidence_item_ids
 trigger_belief_ids
 motivation
-state_version
+observed_state_version
 created_at
 status
 ```
@@ -476,9 +696,10 @@ I-031
 kind: ask_clarification
 target: human
 trigger_belief_ids: [B-021]
+trigger_evidence_item_ids: [EV-122]
 trigger_event_ids: [E-415]
 motivation: resolve_significant_inconsistency
-state_version: 154
+observed_state_version: 154
 ```
 
 ## Cycle de vie
@@ -507,11 +728,17 @@ Ainsi, l’explication ultérieure de la décision repose sur l’intention enre
 
 ---
 
-# 10. Barrière d’un tour : pas d’auto-rétroaction immédiate
+# 11. Barrière d’un tour : preuve éphémère mais pas d’auto-rétroaction durable
 
 G0-A adopte une règle importante :
 
 > **Les mises à jour durables dérivées d’un tour sont committées après l’émission de la réponse et ne peuvent donc pas rétroagir sur la décision du même tour.**
+
+Le message courant doit néanmoins être compris avant la réponse.
+
+Le système peut donc créer des `candidate EvidenceItem` temporaires pour le tour courant.
+
+Ils doivent subir une validation minimale d’extraction avant d’influencer une intention, mais ils ne font pas encore partie de l’état persistant.
 
 Pipeline :
 
@@ -520,45 +747,71 @@ Pipeline :
         ↓
 2. Event d'entrée ajouté
         ↓
-3. snapshot de l'état durable N
+3. extraction de candidate EvidenceItem
         ↓
-4. analyse du message + état N
+4. validation minimale d'extraction pour le tour
         ↓
-5. intentions candidates
+5. snapshot de l'état durable N
         ↓
-6. intention sélectionnée
+6. comparaison preuve du tour + état N
         ↓
-7. Event intention_selected
+7. intentions candidates
         ↓
-8. génération et validation du langage
+8. intention sélectionnée
         ↓
-9. Event kinseed_message_emitted
+9. Event intention_selected
         ↓
-10. extraction des candidats de mise à jour
+10. génération et validation du langage
         ↓
-11. validation
+11. Event kinseed_message_emitted
         ↓
-12. commit atomique
+12. validation durable des EvidenceItem et autres candidats
         ↓
-13. state_version N+1
+13. commit atomique
+        ↓
+14. state_version N+1
 ```
 
-Le message courant peut évidemment être pris en compte pour répondre.
+Ainsi une affirmation nouvelle peut immédiatement provoquer une question de clarification sans devenir immédiatement une croyance durable.
 
-Mais une nouvelle croyance ou une nouvelle hypothèse identitaire issue de ce message n’est pas autorisée à se renforcer elle-même pendant le même cycle de décision.
+Exemple :
+
+```text
+Jordan :
+"Finalement je préfère travailler en groupe."
+```
+
+peut provoquer :
+
+```text
+"Est-ce que cela dépend du contexte ou tu as vraiment l'impression d'avoir changé ?"
+```
+
+sans que Kinseed ait déjà committé :
+
+```text
+Belief:
+"Jordan préfère travailler en groupe."
+```
 
 ---
 
-# 11. Pipeline proposer → auditer → commit
+# 12. Pipeline proposer → auditer → commit
 
 Toutes les structures dérivées suivent le même modèle :
 
 ```text
 événements
     ↓
-extracteur / raisonneur
+extracteur
     ↓
-candidat
+EvidenceItem candidates
+    ↓
+validation d'extraction
+    ↓
+raisonneur
+    ↓
+autres candidats
     ↓
 validation structurelle
     ↓
@@ -583,7 +836,7 @@ Kinseed n’est donc pas obligé de choisir entre vrai et faux à chaque interac
 
 ---
 
-# 12. Décisions de validation
+# 13. Décisions de validation
 
 Chaque candidat doit produire un résultat auditable :
 
@@ -613,14 +866,15 @@ Cela permettra de comprendre non seulement pourquoi une propriété existe, mais
 
 ---
 
-# 13. Commit atomique et state_version
+# 14. Commit atomique et state_version
 
 Une interaction peut produire plusieurs modifications liées.
 
 Exemple :
 
 ```text
-nouvelle preuve
+nouvelle EvidenceItem
+→ nouveau EvidenceLink
 → révision de B-021
 → nouvelle hypothèse sur l'humain
 ```
@@ -639,7 +893,7 @@ Cela permettra ultérieurement de reconstruire exactement ce que Kinseed savait 
 
 ---
 
-# 14. Exemple complet
+# 15. Exemple complet : témoignage, preuve, croyance et hypothèse
 
 Message humain :
 
@@ -652,7 +906,13 @@ Le système produit :
 ```text
 E-920 human_message_received
         ↓
-le message contredit partiellement B-021
+candidate EV-301
+kind: testimony
+"Jordan affirme qu'il pense avoir changé et aimer maintenant travailler avec d'autres personnes."
+        ↓
+validation minimale d'extraction
+        ↓
+EV-301 temporaire contredit partiellement B-021
         ↓
 I-188 candidate
 kind: ask_clarification
@@ -664,23 +924,108 @@ LLM formule la question
         ↓
 E-921 kinseed_message_emitted
         ↓
-candidate EvidenceLink pour B-021
-candidate HumanHypothesis éventuelle
+validation durable EV-301
         ↓
-validateurs
+EvidenceLink EV-301 → B-021 : contradicts
         ↓
 B-021 peut passer de active à uncertain
+        ↓
+HumanHypothesis sur un changement profond : DEFER
         ↓
 commit state_version 155
 ```
 
-Le tour suivant utilise alors cette nouvelle version.
+Le système ne conclut donc pas immédiatement que l’humain a changé de personnalité.
 
-Le système ne conclut pas immédiatement que l’humain a changé de personnalité. Il constate seulement qu’une information nouvelle mérite une réévaluation.
+Il distingue :
+
+```text
+ce qui a été dit
+≠
+ce qui est probablement vrai
+≠
+ce que cela signifie psychologiquement
+```
 
 ---
 
-# 15. Ce que G0-A ne doit pas encore faire
+# 16. Exemple complet : formation d’une hypothèse sur soi
+
+Supposons plusieurs situations indépendantes.
+
+Dans chacune, Kinseed doit choisir entre conclure rapidement ou rechercher davantage d’information.
+
+Les actions réelles produisent des observations :
+
+```text
+EV-401
+"Dans le contexte A, Kinseed a demandé une information supplémentaire avant de conclure."
+
+EV-517
+"Dans le contexte B, Kinseed a différé sa conclusion afin de vérifier un élément contradictoire."
+
+EV-622
+"Dans le contexte C, Kinseed a cherché une nouvelle preuve avant de trancher."
+```
+
+Ces trois `EvidenceItem` peuvent ensuite soutenir :
+
+```text
+SH-004
+"J'ai tendance à rechercher davantage d'informations avant de conclure."
+```
+
+En revanche, si l’un de ces comportements a été principalement provoqué par `SH-004` déjà actif, son `EvidenceLink` reçoit une contamination causale plus élevée et un poids réduit.
+
+Une auto-déclaration :
+
+```text
+"Je crois que je suis prudent."
+```
+
+ne remplace jamais ces observations comportementales.
+
+---
+
+# 17. Correction d’une information
+
+Exemple initial :
+
+```text
+E-700
+Jordan : "J'ai commencé ce travail en 2022."
+
+EV-700
+kind: testimony
+"Jordan affirme avoir commencé ce travail en 2022."
+```
+
+Puis :
+
+```text
+E-901
+Jordan : "Je me suis trompé, c'était en 2021."
+
+EV-901
+kind: testimony
+"Jordan corrige son affirmation précédente et affirme avoir commencé ce travail en 2021."
+```
+
+`EV-700` n’est pas effacé : Jordan a réellement formulé cette affirmation auparavant.
+
+Mais pour la croyance courante concernant l’année de début :
+
+```text
+EV-901
+```
+
+possède une autorité particulière puisqu’il s’agit d’une correction explicite de l’humain sur son propre historique.
+
+La croyance courante peut donc être révisée vers 2021, tout en conservant l’histoire de l’erreur et de la correction.
+
+---
+
+# 18. Ce que G0-A ne doit pas encore faire
 
 G0-A n’implémente volontairement pas :
 
@@ -697,16 +1042,18 @@ Il peut conserver des structures préparant les phases futures, mais il ne doit 
 
 ---
 
-# 16. Critère de réussite de G0-A
+# 19. Critère de réussite de G0-A
 
 G0-A sera considéré comme fonctionnel lorsque le système pourra démontrer de manière reproductible la chaîne suivante :
 
 ```text
 HISTOIRE
    ↓
-ÉVÉNEMENTS AVEC PROVENANCE
+EVENTS
    ↓
-PREUVES
+EVIDENCE ITEMS AVEC PROVENANCE
+   ↓
+EVIDENCE LINKS
    ↓
 CROYANCES / HYPOTHÈSES PROVISOIRES
    ↓
@@ -719,6 +1066,7 @@ Et lorsque :
 
 - les conclusions durables ne peuvent pas être créées par une simple auto-déclaration du LLM ;
 - une affirmation répétée de l’humain ne devient pas automatiquement une identité ;
+- témoignage, observation et conclusion restent distincts ;
 - les croyances peuvent entrer dans un état d’incertitude et être révisées ;
 - les hypothèses sur soi conservent leurs preuves et contre-preuves ;
 - les intentions existent avant le langage ;
@@ -729,6 +1077,17 @@ Un succès de G0-A ne démontrera aucune conscience phénoménale. Il démontrer
 
 ---
 
-# 17. Prochaine décision
+# 20. Prochaine décision
 
-Après validation de ces structures conceptuelles, la prochaine étape consiste à définir **les types précis d’événements et les schémas minimums de données nécessaires pour implémenter une première expérience G0-A**, avant de choisir les technologies de stockage ou de commencer le code applicatif.
+La couche épistémique minimale est désormais définie conceptuellement :
+
+```text
+Event
+→ EvidenceItem
+→ EvidenceLink
+→ Belief / SelfHypothesis / HumanHypothesis
+```
+
+La prochaine étape consiste à définir **les types exacts d’événements G0-A et le contrat minimal d’un tour d’interaction** : quels événements sont obligatoires, dans quel ordre ils apparaissent, quelles erreurs peuvent interrompre le tour, et quel état doit rester valide si un appel LLM ou une validation échoue.
+
+Cette étape doit précéder le choix de la base de données et le premier code applicatif.
