@@ -365,6 +365,12 @@ export class InMemoryStore implements PersistencePort {
       }
 
       if (belief.status === "active") {
+        if (belief.evidenceForLinkIds.length === 0) {
+          throw new DomainInvariantError(
+            `Active belief ${belief.id} must have at least one supporting EvidenceLink`,
+          );
+        }
+
         const existingActive = activeByKey.get(belief.beliefKey);
         if (existingActive !== undefined) {
           throw new DomainInvariantError(

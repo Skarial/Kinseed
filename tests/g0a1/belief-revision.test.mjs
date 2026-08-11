@@ -406,6 +406,36 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
   assert.equal(await store.getStateVersion(kinseedId), 0);
 });
 
+test("G0-A1: the store rejects an active belief without supporting provenance", async () => {
+  const store = await createStore();
+  const unsupportedActiveBelief = {
+    id: "B-UNSUPPORTED",
+    kinseedId,
+    beliefKey: buildBeliefKey(proposition(2022)),
+    version: 1,
+    proposition: proposition(2022),
+    status: "active",
+    confidence: "high",
+    evidenceForLinkIds: [],
+    evidenceAgainstLinkIds: [],
+    previousVersionId: null,
+    createdAt: "2026-08-11T08:01:02.000Z",
+    updatedAt: "2026-08-11T08:01:02.000Z",
+  };
+
+  await assert.rejects(
+    () =>
+      store.atomicCommit(
+        kinseedId,
+        0,
+        { evidenceItems: [], evidenceLinks: [], beliefs: [unsupportedActiveBelief] },
+        "T-UNSUPPORTED:commit",
+      ),
+    DomainInvariantError,
+  );
+  assert.equal(await store.getStateVersion(kinseedId), 0);
+});
+
 test("G0-A1: reusing an idempotency key with different content is rejected", async () => {
   const store = await createStore();
   const original = event({
