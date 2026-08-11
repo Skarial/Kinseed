@@ -98,6 +98,16 @@ Ordre de lecture recommandé :
 
 Les décisions techniques sont documentées séparément dans `docs/decisions-techniques/`. Pour G0-A1, ADR-005 fixe l’utilisation initiale d’un `PersistencePort` avec un adaptateur `InMemoryStore`, sans choisir prématurément le stockage local durable.
 
+### Pilotage du projet
+
+Les documents de `docs/pilotage/` servent de garde-fous transversaux et ne remplacent pas les spécifications canoniques :
+
+- [`docs/pilotage/01-registre-decisions.md`](docs/pilotage/01-registre-decisions.md) — indexe les décisions structurantes et leur source de vérité ;
+- [`docs/pilotage/02-registre-risques.md`](docs/pilotage/02-registre-risques.md) — suit les risques conceptuels, techniques, produit et les seuils nécessitant une expertise extérieure ;
+- [`docs/pilotage/03-gates-validation.md`](docs/pilotage/03-gates-validation.md) — transforme les critères de sortie de la roadmap en checklists GO / GO CONDITIONNEL / NO-GO.
+
+Avant une modification structurante ou un changement de phase, ces documents doivent être consultés avec les spécifications concernées.
+
 ### Convention de numérotation
 
 La documentation consacrée au développement actuel est insérée **avant** le document d’héritage.
