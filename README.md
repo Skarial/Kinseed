@@ -92,8 +92,10 @@ Ordre de lecture recommandé :
 5. [`docs/05-generation-0a-structures-et-cycle-vie.md`](docs/05-generation-0a-structures-et-cycle-vie.md) — détaille les structures minimales de G0-A, la couche `EvidenceItem` et leurs règles de promotion, révision et commit.
 6. [`docs/06-generation-0a-contrat-tour-et-evenements.md`](docs/06-generation-0a-contrat-tour-et-evenements.md) — fixe les événements minimaux, l’ordre causal d’un tour, l’idempotence et le comportement attendu en cas d’échec.
 7. [`docs/07-generation-0a1-protocole-croyance-provenance.md`](docs/07-generation-0a1-protocole-croyance-provenance.md) — définit la première expérience exécutable G0-A1 sur la provenance, la persistance et la révision d’une croyance.
-8. [`docs/08-generation-0a1-contrat-implementation.md`](docs/08-generation-0a1-contrat-implementation.md) — traduit G0-A1 en contrat d’implémentation minimal et en stratégie de tests, sans encore choisir le stockage.
+8. [`docs/08-generation-0a1-contrat-implementation.md`](docs/08-generation-0a1-contrat-implementation.md) — traduit G0-A1 en contrat d’implémentation minimal, définit les invariants et la stratégie de tests.
 9. [`docs/09-regles-fondatrices-heritage.md`](docs/09-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
+
+Les décisions techniques sont documentées séparément dans `docs/decisions-techniques/`. Pour G0-A1, ADR-005 fixe l’utilisation initiale d’un `PersistencePort` avec un adaptateur `InMemoryStore`, sans choisir prématurément le stockage local durable.
 
 ### Convention de numérotation
 
@@ -132,6 +134,6 @@ Le projet ne considère pas ces mécanismes comme une preuve de conscience phén
 
 ## État actuel
 
-Le projet est actuellement en **phase de conception et de spécification expérimentale**.
+Le projet est actuellement en **phase G0-A1 — croyance, provenance et révision**.
 
-La priorité actuelle est **G0-A1 — croyance, provenance et révision**. Le protocole et son contrat d’implémentation minimal sont définis ; le dernier choix technique à faire avant le premier développement est le stockage local minimal du prototype.
+Le protocole, le contrat d’implémentation et la stratégie de persistance du premier prototype sont définis. La prochaine étape est le **premier lot de code TypeScript déterministe** : domaine, `PersistencePort`, `InMemoryStore` et tests, sans interface mobile et sans appel à un vrai LLM.
