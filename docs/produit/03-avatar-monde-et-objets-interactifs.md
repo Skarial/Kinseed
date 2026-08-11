@@ -27,7 +27,7 @@ Le principe directeur est :
 
 ## 2. Direction graphique générale
 
-La direction retenue est celle d’un **avatar humanoïde adulte semi-stylisé** dans un univers cohérent avec lui.
+La direction retenue est celle d’un **avatar humanoïde semi-stylisé**, capable d’être représenté de la naissance à la vieillesse dans un univers cohérent avec lui.
 
 Le rendu doit éviter deux extrêmes :
 
@@ -36,7 +36,7 @@ Le rendu doit éviter deux extrêmes :
 
 Le langage visuel recherché est donc :
 
-- adulte ;
+- adulte dans son traitement artistique, même lorsque le Kinseed est représenté bébé ou enfant ;
 - semi-stylisé ;
 - chaleureux ;
 - expressif ;
@@ -143,6 +143,30 @@ Cela ne signifie pas que l’algorithme d’héritage visuel doit être conçu m
 La contrainte actuelle est seulement de ne pas enfermer l’apparence dans un format qui empêcherait plus tard de recombiner certains éléments provenant de deux lignées, avec variation, transformation ou mutation.
 
 Un descendant devra rester un nouvel individu et non une copie visuelle d’un parent.
+
+### 4.5 Continuité visuelle à travers les âges
+
+Un Kinseed possède cinq paliers visuels de vie :
+
+```text
+Bébé → Enfant → Adolescent → Adulte → Vieux
+```
+
+Ces cinq représentations doivent rester celles du **même personnage**.
+
+La `seed` et les caractéristiques constitutives doivent permettre de conserver une continuité reconnaissable, notamment pour :
+
+- couleur des yeux ;
+- carnation ;
+- structure générale du visage ;
+- traits distinctifs ;
+- autres caractéristiques constitutives définies ultérieurement.
+
+Les proportions, la morphologie, les cheveux, la posture et certains détails peuvent changer avec l’âge, mais l’utilisateur doit pouvoir reconnaître son Kinseed de l’enfance à la vieillesse.
+
+Les transitions visuelles se font **par paliers** et non par morphing graphique permanent.
+
+Les règles complètes de cycle de vie, de temps réel, de développement, de vieillissement et de fin de vie sont documentées dans [`04-cycle-de-vie-vieillissement-et-fin-de-vie.md`](04-cycle-de-vie-vieillissement-et-fin-de-vie.md).
 
 ---
 
@@ -513,13 +537,15 @@ Les décisions suivantes ne sont pas prises dans ce document :
 - nombre et nature des zones que le monde pourra contenir ;
 - éventuelle extension du refuge vers plusieurs pièces ou lieux.
 
+Les durées, règles de développement et autres décisions de cycle de vie sont suivies séparément dans `04-cycle-de-vie-vieillissement-et-fin-de-vie.md`.
+
 Ces sujets doivent rester ouverts tant qu’ils ne sont pas nécessaires à l’étape de développement en cours.
 
 ---
 
 ## 16. Résumé des décisions validées
 
-1. Kinseed est représenté par un **avatar humanoïde adulte semi-stylisé**.
+1. Kinseed est représenté par un **avatar humanoïde semi-stylisé** qui conserve son identité visuelle de la naissance à la vieillesse.
 2. Il existe une **base masculine** et une **base féminine** partageant le même langage graphique.
 3. L’utilisateur choisit **uniquement le sexe visuel** à la création ; il ne personnalise pas les autres caractéristiques de départ.
 4. L’apparence initiale est générée automatiquement à partir d’une **bibliothèque modulaire** et d’une **seed déterministe et persistante**.
@@ -534,6 +560,7 @@ Ces sujets doivent rester ouverts tant qu’ils ne sont pas nécessaires à l’
 13. Un **album familial** peut matérialiser des relations existantes ou encore absentes, sans inventer de relations fictives.
 14. Un **télescope** peut ouvrir une expérience de ciel étoilé s’il existe pour une raison cohérente dans l’histoire du Kinseed.
 15. Le monde visuel doit rester une **projection traçable de l’individu et de son histoire**, pas une source de vérité indépendante.
+16. L’avatar possède cinq paliers visuels cohérents — **bébé, enfant, adolescent, adulte, vieux** — et doit rester reconnaissable à travers tous ces âges.
 
 ---
 
