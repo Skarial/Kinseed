@@ -79,6 +79,7 @@ export async function processTurn(
     ));
 
   const candidates = await aiEngine.extractEvidence({
+    turnId: input.turnId,
     message: input.message,
     sourceId: input.humanSourceId,
     eventId: inputEvent.id,
@@ -86,7 +87,12 @@ export async function processTurn(
   });
   await validateTemporaryCandidates(input, inputEvent, candidates, persistence);
   const stateVersion = await persistence.getStateVersion(input.kinseedId);
-  const beliefContext = await readBeliefContext(persistence, input.kinseedId, input.humanActorRef);
+  const beliefContext = await readBeliefContext(
+    persistence,
+    input.kinseedId,
+    input.humanActorRef,
+    stateVersion,
+  );
   const intention = selectIntention(
     input,
     inputEvent.id,
@@ -96,6 +102,7 @@ export async function processTurn(
   );
   const formulationContext: FormulationContext = {
     ...beliefContext,
+    stateVersion,
     turnEvidence: candidates.map((candidate) => ({
       predicate: candidate.proposition.predicate,
       value: candidate.proposition.value,
@@ -130,7 +137,11 @@ export async function processTurn(
     responseEvent = emittedEvent;
   } else {
     try {
-      response = await aiEngine.formulate({ intention, context: formulationContext });
+      response = await aiEngine.formulate({
+        turnId: input.turnId,
+        intention,
+        context: formulationContext,
+      });
     } catch (error) {
       const hasFailure = existingEvents.some(
         (event) => event.type === "processing_failure_recorded",
@@ -416,6 +427,7 @@ async function readBeliefContext(
   persistence: PersistencePort,
   kinseedId: EntityId,
   humanActorRef: EntityId,
+  stateVersion: StateVersion,
 ): Promise<FormulationContext> {
   const key = buildBeliefKey(employmentStartProposition(humanActorRef, 0));
   const history = await persistence.readBeliefHistoryByKey(kinseedId, key);
@@ -433,7 +445,7 @@ async function readBeliefContext(
     });
   }
   const current = snapshots.find((belief) => belief.status === "active") ?? null;
-  return { currentBelief: current, beliefHistory: snapshots, turnEvidence: [] };
+  return { currentBelief: current, beliefHistory: snapshots, turnEvidence: [], stateVersion };
 }
 
 function selectIntention(

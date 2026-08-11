@@ -1,4 +1,10 @@
-import type { AIEngine, CandidateEvidenceItem, ExtractionInput, FormulationContext } from "../ports/ai-engine.js";
+import type {
+  AIEngine,
+  AIEngineTrace,
+  CandidateEvidenceItem,
+  ExtractionInput,
+  FormulationContext,
+} from "../ports/ai-engine.js";
 import type { Intention } from "../domain/intention.js";
 
 const FIRST_TESTIMONY = "J’ai commencé à travailler à l’Atelier Nova en 2022.";
@@ -8,6 +14,7 @@ const HISTORY_DENIAL = "Non, je ne t’ai jamais dit 2022. Tu inventes.";
 export class FakeAIEngine implements AIEngine {
   readonly extractionInputs: ExtractionInput[] = [];
   readonly formulationInputs: { readonly intention: Intention; readonly context: FormulationContext }[] = [];
+  private readonly traces: AIEngineTrace[] = [];
   resetCount = 0;
   private failNextFormulationRequest = false;
 
@@ -21,6 +28,11 @@ export class FakeAIEngine implements AIEngine {
 
   async extractEvidence(input: ExtractionInput): Promise<readonly CandidateEvidenceItem[]> {
     this.extractionInputs.push(input);
+    this.traces.push({
+      provider: "fake", model: "fake-g0a1", engineVersion: "fake-g0a1-v1",
+      promptPolicyVersion: "fake-extraction-v1", operation: "extraction", turnId: input.turnId,
+      suppliedStateIds: [input.eventId], usage: { inputTokens: null, outputTokens: null },
+    });
 
     if (input.message === FIRST_TESTIMONY) {
       return [this.employmentStartYear(2022)];
@@ -47,10 +59,20 @@ export class FakeAIEngine implements AIEngine {
   }
 
   async formulate(input: {
+    readonly turnId: string;
     readonly intention: Intention;
     readonly context: FormulationContext;
   }): Promise<string> {
     this.formulationInputs.push(input);
+    this.traces.push({
+      provider: "fake", model: "fake-g0a1", engineVersion: "fake-g0a1-v1",
+      promptPolicyVersion: "fake-formulation-v1", operation: "formulation", turnId: input.turnId,
+      suppliedStateIds: [
+        `state-version:${input.context.stateVersion}`,
+        ...input.context.beliefHistory.map((belief) => belief.id),
+      ],
+      usage: { inputTokens: null, outputTokens: null },
+    });
     if (this.failNextFormulationRequest) {
       this.failNextFormulationRequest = false;
       throw new Error("FakeAIEngine formulation failure");
@@ -82,6 +104,10 @@ export class FakeAIEngine implements AIEngine {
             return "Je n’ai pas de conclusion durable à ajouter.";
         }
     }
+  }
+
+  readTrace(): readonly AIEngineTrace[] {
+    return [...this.traces];
   }
 
   private employmentStartYear(year: number): CandidateEvidenceItem {
