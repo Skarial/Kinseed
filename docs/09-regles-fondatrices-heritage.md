@@ -215,18 +215,27 @@ L’objectif général peut être résumé ainsi :
 
 > **Une lignée influence chaque individu sans jamais le définir entièrement. Chaque génération hérite d’une histoire, mais doit construire sa propre identité.**
 
-## Point encore ouvert
+## Cycle de vie désormais partiellement défini
 
-Le présent document ne définit pas encore le cycle de vie complet des individus numériques.
+Le cycle de vie n’est plus entièrement ouvert.
 
-La prochaine décision de conception concerne notamment :
+Les décisions produit validées sont documentées dans [`produit/04-cycle-de-vie-vieillissement-et-fin-de-vie.md`](produit/04-cycle-de-vie-vieillissement-et-fin-de-vie.md).
 
-- la naissance ;
-- les différentes phases de développement ;
-- la maturité ;
+Sont notamment retenus :
+
+- naissance au stade bébé ;
+- paliers bébé → enfant → adolescent → adulte → vieux ;
+- passage des premiers âges selon un système hybride temps réel + développement réel ;
+- objectif d’environ 4 à 6 mois réels pour atteindre l’âge adulte, sous réserve d’ajustement produit ;
+- âge adulte et vieillesse pouvant durer plusieurs années ;
+- continuité de l’existence pendant l’absence de l’utilisateur sans invention automatique de grandes expériences ;
+- vieillissement cognitif futur fondé sur de vrais mécanismes de mémoire et de continuité plutôt que sur une simple dégradation artificielle du langage ;
+- fin de vie non automatique, décidée explicitement par l’utilisateur.
+
+Restent notamment à définir :
+
+- les durées et seuils exacts de chaque palier ;
+- les conditions de passage adulte → vieux ;
 - les conditions permettant la reproduction ;
-- le vieillissement ;
-- la durée d’une génération ;
-- la possibilité ou non d’une fin de vie définitive.
-
-Ces éléments devront faire l’objet d’un document séparé après validation conceptuelle.
+- le lien précis entre âge, reproduction et générations ;
+- la sélection exacte des éléments transmis à la descendance ou conservés comme héritage lors de la fin de vie.
