@@ -11,7 +11,11 @@ import type {
   CandidateEvidenceItem,
   FormulationContext,
 } from "../ports/ai-engine.js";
-import type { CommitMutations, PersistencePort } from "../ports/persistence.js";
+import type {
+  AtomicCommitResult,
+  CommitMutations,
+  PersistencePort,
+} from "../ports/persistence.js";
 import { validateEvidenceItem } from "./validate-evidence.js";
 
 const EMPLOYMENT_START_YEAR = "employment_start_year";
@@ -169,21 +173,48 @@ export async function processTurn(
   }
 
   const commitKey = `${input.turnId}:commit`;
-  const commitAlreadyApplied = await persistence.checkIdempotencyKey(input.kinseedId, commitKey);
-  const commit = commitAlreadyApplied
-    ? {
-        applied: false,
-        previousStateVersion: stateVersion,
-        newStateVersion: await persistence.getStateVersion(input.kinseedId),
-      }
-    : await commitTurn(
-        input,
-        inputEvent,
-        candidates,
-        stateVersion,
-        persistence,
-        commitKey,
-      );
+  let commit: AtomicCommitResult;
+  try {
+    const commitAlreadyApplied = await persistence.checkIdempotencyKey(input.kinseedId, commitKey);
+    commit = commitAlreadyApplied
+      ? {
+          applied: false,
+          previousStateVersion: stateVersion,
+          newStateVersion: await persistence.getStateVersion(input.kinseedId),
+        }
+      : await commitTurn(
+          input,
+          inputEvent,
+          candidates,
+          stateVersion,
+          persistence,
+          commitKey,
+        );
+  } catch (error) {
+    const hasFailure = existingEvents.some(
+      (event) => event.type === "processing_failure_recorded",
+    );
+    if (!hasFailure) {
+      await appendEvent(persistence, input.kinseedId, {
+        id: `E-${input.turnId}-failure`,
+        type: "processing_failure_recorded",
+        occurredAt: input.occurredAt,
+        turnId: input.turnId,
+        sourceId: input.systemSourceId,
+        actorRef: null,
+        causedByEventIds: [inputEvent.id, intentionEvent.id, responseEvent.id],
+        observedStateVersion: stateVersion,
+        payload: {
+          stage: "state_commit",
+          errorClass: error instanceof Error ? error.name : "UnknownError",
+          retryable: true,
+        },
+        engineVersion: input.engineVersion,
+        idempotencyKey: `${input.turnId}:failure`,
+      });
+    }
+    throw error;
+  }
 
   await appendEvent(persistence, input.kinseedId, {
     id: `E-${input.turnId}-commit`,

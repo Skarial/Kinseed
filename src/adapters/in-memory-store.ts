@@ -30,6 +30,11 @@ interface KinseedBucket {
 export class InMemoryStore implements PersistencePort {
   private readonly sources = new Map<EntityId, Source>();
   private readonly kinseeds = new Map<EntityId, KinseedBucket>();
+  private nextAtomicCommitFailure: Error | null = null;
+
+  failNextAtomicCommitForTests(error = new Error("Injected atomic commit failure")): void {
+    this.nextAtomicCommitFailure = error;
+  }
 
   async registerSource(source: Source): Promise<void> {
     const existing = this.sources.get(source.id);
@@ -189,6 +194,12 @@ export class InMemoryStore implements PersistencePort {
       nextEvidenceLinks,
       nextBeliefs,
     );
+
+    if (this.nextAtomicCommitFailure !== null) {
+      const error = this.nextAtomicCommitFailure;
+      this.nextAtomicCommitFailure = null;
+      throw error;
+    }
 
     const changed =
       mutations.evidenceItems.length > 0 ||

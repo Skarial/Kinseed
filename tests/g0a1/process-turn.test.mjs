@@ -31,8 +31,7 @@ function employmentStartProposition(year) {
   };
 }
 
-async function createScenario() {
-  const store = new InMemoryStore();
+async function createScenario(store = new InMemoryStore()) {
   const ai = new FakeAIEngine();
   await store.registerSource({
     id: systemSourceId,
@@ -161,7 +160,7 @@ test("G0-A1 deterministic protocol replays T1 through T7 without AI context leak
   }
 });
 
-test("G0-A1 retries after a formulation failure without duplicate input or response", async () => {
+test("G0-A1 records a failure after intention selection without durable mutation", async () => {
   const { store, ai } = await createScenario();
   ai.failNextFormulation();
 
@@ -170,6 +169,12 @@ test("G0-A1 retries after a formulation failure without duplicate input or respo
     /FakeAIEngine formulation failure/,
   );
   assert.equal(await store.getStateVersion(kinseedId), 0);
+  const failedEvents = await store.readEventsByTurn(kinseedId, "T-RETRY");
+  assert.equal(failedEvents.filter((event) => event.type === "human_message_received").length, 1);
+  assert.equal(failedEvents.filter((event) => event.type === "intention_selected").length, 1);
+  assert.equal(failedEvents.filter((event) => event.type === "kinseed_message_emitted").length, 0);
+  assert.equal(failedEvents.filter((event) => event.type === "processing_failure_recorded").length, 1);
+  assert.equal(await store.readActiveBeliefByKey(kinseedId, buildBeliefKey(employmentStartProposition(2022))), null);
 
   const retry = await runTurn(store, ai, "T-RETRY", messages.t1, 10);
   assert.equal(retry.response, "Tu m’as indiqué 2022.");
@@ -179,3 +184,105 @@ test("G0-A1 retries after a formulation failure without duplicate input or respo
   assert.equal(events.filter((event) => event.type === "kinseed_message_emitted").length, 1);
   assert.equal(events.filter((event) => event.type === "processing_failure_recorded").length, 1);
 });
+
+class FailBeforeCommitStore extends InMemoryStore {
+  failCommitCheckOnce = true;
+
+  async checkIdempotencyKey(kinseed, idempotencyKey) {
+    if (this.failCommitCheckOnce && idempotencyKey.endsWith(":commit")) {
+      this.failCommitCheckOnce = false;
+      throw new Error("Injected failure before commit");
+    }
+    return super.checkIdempotencyKey(kinseed, idempotencyKey);
+  }
+}
+
+test("G0-A1 resumes after emission without emitting a second response", async () => {
+  const { store, ai } = await createScenario(new FailBeforeCommitStore());
+
+  await assert.rejects(
+    () => runTurn(store, ai, "T-AFTER-EMIT", messages.t1, 11),
+    /Injected failure before commit/,
+  );
+  assert.equal(await store.getStateVersion(kinseedId), 0);
+
+  const interrupted = await store.readEventsByTurn(kinseedId, "T-AFTER-EMIT");
+  assertTurnEventCounts(interrupted, {
+    human_message_received: 1,
+    intention_selected: 1,
+    kinseed_message_emitted: 1,
+    state_commit_completed: 0,
+  });
+  assert.equal(interrupted.filter((event) => event.type === "processing_failure_recorded").length, 1);
+
+  const resumed = await runTurn(store, ai, "T-AFTER-EMIT", messages.t1, 11);
+  assert.equal(resumed.response, "Tu m’as indiqué 2022.");
+  assert.equal(await store.getStateVersion(kinseedId), 1);
+  const completed = await store.readEventsByTurn(kinseedId, "T-AFTER-EMIT");
+  assertTurnEventCounts(completed, {
+    human_message_received: 1,
+    intention_selected: 1,
+    kinseed_message_emitted: 1,
+    state_commit_completed: 1,
+  });
+  assertStrictEventOrdering(completed);
+
+  const replay = await runTurn(store, ai, "T-AFTER-EMIT", messages.t1, 11);
+  assert.equal(replay.replayed, true);
+  assert.equal(replay.response, resumed.response);
+  assert.equal((await store.readEventsByTurn(kinseedId, "T-AFTER-EMIT")).length, completed.length);
+});
+
+test("G0-A1 keeps atomic commit mutations absent on failure and applies them once on retry", async () => {
+  const { store, ai } = await createScenario();
+  store.failNextAtomicCommitForTests();
+
+  await assert.rejects(
+    () => runTurn(store, ai, "T-COMMIT-FAIL", messages.t1, 12),
+    /Injected atomic commit failure/,
+  );
+  assert.equal(await store.getStateVersion(kinseedId), 0);
+  assert.equal(await store.readEvidenceItem(kinseedId, "EV-START-2022"), null);
+  assert.equal(
+    await store.readEvidenceLink(kinseedId, "EL-EV-START-2022-B-START-v1-supports"),
+    null,
+  );
+  assert.equal(await store.readActiveBeliefByKey(kinseedId, buildBeliefKey(employmentStartProposition(2022))), null);
+
+  const failedEvents = await store.readEventsByTurn(kinseedId, "T-COMMIT-FAIL");
+  assertTurnEventCounts(failedEvents, {
+    human_message_received: 1,
+    intention_selected: 1,
+    kinseed_message_emitted: 1,
+    state_commit_completed: 0,
+  });
+  assert.equal(failedEvents.find((event) => event.type === "processing_failure_recorded")?.payload.stage, "state_commit");
+
+  const committed = await runTurn(store, ai, "T-COMMIT-FAIL", messages.t1, 12);
+  assert.equal(committed.stateVersion, 1);
+  assert.equal((await store.readActiveBeliefByKey(kinseedId, buildBeliefKey(employmentStartProposition(2022))))?.proposition.value, 2022);
+  const completed = await store.readEventsByTurn(kinseedId, "T-COMMIT-FAIL");
+  assertTurnEventCounts(completed, {
+    human_message_received: 1,
+    intention_selected: 1,
+    kinseed_message_emitted: 1,
+    state_commit_completed: 1,
+  });
+
+  const replay = await runTurn(store, ai, "T-COMMIT-FAIL", messages.t1, 12);
+  assert.equal(replay.replayed, true);
+  assert.equal(await store.getStateVersion(kinseedId), 1);
+  assert.equal((await store.readEventsByTurn(kinseedId, "T-COMMIT-FAIL")).length, completed.length);
+});
+
+function assertTurnEventCounts(events, expected) {
+  for (const [type, count] of Object.entries(expected)) {
+    assert.equal(events.filter((event) => event.type === type).length, count, type);
+  }
+}
+
+function assertStrictEventOrdering(events) {
+  for (let index = 1; index < events.length; index += 1) {
+    assert.ok(events[index - 1].sequence < events[index].sequence);
+  }
+}
