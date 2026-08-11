@@ -201,12 +201,26 @@ proposition
 subject_ref
 source_id
 event_ids
+grounding
 extraction_confidence
 status
 created_at
 supersedes_id
 extractor_version
 ```
+
+`event_ids` exprime la provenance générale. Lorsqu'une extraction textuelle doit
+être vérifiable, `grounding` désigne l'événement précis et le passage textuel
+qui soutiennent la proposition :
+
+```text
+grounding:
+  eventId: E-104
+  supportingExcerpt: "J'aime beaucoup travailler seul"
+```
+
+Ce mécanisme est un grounding lexical minimal : il ne démontre pas à lui seul
+l'implication, la négation ou la portée sémantique de la proposition.
 
 Types initiaux autorisés en G0-A :
 
@@ -314,6 +328,23 @@ Avant qu’un `EvidenceItem` devienne durable, le système vérifie notamment :
 - qu’elle n’ajoute pas de détail absent ;
 - que son `kind` correspond réellement à sa provenance ;
 - que la source sémantique n’est pas confondue avec l’extracteur technique.
+
+Pour un témoignage G0-A1 extrait d'un `human_message_received`, la validation
+lexicale minimale exige en outre un `grounding` non nul : son événement doit
+appartenir à `event_ids`, son extrait doit être non vide et être une sous-chaîne
+exacte du texte de l'événement. Pour les propositions scalaires simples couvertes
+par G0-A1, la valeur proposée doit aussi apparaître dans cet extrait. Pour une
+année, sa représentation décimale doit apparaître comme un nombre distinct, sans
+chiffre immédiatement adjacent.
+
+Cette protection empêche par exemple une valeur `20212021` d'être acceptée à
+partir d'un extrait ne contenant que `2021`. Elle ne constitue pas une validation
+sémantique complète : « Je n'ai pas commencé en 2021 » contient lexicalement
+`2021` sans soutenir `employment_start_year = 2021`.
+
+Les invariants de grounding sont contrôlés une première fois pour la preuve
+temporaire, puis de nouveau au moment de valider l'état à committer. Cette seconde
+vérification est une défense en profondeur.
 
 Cycle de vie :
 
@@ -748,6 +779,11 @@ Le système peut donc créer des `candidate EvidenceItem` temporaires pour le to
 
 Ils doivent subir une validation minimale d’extraction avant d’influencer une intention, mais ils ne font pas encore partie de l’état persistant.
 
+Un candidat qui échoue seulement à cette recevabilité déterministe est rejeté :
+il ne peut influencer ni l'intention, ni la formulation, ni l'état durable. Le
+tour peut continuer avec les autres candidats validés, ou sans nouvelle preuve
+temporaire. Ce rejet est distinct d'une panne technique.
+
 Pipeline :
 
 ```text
@@ -842,6 +878,9 @@ Il signifie :
 
 Kinseed n’est donc pas obligé de choisir entre vrai et faux à chaque interaction.
 
+`DEFER` ne s'applique pas à un échec de grounding lexical : dans ce cas la
+recevabilité déterministe du candidat a échoué et la décision est `REJECT`.
+
 ---
 
 # 13. Décisions de validation
@@ -869,6 +908,14 @@ defer
 ```
 
 Les candidats rejetés ou différés ne sont pas nécessairement conservés comme état psychologique, mais leur décision peut être journalisée pour les tests.
+
+Pour le grounding lexical G0-A1, les codes stables minimaux sont :
+
+```text
+supporting_excerpt_empty
+supporting_excerpt_not_in_event_text
+proposition_value_not_in_supporting_excerpt
+```
 
 Cela permettra de comprendre non seulement pourquoi une propriété existe, mais également pourquoi une propriété proposée n’a pas été créée.
 

@@ -313,6 +313,14 @@ Règle :
 
 > **La réponse a déjà été décidée. Le post-traitement ne peut plus modifier rétroactivement pourquoi elle a été produite.**
 
+Cette règle n'empêche pas une validation temporaire préalable. Avant
+`intention_selected`, Kinseed valide les candidats extraits du message courant
+afin qu'un candidat irrecevable ne puisse pas influencer la décision du tour.
+Un `REJECT` de grounding lexical peut donc être journalisé par
+`validation_decision_recorded` avant `intention_selected`. Il ne crée ni preuve,
+ni lien, ni croyance ; le tour continue avec les seuls candidats temporaires
+validés, éventuellement aucun.
+
 ---
 
 # 12. `validation_decision_recorded`
@@ -342,6 +350,11 @@ defer
 ```
 
 Le système peut ainsi expliquer pourquoi une hypothèse n’a pas été créée malgré une proposition du raisonneur.
+
+Pour un rejet lexical de candidat temporaire, `decision` vaut `reject`. Ce n'est
+pas un `processing_failure_recorded` : ce dernier reste réservé à une anomalie
+interne, telle qu'un événement Kinseed introuvable, un payload de message
+inexploitable, une erreur de persistence ou une exception inattendue.
 
 ---
 
@@ -583,6 +596,12 @@ Un tour G0-A réussi respecte donc :
 
 ```text
 E1 human_message_received
+        ↓
+extraction de candidats temporaires
+        ↓
+validation / grounding
+        ↓
+validation_decision_recorded pour les REJECT pertinents
         ↓
 EvidenceItem temporaires validés
         ↓

@@ -215,6 +215,24 @@ La phase G0-A reste ouverte. Aucune conclusion relative à une identité, une au
 
 ---
 
-# 16. Décision suivante à prendre
+# 16. Durcissement décidé après la validation v2
 
-Avant d’étendre G0-A, la prochaine décision concerne la robustesse de la validation sémantique des `EvidenceItem` : déterminer comment vérifier qu’une proposition extraite est réellement soutenue par son `Event`, sans introduire prématurément un mécanisme général et complexe de grounding.
+Après la validation expérimentale v2, Kinseed adopte un **grounding lexical
+minimal** pour empêcher qu'une valeur inventée ou absente de son support textuel
+devienne durable. Le LLM devra fournir un `supportingExcerpt` exact ; Kinseed le
+confrontera de manière déterministe au texte de l'`Event` source et à la valeur
+scalaire proposée.
+
+Cette évolution définit la policy `g0a1-openai-extraction-v3`. Elle est une
+condition de durcissement à implémenter et à valider séparément, pas une
+réinterprétation des policies v1/v2 ni des résultats Terra v1, Terra v2 ou Luna
+v2.
+
+Le mécanisme reste explicitement lexical : il ne démontre pas la correction
+sémantique d'une proposition. Une phrase négative telle que « Je n'ai pas
+commencé en 2021 » contient `2021` sans établir
+`employment_start_year = 2021`. Les négations, la portée, les corrections et les
+implications restent hors de cette protection minimale.
+
+La conclusion historique demeure inchangée : **G0-A1 est validé dans les
+conditions expérimentales définies par son protocole.**

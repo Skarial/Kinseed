@@ -281,6 +281,7 @@ kind
 proposition
 source_id
 event_ids
+grounding
 extraction_confidence
 status
 supersedes_id
@@ -308,6 +309,24 @@ invalidated
 Invariant :
 
 > chaque `EvidenceItem` doit référencer au moins un événement existant qui permet réellement d’établir sa proposition au niveau épistémique déclaré.
+
+`grounding` a la forme suivante :
+
+```text
+{
+  eventId: EntityId,
+  supportingExcerpt: string
+} | null
+```
+
+Pour un `EvidenceItem` de kind `testimony` issu d'un `human_message_received`
+dans G0-A1, il est non nul. `grounding.eventId` appartient obligatoirement à
+`event_ids`. `event_ids` conserve la provenance générale ; `grounding` identifie
+l'événement contenant le passage textuel de support. Pour les autres kinds,
+notamment `system_record`, `null` reste possible à ce stade.
+
+La validation de l'état à committer doit vérifier à nouveau ces invariants de
+grounding, en défense de la validation temporaire.
 
 ---
 
@@ -517,6 +536,16 @@ Sortie :
 candidate EvidenceItem[]
 ```
 
+Le contrat temporaire d'un candidat ajoute :
+
+```text
+supportingExcerpt: string
+```
+
+Le LLM fournit cet extrait exact du message courant, mais ne fournit jamais
+d'`eventId`. Kinseed connaît l'événement source via `ExtractionInput` et crée
+lui-même l'association de provenance durable.
+
 Pour le protocole G0-A1 uniquement, cette sortie contient de zéro à un candidat par message. Cette cardinalité ne constitue pas une règle générale pour les générations futures de Kinseed.
 
 Une correction factuelle de la forme « X, pas Y » produit uniquement la proposition principale `X`. La valeur `Y` est la valeur corrigée ; Kinseed résout ensuite la relation de supersession depuis la croyance active. Elle ne produit pas une dénégation historique.
@@ -526,6 +555,24 @@ Le prédicat `denies_prior_employment_start_year_testimony` est réservé à une
 Le moteur IA propose uniquement.
 
 Le validateur Kinseed accepte ou refuse.
+
+Avant tout usage décisionnel, Kinseed vérifie que l'extrait est non vide, présent
+textuellement dans `Event.payload.text`, et contient la valeur des propositions
+scalaires simples couvertes par G0-A1. Pour `employment_start_year`, l'année
+décimale doit être un nombre distinct. Ce contrôle est lexical, non sémantique :
+il ne résout ni négation, ni portée, ni correction, ni implication.
+
+Un candidat qui échoue seulement à ce contrôle est `REJECT` sans interrompre le
+tour. Il n'est transmis ni à la sélection d'intention ni à la formulation, et ne
+peut produire aucun `EvidenceItem`, `EvidenceLink` ou `Belief`. La décision est
+auditable par `validation_decision_recorded` avec l'un des reason codes
+`supporting_excerpt_empty`, `supporting_excerpt_not_in_event_text` ou
+`proposition_value_not_in_supporting_excerpt`. `DEFER` ne s'applique pas à cet
+échec de recevabilité déterministe.
+
+L'ajout de `supportingExcerpt` au contrat Structured Outputs définit la policy
+`g0a1-openai-extraction-v3`. Les policies v1 et v2 ne sont ni modifiées ni
+réinterprétées.
 
 ## 16.2 Formulation
 
