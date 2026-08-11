@@ -317,6 +317,55 @@ test("G0-A1 keeps atomic commit mutations absent on failure and applies them onc
   assert.equal((await store.readEventsByTurn(kinseedId, "T-COMMIT-FAIL")).length, completed.length);
 });
 
+class FailAfterAppliedCommitStore extends InMemoryStore {
+  failAfterAppliedCommitOnce = true;
+  atomicCommitCalls = 0;
+
+  async atomicCommit(...args) {
+    this.atomicCommitCalls += 1;
+    const result = await super.atomicCommit(...args);
+    if (this.failAfterAppliedCommitOnce) {
+      this.failAfterAppliedCommitOnce = false;
+      throw new Error("Injected failure after applied commit");
+    }
+    return result;
+  }
+}
+
+test("R8: recovery records the real transition after a commit was already applied", async () => {
+  const { store, ai } = await createScenario(new FailAfterAppliedCommitStore());
+
+  await assert.rejects(
+    () => runTurn(store, ai, "T-R8-CHANGED", messages.t1, 13),
+    /Injected failure after applied commit/,
+  );
+  assert.equal(await store.getStateVersion(kinseedId), 1);
+  assert.equal((await store.readEvidenceItem(kinseedId, "EV-START-2022"))?.proposition.value, 2022);
+  assert.equal(
+    (await store.readActiveBeliefByKey(kinseedId, buildBeliefKey(employmentStartProposition(2022))))?.proposition.value,
+    2022,
+  );
+  const interrupted = await store.readEventsByTurn(kinseedId, "T-R8-CHANGED");
+  assert.equal(interrupted.some((event) => event.type === "state_commit_completed"), false);
+  assert.equal(ai.extractionInputs.length, 1);
+  assert.equal(ai.formulationInputs.length, 1);
+
+  const resumed = await runTurn(store, ai, "T-R8-CHANGED", messages.t1, 13);
+  assert.equal(resumed.stateVersion, 1);
+  assert.equal(ai.extractionInputs.length, 1);
+  assert.equal(ai.formulationInputs.length, 1);
+  assert.equal(store.atomicCommitCalls, 1);
+  const completed = await store.readEventsByTurn(kinseedId, "T-R8-CHANGED");
+  const commit = completed.find((event) => event.type === "state_commit_completed");
+  assert.equal(completed.filter((event) => event.type === "state_commit_completed").length, 1);
+  assert.equal(commit?.observedStateVersion, 0);
+  assert.deepEqual(commit?.payload, {
+    previousStateVersion: 0,
+    newStateVersion: 1,
+    changed: true,
+  });
+});
+
 class GroundingTestEngine extends FakeAIEngine {
   constructor(candidate) {
     super();
@@ -522,6 +571,31 @@ test("R4: an empty extraction is checkpointed and finalizes without durable evid
   assert.equal(await store.getStateVersion(kinseedId), 0);
 });
 
+test("R8: recovery preserves a previously applied empty commit as unchanged", async () => {
+  const { store } = await createScenario(new FailAfterAppliedCommitStore());
+  const ai = new EmptyEvidenceEngine();
+  const message = "Question sans fait autobiographique.";
+
+  await assert.rejects(
+    () => runTurn(store, ai, "T-R8-EMPTY", message, 33),
+    /Injected failure after applied commit/,
+  );
+  assert.equal(await store.getStateVersion(kinseedId), 0);
+
+  await runTurn(store, ai, "T-R8-EMPTY", message, 33);
+  const commit = (await store.readEventsByTurn(kinseedId, "T-R8-EMPTY")).find(
+    (event) => event.type === "state_commit_completed",
+  );
+  assert.equal(ai.extractionInputs.length, 1);
+  assert.equal(ai.formulationInputs.length, 1);
+  assert.equal(store.atomicCommitCalls, 1);
+  assert.deepEqual(commit?.payload, {
+    previousStateVersion: 0,
+    newStateVersion: 0,
+    changed: false,
+  });
+});
+
 class ExtractionFailureEngine extends FakeAIEngine {
   async extractEvidence(input) {
     this.extractionInputs.push(input);
@@ -594,6 +668,78 @@ test("R6: an intention or emitted response without a checkpoint fails closed", a
     assert.equal(events.find((event) => event.type === "processing_failure_recorded")?.payload.stage, "evidence_validation");
     assert.equal(await store.getStateVersion(kinseedId), 0);
   }
+});
+
+test("G0-A1 rejects an emitted response that has no historical intention", async () => {
+  const { store, ai } = await createScenario();
+  const turnId = "T-EMITTED-WITHOUT-INTENTION";
+  await store.appendEvent({
+    id: `E-${turnId}-input`, kinseedId, sequence: 2, type: "human_message_received",
+    occurredAt: "2026-08-11T08:38:00.000Z", turnId, sourceId: humanSourceId, actorRef: humanId,
+    causedByEventIds: [], observedStateVersion: 0, payload: { text: messages.t1 }, payloadSchemaVersion: 1,
+    engineVersion, idempotencyKey: `${turnId}:input`,
+  });
+  await store.appendEvent({
+    id: `E-${turnId}-temporary-evidence`, kinseedId, sequence: 3, type: "validation_decision_recorded",
+    occurredAt: "2026-08-11T08:38:00.000Z", turnId, sourceId: systemSourceId, actorRef: null,
+    causedByEventIds: [`E-${turnId}-input`], observedStateVersion: 0,
+    payload: { scope: "temporary_evidence", completed: true, outcomes: [] },
+    payloadSchemaVersion: 2, engineVersion, idempotencyKey: `${turnId}:temporary-evidence`,
+  });
+  await store.appendEvent({
+    id: `E-${turnId}-emitted`, kinseedId, sequence: 4, type: "kinseed_message_emitted",
+    occurredAt: "2026-08-11T08:38:00.000Z", turnId, sourceId: systemSourceId, actorRef: null,
+    causedByEventIds: [`E-${turnId}-input`], observedStateVersion: 0,
+    payload: { text: "Réponse historique", intentionId: `I-${turnId}` }, payloadSchemaVersion: 1,
+    engineVersion, idempotencyKey: `${turnId}:response`,
+  });
+
+  await assert.rejects(() => runTurn(store, ai, turnId, messages.t1, 38), /without intention_selected/);
+  assert.equal(ai.extractionInputs.length, 0);
+  assert.equal(ai.formulationInputs.length, 0);
+  const events = await store.readEventsByTurn(kinseedId, turnId);
+  assert.equal(events.filter((event) => event.type === "intention_selected").length, 0);
+  assert.equal(events.find((event) => event.type === "processing_failure_recorded")?.payload.stage, "language_generation");
+  assert.equal(await store.getStateVersion(kinseedId), 0);
+});
+
+test("G0-A1 rejects state_commit_completed without an emitted response", async () => {
+  const { store, ai } = await createScenario();
+  const turnId = "T-COMMIT-WITHOUT-EMISSION";
+  await store.appendEvent({
+    id: `E-${turnId}-input`, kinseedId, sequence: 2, type: "human_message_received",
+    occurredAt: "2026-08-11T08:39:00.000Z", turnId, sourceId: humanSourceId, actorRef: humanId,
+    causedByEventIds: [], observedStateVersion: 0, payload: { text: messages.t1 }, payloadSchemaVersion: 1,
+    engineVersion, idempotencyKey: `${turnId}:input`,
+  });
+  await store.appendEvent({
+    id: `E-${turnId}-temporary-evidence`, kinseedId, sequence: 3, type: "validation_decision_recorded",
+    occurredAt: "2026-08-11T08:39:00.000Z", turnId, sourceId: systemSourceId, actorRef: null,
+    causedByEventIds: [`E-${turnId}-input`], observedStateVersion: 0,
+    payload: { scope: "temporary_evidence", completed: true, outcomes: [] },
+    payloadSchemaVersion: 2, engineVersion, idempotencyKey: `${turnId}:temporary-evidence`,
+  });
+  await store.appendEvent({
+    id: `E-${turnId}-intention`, kinseedId, sequence: 4, type: "intention_selected",
+    occurredAt: "2026-08-11T08:39:00.000Z", turnId, sourceId: systemSourceId, actorRef: null,
+    causedByEventIds: [`E-${turnId}-input`], observedStateVersion: 0,
+    payload: { intentionId: `I-${turnId}`, kind: "answer_question", motivation: "record_first_testimony" },
+    payloadSchemaVersion: 1, engineVersion, idempotencyKey: `${turnId}:intention`,
+  });
+  await store.appendEvent({
+    id: `E-${turnId}-commit`, kinseedId, sequence: 5, type: "state_commit_completed",
+    occurredAt: "2026-08-11T08:39:00.000Z", turnId, sourceId: systemSourceId, actorRef: null,
+    causedByEventIds: [], observedStateVersion: 0,
+    payload: { previousStateVersion: 0, newStateVersion: 0, changed: false }, payloadSchemaVersion: 1,
+    engineVersion, idempotencyKey: `${turnId}:state_commit`,
+  });
+
+  await assert.rejects(() => runTurn(store, ai, turnId, messages.t1, 39), /without kinseed_message_emitted/);
+  assert.equal(ai.extractionInputs.length, 0);
+  assert.equal(ai.formulationInputs.length, 0);
+  const events = await store.readEventsByTurn(kinseedId, turnId);
+  assert.equal(events.filter((event) => event.type === "kinseed_message_emitted").length, 0);
+  assert.equal(events.find((event) => event.type === "processing_failure_recorded")?.payload.stage, "state_commit");
 });
 
 test("G0-A1 treats a malformed historical checkpoint as an evidence validation anomaly", async () => {

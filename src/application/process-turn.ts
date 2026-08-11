@@ -50,10 +50,40 @@ export async function processTurn(
   aiEngine: AIEngine,
 ): Promise<ProcessTurnResult> {
   const existingEvents = await persistence.readEventsByTurn(input.kinseedId, input.turnId);
+  const existingInputEvent = existingEvents.find((event) => event.type === "human_message_received");
+  const existingIntentionEvent = existingEvents.find((event) => event.type === "intention_selected");
   const emittedEvent = existingEvents.find((event) => event.type === "kinseed_message_emitted");
   const commitCompletedEvent = existingEvents.find(
     (event) => event.type === "state_commit_completed",
   );
+
+  if (commitCompletedEvent !== undefined && emittedEvent === undefined) {
+    const error = new DomainInvariantError(
+      `Turn ${input.turnId} has state_commit_completed without kinseed_message_emitted`,
+    );
+    await recordFailureIfAbsent(
+      input,
+      persistence,
+      "state_commit",
+      existingInputEvent === undefined ? [] : [existingInputEvent.id],
+      error,
+    );
+    throw error;
+  }
+
+  if (emittedEvent !== undefined && existingIntentionEvent === undefined) {
+    const error = new DomainInvariantError(
+      `Turn ${input.turnId} has kinseed_message_emitted without intention_selected`,
+    );
+    await recordFailureIfAbsent(
+      input,
+      persistence,
+      "language_generation",
+      existingInputEvent === undefined ? [emittedEvent.id] : [existingInputEvent.id, emittedEvent.id],
+      error,
+    );
+    throw error;
+  }
 
   if (emittedEvent !== undefined && commitCompletedEvent !== undefined) {
     return {
@@ -65,7 +95,7 @@ export async function processTurn(
 
   const observedStateVersion = await persistence.getStateVersion(input.kinseedId);
   const inputEvent =
-    existingEvents.find((event) => event.type === "human_message_received") ??
+    existingInputEvent ??
     (await appendEvent(
       persistence,
       input.kinseedId,
@@ -92,7 +122,6 @@ export async function processTurn(
     throw error;
   }
 
-  const existingIntentionEvent = existingEvents.find((event) => event.type === "intention_selected");
   if (checkpoint === null && (existingIntentionEvent !== undefined || emittedEvent !== undefined)) {
     const error = new DomainInvariantError(
       `Turn ${input.turnId} has downstream events without a temporary evidence checkpoint`,
@@ -245,11 +274,7 @@ export async function processTurn(
   try {
     const commitAlreadyApplied = await persistence.checkIdempotencyKey(input.kinseedId, commitKey);
     commit = commitAlreadyApplied
-      ? {
-          applied: false,
-          previousStateVersion: stateVersion,
-          newStateVersion: await persistence.getStateVersion(input.kinseedId),
-        }
+      ? recoverAppliedCommit(checkpoint.event.observedStateVersion, await persistence.getStateVersion(input.kinseedId))
       : await commitTurn(
           input,
           inputEvent,
@@ -277,7 +302,7 @@ export async function processTurn(
     sourceId: input.systemSourceId,
     actorRef: null,
     causedByEventIds: [responseEvent.id],
-    observedStateVersion: stateVersion,
+    observedStateVersion: checkpoint.event.observedStateVersion,
     payload: {
       previousStateVersion: commit.previousStateVersion,
       newStateVersion: commit.newStateVersion,
@@ -288,6 +313,23 @@ export async function processTurn(
   });
 
   return { response, stateVersion: commit.newStateVersion, replayed: false };
+}
+
+function recoverAppliedCommit(
+  previousStateVersion: StateVersion,
+  newStateVersion: StateVersion,
+): AtomicCommitResult {
+  const difference = newStateVersion - previousStateVersion;
+  if (difference !== 0 && difference !== 1) {
+    throw new DomainInvariantError(
+      `Recovered commit has incoherent state transition ${previousStateVersion} -> ${newStateVersion}`,
+    );
+  }
+  return {
+    applied: difference === 1,
+    previousStateVersion,
+    newStateVersion,
+  };
 }
 
 async function commitTurn(
