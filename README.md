@@ -89,8 +89,9 @@ Ordre de lecture recommandé :
 2. [`docs/02-generation-0-criteres-validation.md`](docs/02-generation-0-criteres-validation.md) — définit comment distinguer un mécanisme réel d’un comportement simplement plausible du LLM.
 3. [`docs/03-generation-0-architecture-conceptuelle.md`](docs/03-generation-0-architecture-conceptuelle.md) — définit les frontières entre mémoire, croyances, identité, décision et langage.
 4. [`docs/04-generation-0-roadmap-experimentale.md`](docs/04-generation-0-roadmap-experimentale.md) — fixe l’ordre G0-A → G0-F et les critères de sortie de chaque phase.
-5. [`docs/05-generation-0a-structures-et-cycle-vie.md`](docs/05-generation-0a-structures-et-cycle-vie.md) — détaille les structures minimales de G0-A et leurs règles de promotion, révision et commit.
-6. [`docs/06-regles-fondatrices-heritage.md`](docs/06-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
+5. [`docs/05-generation-0a-structures-et-cycle-vie.md`](docs/05-generation-0a-structures-et-cycle-vie.md) — détaille les structures minimales de G0-A, la couche `EvidenceItem` et leurs règles de promotion, révision et commit.
+6. [`docs/06-generation-0a-contrat-tour-et-evenements.md`](docs/06-generation-0a-contrat-tour-et-evenements.md) — fixe les événements minimaux, l’ordre causal d’un tour, l’idempotence et le comportement attendu en cas d’échec.
+7. [`docs/07-regles-fondatrices-heritage.md`](docs/07-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
 
 ### Convention de numérotation
 
@@ -131,4 +132,4 @@ Le projet ne considère pas ces mécanismes comme une preuve de conscience phén
 
 Le projet est actuellement en **phase de conception et de spécification expérimentale**.
 
-La priorité actuelle est **G0-A — Continuité minimale** : définir les structures et cycles de vie nécessaires pour qu’un Kinseed conserve une histoire fiable, forme des conclusions provisoires traçables et produise des intentions dont la cause existe avant le langage.
+La priorité actuelle est **G0-A — Continuité minimale** : définir puis tester une première expérience exécutable capable de montrer qu’une histoire produit des états internes traçables et causalement utiles, au-delà du comportement spontané du LLM.
