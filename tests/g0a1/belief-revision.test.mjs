@@ -4,7 +4,11 @@ import assert from "node:assert/strict";
 import { InMemoryStore } from "../../dist/adapters/in-memory-store.js";
 import { createInitialBelief, reviseBelief } from "../../dist/domain/belief.js";
 import { buildBeliefKey } from "../../dist/domain/proposition.js";
-import { StateVersionConflictError } from "../../dist/domain/errors.js";
+import {
+  DomainInvariantError,
+  IdempotencyConflictError,
+  StateVersionConflictError,
+} from "../../dist/domain/errors.js";
 import { validateEvidenceItem } from "../../dist/application/validate-evidence.js";
 
 const kinseedId = "K-TEST-001";
@@ -351,5 +355,78 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
   await assert.rejects(
     () => store.atomicCommit(kinseedId, 0, { evidenceItems: [], evidenceLinks: [], beliefs: [] }, "T-002:commit"),
     StateVersionConflictError,
+  );
+});
+
+test("G0-A1: the store rejects evidence whose provenance event does not exist", async () => {
+  const store = await createStore();
+  const invalidEvidence = {
+    id: "EV-BAD",
+    kinseedId,
+    kind: "testimony",
+    proposition: proposition(2022),
+    sourceId: humanSourceId,
+    eventIds: ["E-MISSING"],
+    extractionConfidence: "high",
+    status: "active",
+    supersedesId: null,
+    extractorVersion: "stub-v1",
+    createdAt: "2026-08-11T08:01:01.000Z",
+  };
+  const link = {
+    id: "EL-BAD",
+    kinseedId,
+    evidenceItemId: invalidEvidence.id,
+    targetBeliefId: "B-BAD",
+    relation: "supports",
+    sourceAuthority: "high",
+    independenceGroup: "T-BAD",
+    weightClass: "high",
+    createdAt: "2026-08-11T08:01:02.000Z",
+  };
+  const belief = createInitialBelief({
+    id: "B-BAD",
+    kinseedId,
+    proposition: proposition(2022),
+    evidenceForLinkId: link.id,
+    confidence: "high",
+    now: "2026-08-11T08:01:02.000Z",
+  });
+
+  await assert.rejects(
+    () =>
+      store.atomicCommit(
+        kinseedId,
+        0,
+        { evidenceItems: [invalidEvidence], evidenceLinks: [link], beliefs: [belief] },
+        "T-BAD:commit",
+      ),
+    DomainInvariantError,
+  );
+  assert.equal(await store.getStateVersion(kinseedId), 0);
+});
+
+test("G0-A1: reusing an idempotency key with different content is rejected", async () => {
+  const store = await createStore();
+  const original = event({
+    id: "E-002",
+    sequence: 2,
+    type: "human_message_received",
+    occurredAt: "2026-08-11T08:01:00.000Z",
+    turnId: "T-001",
+    sourceId: humanSourceId,
+    actorRef: humanId,
+    payload: { text: "Version A" },
+    idempotencyKey: "T-001:input",
+  });
+  await store.appendEvent(original);
+
+  await assert.rejects(
+    () =>
+      store.appendEvent({
+        ...original,
+        payload: { text: "Version B" },
+      }),
+    IdempotencyConflictError,
   );
 });
