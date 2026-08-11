@@ -93,7 +93,8 @@ Ordre de lecture recommandé :
 6. [`docs/06-generation-0a-contrat-tour-et-evenements.md`](docs/06-generation-0a-contrat-tour-et-evenements.md) — fixe les événements minimaux, l’ordre causal d’un tour, l’idempotence et le comportement attendu en cas d’échec.
 7. [`docs/07-generation-0a1-protocole-croyance-provenance.md`](docs/07-generation-0a1-protocole-croyance-provenance.md) — définit la première expérience exécutable G0-A1 sur la provenance, la persistance et la révision d’une croyance.
 8. [`docs/08-generation-0a1-contrat-implementation.md`](docs/08-generation-0a1-contrat-implementation.md) — traduit G0-A1 en contrat d’implémentation minimal, définit les invariants et la stratégie de tests.
-9. [`docs/09-regles-fondatrices-heritage.md`](docs/09-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
+9. [`docs/09-generation-0a1-resultats-validation.md`](docs/09-generation-0a1-resultats-validation.md) — consigne la validation expérimentale limitée de G0-A1, ses résultats reproductibles et sa prochaine limite de robustesse.
+10. [`docs/10-regles-fondatrices-heritage.md`](docs/10-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
 
 Les décisions techniques sont documentées séparément dans `docs/decisions-techniques/`. Pour G0-A1, ADR-005 fixe l’utilisation initiale d’un `PersistencePort` avec un adaptateur `InMemoryStore`, sans choisir prématurément le stockage local durable.
 
@@ -134,6 +135,6 @@ Le projet ne considère pas ces mécanismes comme une preuve de conscience phén
 
 ## État actuel
 
-Le projet est actuellement en **phase G0-A1 — croyance, provenance et révision**.
+Le sous-protocole **G0-A1 — croyance, provenance et révision** est validé dans les conditions expérimentales définies par son protocole : tests déterministes, reproduction avec `gpt-5.6-terra` et `gpt-5.6-luna`, et contrôle C0 sans état Kinseed. Les résultats et leurs limites sont consignés dans `docs/09-generation-0a1-resultats-validation.md`.
 
-Le protocole, le contrat d’implémentation et la stratégie de persistance du premier prototype sont définis. La prochaine étape est le **premier lot de code TypeScript déterministe** : domaine, `PersistencePort`, `InMemoryStore` et tests, sans interface mobile et sans appel à un vrai LLM.
+Cette validation ne termine pas G0-A. La prochaine décision concerne la robustesse de la validation sémantique des `EvidenceItem` avant toute extension de G0-A.
