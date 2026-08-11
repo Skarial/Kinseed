@@ -1,11 +1,16 @@
 import { DomainInvariantError } from "../domain/errors.js";
+import {
+  type GroundingRejectionCode,
+  validateTextEvidenceGrounding,
+} from "../domain/evidence-grounding.js";
 import type { EvidenceItem } from "../domain/evidence.js";
+import type { Event } from "../domain/event.js";
 import type { PersistencePort } from "../ports/persistence.js";
 
 export async function validateEvidenceItem(
   candidate: EvidenceItem,
   persistence: PersistencePort,
-): Promise<void> {
+): Promise<GroundingRejectionCode | null> {
   const source = await persistence.readSource(candidate.sourceId);
   if (source === null) {
     throw new DomainInvariantError(`Unknown source ${candidate.sourceId}`);
@@ -15,6 +20,7 @@ export async function validateEvidenceItem(
     throw new DomainInvariantError(`EvidenceItem ${candidate.id} must reference at least one event`);
   }
 
+  let groundingEvent: Event | null = null;
   for (const eventId of candidate.eventIds) {
     const event = await persistence.readEventById(candidate.kinseedId, eventId);
     if (event === null) {
@@ -32,5 +38,12 @@ export async function validateEvidenceItem(
         `Testimony ${candidate.id} must originate from a human_message_received event`,
       );
     }
+    if (candidate.grounding?.eventId === eventId) groundingEvent = event;
   }
+
+  if (candidate.kind !== "testimony") return null;
+  if (groundingEvent === null) {
+    throw new DomainInvariantError(`Testimony ${candidate.id} grounding event is unavailable`);
+  }
+  return validateTextEvidenceGrounding(candidate, groundingEvent);
 }

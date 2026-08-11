@@ -6,6 +6,7 @@ import {
   StateVersionConflictError,
 } from "../domain/errors.js";
 import type { EvidenceItem, EvidenceLink } from "../domain/evidence.js";
+import { validateTextEvidenceGrounding } from "../domain/evidence-grounding.js";
 import type { Event } from "../domain/event.js";
 import { propositionEquals } from "../domain/proposition.js";
 import type { EntityId, StateVersion, TurnId } from "../domain/primitives.js";
@@ -311,6 +312,24 @@ export class InMemoryStore implements PersistencePort {
         if (evidenceItem.kind === "testimony" && event.type !== "human_message_received") {
           throw new DomainInvariantError(
             `Testimony ${evidenceItem.id} must originate from a human_message_received event`,
+          );
+        }
+      }
+
+      if (evidenceItem.kind === "testimony") {
+        if (evidenceItem.grounding === null) {
+          throw new DomainInvariantError(`Testimony ${evidenceItem.id} must have grounding`);
+        }
+        const groundingEvent = eventsById.get(evidenceItem.grounding.eventId);
+        if (groundingEvent === undefined) {
+          throw new DomainInvariantError(
+            `EvidenceItem ${evidenceItem.id} references unknown grounding event ${evidenceItem.grounding.eventId}`,
+          );
+        }
+        const groundingRejection = validateTextEvidenceGrounding(evidenceItem, groundingEvent);
+        if (groundingRejection !== null) {
+          throw new DomainInvariantError(
+            `EvidenceItem ${evidenceItem.id} failed grounding: ${groundingRejection}`,
           );
         }
       }

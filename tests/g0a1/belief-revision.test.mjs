@@ -96,6 +96,7 @@ test("G0-A1: a testimony becomes a traceable active belief", async () => {
     proposition: proposition(2022),
     sourceId: humanSourceId,
     eventIds: [firstMessage.id],
+    grounding: { eventId: firstMessage.id, supportingExcerpt: "2022" },
     extractionConfidence: "high",
     status: "active",
     supersedesId: null,
@@ -171,6 +172,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
     proposition: proposition(2022),
     sourceId: humanSourceId,
     eventIds: [firstMessage.id],
+    grounding: { eventId: firstMessage.id, supportingExcerpt: "2022" },
     extractionConfidence: "high",
     status: "active",
     supersedesId: null,
@@ -225,6 +227,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
     proposition: proposition(2021),
     sourceId: humanSourceId,
     eventIds: [correctionMessage.id],
+    grounding: { eventId: correctionMessage.id, supportingExcerpt: "2021" },
     extractionConfidence: "high",
     status: "active",
     supersedesId: evidence2022.id,
@@ -319,6 +322,7 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
     proposition: proposition(2022),
     sourceId: humanSourceId,
     eventIds: [message.id],
+    grounding: { eventId: message.id, supportingExcerpt: "2022" },
     extractionConfidence: "high",
     status: "active",
     supersedesId: null,
@@ -367,6 +371,7 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
     proposition: proposition(2022),
     sourceId: humanSourceId,
     eventIds: ["E-MISSING"],
+    grounding: { eventId: "E-MISSING", supportingExcerpt: "2022" },
     extractionConfidence: "high",
     status: "active",
     supersedesId: null,
@@ -404,6 +409,58 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
     DomainInvariantError,
   );
   assert.equal(await store.getStateVersion(kinseedId), 0);
+});
+
+test("G0-A1: the store rejects testimony without valid lexical grounding", async () => {
+  const store = await createStore();
+  const message = event({
+    id: "E-GROUNDING",
+    sequence: 2,
+    type: "human_message_received",
+    occurredAt: "2026-08-11T08:01:00.000Z",
+    turnId: "T-GROUNDING",
+    sourceId: humanSourceId,
+    actorRef: humanId,
+    payload: { text: "J'ai commencé chez Atelier Nova en 2022." },
+    idempotencyKey: "T-GROUNDING:input",
+  });
+  await store.appendEvent(message);
+
+  for (const [id, grounding] of [
+    ["EV-NO-GROUNDING", null],
+    ["EV-BAD-GROUNDING", { eventId: message.id, supportingExcerpt: "20212021" }],
+  ]) {
+    await assert.rejects(
+      () =>
+        store.atomicCommit(
+          kinseedId,
+          0,
+          {
+            evidenceItems: [{
+              id,
+              kinseedId,
+              kind: "testimony",
+              proposition: proposition(2022),
+              sourceId: humanSourceId,
+              eventIds: [message.id],
+              grounding,
+              extractionConfidence: "high",
+              status: "active",
+              supersedesId: null,
+              extractorVersion: "stub-v1",
+              createdAt: "2026-08-11T08:01:01.000Z",
+            }],
+            evidenceLinks: [],
+            beliefs: [],
+          },
+          `${id}:commit`,
+        ),
+      DomainInvariantError,
+    );
+  }
+  assert.equal(await store.getStateVersion(kinseedId), 0);
+  assert.equal(await store.readEvidenceItem(kinseedId, "EV-NO-GROUNDING"), null);
+  assert.equal(await store.readEvidenceItem(kinseedId, "EV-BAD-GROUNDING"), null);
 });
 
 test("G0-A1: the store rejects an active belief without supporting provenance", async () => {

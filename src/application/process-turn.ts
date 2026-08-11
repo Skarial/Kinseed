@@ -16,6 +16,7 @@ import type {
   CommitMutations,
   PersistencePort,
 } from "../ports/persistence.js";
+import type { GroundingRejectionCode } from "../domain/evidence-grounding.js";
 import { validateEvidenceItem } from "./validate-evidence.js";
 
 const EMPLOYMENT_START_YEAR = "employment_start_year";
@@ -36,6 +37,11 @@ export interface ProcessTurnResult {
   readonly response: string;
   readonly stateVersion: StateVersion;
   readonly replayed: boolean;
+}
+
+interface RejectedTemporaryCandidate {
+  readonly candidateId: EntityId;
+  readonly reasonCode: GroundingRejectionCode;
 }
 
 export async function processTurn(
@@ -78,15 +84,39 @@ export async function processTurn(
       },
     ));
 
-  const candidates = await aiEngine.extractEvidence({
+  const rawCandidates = await aiEngine.extractEvidence({
     turnId: input.turnId,
     message: input.message,
     sourceId: input.humanSourceId,
     eventId: inputEvent.id,
     allowedContext: {},
   });
-  await validateTemporaryCandidates(input, inputEvent, candidates, persistence);
+  const { acceptedCandidates, rejectedCandidates } = await validateTemporaryCandidates(
+    input,
+    inputEvent,
+    rawCandidates,
+    persistence,
+  );
   const stateVersion = await persistence.getStateVersion(input.kinseedId);
+  for (const rejected of rejectedCandidates) {
+    await appendEvent(persistence, input.kinseedId, {
+      id: `E-${input.turnId}-validation-${rejected.candidateId}`,
+      type: "validation_decision_recorded",
+      occurredAt: input.occurredAt,
+      turnId: input.turnId,
+      sourceId: input.systemSourceId,
+      actorRef: null,
+      causedByEventIds: [inputEvent.id],
+      observedStateVersion: stateVersion,
+      payload: {
+        candidateId: rejected.candidateId,
+        decision: "reject",
+        reasonCodes: [rejected.reasonCode],
+      },
+      engineVersion: input.engineVersion,
+      idempotencyKey: `${input.turnId}:validation:${rejected.candidateId}`,
+    });
+  }
   const beliefContext = await readBeliefContext(
     persistence,
     input.kinseedId,
@@ -96,14 +126,15 @@ export async function processTurn(
   const intention = selectIntention(
     input,
     inputEvent.id,
-    candidates,
+    acceptedCandidates,
     beliefContext.currentBelief,
     stateVersion,
+    rawCandidates.length > 0 && acceptedCandidates.length === 0,
   );
   const formulationContext: FormulationContext = {
     ...beliefContext,
     stateVersion,
-    turnEvidence: candidates.map((candidate) => ({
+    turnEvidence: acceptedCandidates.map((candidate) => ({
       predicate: candidate.proposition.predicate,
       value: candidate.proposition.value,
     })),
@@ -196,7 +227,7 @@ export async function processTurn(
       : await commitTurn(
           input,
           inputEvent,
-          candidates,
+          acceptedCandidates,
           stateVersion,
           persistence,
           commitKey,
@@ -266,7 +297,12 @@ async function commitTurn(
       buildBeliefKey(candidate.proposition),
     );
     const evidenceItem = await createEvidenceItem(input, inputEvent, candidate, current, persistence);
-    await validateEvidenceItem(evidenceItem, persistence);
+    const groundingRejection = await validateEvidenceItem(evidenceItem, persistence);
+    if (groundingRejection !== null) {
+      throw new DomainInvariantError(
+        `Accepted candidate ${evidenceItem.id} failed grounding: ${groundingRejection}`,
+      );
+    }
     evidenceItems.push(evidenceItem);
 
     if (candidate.proposition.predicate !== EMPLOYMENT_START_YEAR) {
@@ -334,16 +370,23 @@ async function validateTemporaryCandidates(
   inputEvent: Event,
   candidates: readonly CandidateEvidenceItem[],
   persistence: PersistencePort,
-): Promise<void> {
+): Promise<{
+  readonly acceptedCandidates: readonly CandidateEvidenceItem[];
+  readonly rejectedCandidates: readonly RejectedTemporaryCandidate[];
+}> {
+  const acceptedCandidates: CandidateEvidenceItem[] = [];
+  const rejectedCandidates: RejectedTemporaryCandidate[] = [];
   for (const [index, candidate] of candidates.entries()) {
-    await validateEvidenceItem(
+    const candidateId = `CAND-${input.turnId}-${index + 1}`;
+    const groundingRejection = await validateEvidenceItem(
       {
-        id: `CAND-${input.turnId}-${index + 1}`,
+        id: candidateId,
         kinseedId: input.kinseedId,
         kind: candidate.kind,
         proposition: candidate.proposition,
         sourceId: input.humanSourceId,
         eventIds: [inputEvent.id],
+        grounding: { eventId: inputEvent.id, supportingExcerpt: candidate.supportingExcerpt },
         extractionConfidence: candidate.extractionConfidence,
         status: "active",
         supersedesId: null,
@@ -352,7 +395,13 @@ async function validateTemporaryCandidates(
       },
       persistence,
     );
+    if (groundingRejection === null) {
+      acceptedCandidates.push(candidate);
+    } else {
+      rejectedCandidates.push({ candidateId, reasonCode: groundingRejection });
+    }
   }
+  return { acceptedCandidates, rejectedCandidates };
 }
 
 async function createEvidenceItem(
@@ -379,6 +428,7 @@ async function createEvidenceItem(
     proposition: candidate.proposition,
     sourceId: input.humanSourceId,
     eventIds: [inputEvent.id],
+    grounding: { eventId: inputEvent.id, supportingExcerpt: candidate.supportingExcerpt },
     extractionConfidence: candidate.extractionConfidence,
     status: "active",
     supersedesId,
@@ -454,6 +504,7 @@ function selectIntention(
   candidates: readonly CandidateEvidenceItem[],
   currentBelief: FormulationContext["currentBelief"],
   stateVersion: StateVersion,
+  noValidGroundedEvidence: boolean,
 ): Intention {
   const hasHistoryDenial = candidates.some(
     (candidate) => candidate.proposition.predicate === HISTORY_DENIAL,
@@ -478,7 +529,9 @@ function selectIntention(
     triggerEventIds: [inputEventId],
     triggerEvidenceItemIds: [],
     triggerBeliefIds: currentBelief === null ? [] : [currentBelief.id],
-    motivation: motivationFor(input.message, kind),
+    motivation: noValidGroundedEvidence
+      ? "no_valid_grounded_evidence"
+      : motivationFor(input.message, kind),
     observedStateVersion: stateVersion,
     status: "selected",
     createdAt: input.occurredAt,

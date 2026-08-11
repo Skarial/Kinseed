@@ -7,6 +7,7 @@ import type { Proposition } from "../domain/proposition.js";
 export interface CandidateEvidenceItem {
   readonly kind: EvidenceKind;
   readonly proposition: Proposition;
+  readonly supportingExcerpt: string;
   readonly extractionConfidence: EvidenceWeight;
   readonly extractorVersion: string;
 }

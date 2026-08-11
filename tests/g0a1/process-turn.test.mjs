@@ -299,6 +299,79 @@ test("G0-A1 keeps atomic commit mutations absent on failure and applies them onc
   assert.equal((await store.readEventsByTurn(kinseedId, "T-COMMIT-FAIL")).length, completed.length);
 });
 
+class GroundingTestEngine extends FakeAIEngine {
+  constructor(candidate) {
+    super();
+    this.candidate = candidate;
+  }
+
+  async extractEvidence(input) {
+    this.extractionInputs.push(input);
+    return [this.candidate];
+  }
+}
+
+function hostileCandidate(supportingExcerpt, value = 20212021) {
+  return {
+    kind: "testimony",
+    proposition: employmentStartProposition(value),
+    supportingExcerpt,
+    extractionConfidence: "high",
+    extractorVersion: "grounding-test-v1",
+  };
+}
+
+test("G0-A1 rejects an unsupported extracted value without mutating state or leaking it to formulation", async () => {
+  const { store } = await createScenario();
+  const message = "J’ai commencé à travailler à l’Atelier Nova en 2021.";
+  const ai = new GroundingTestEngine(hostileCandidate(message));
+
+  const result = await runTurn(store, ai, "T-GROUNDING-HOSTILE", message, 20);
+  assert.equal(result.stateVersion, 0);
+  assert.equal(result.response, "Je n’ai pas de conclusion durable à ajouter.");
+  assert.doesNotMatch(result.response, /20212021/);
+  assert.equal(await store.readEvidenceItem(kinseedId, "EV-START-20212021"), null);
+  assert.equal(await store.readActiveBeliefByKey(kinseedId, buildBeliefKey(employmentStartProposition(20212021))), null);
+
+  const events = await store.readEventsByTurn(kinseedId, "T-GROUNDING-HOSTILE");
+  const decision = events.find((event) => event.type === "validation_decision_recorded");
+  const intention = events.find((event) => event.type === "intention_selected");
+  assert.equal(decision?.payload.decision, "reject");
+  assert.deepEqual(decision?.payload.reasonCodes, ["proposition_value_not_in_supporting_excerpt"]);
+  assert.ok(decision && intention && decision.sequence < intention.sequence);
+  assert.equal(events.filter((event) => event.type === "processing_failure_recorded").length, 0);
+  assert.equal(events.find((event) => event.type === "state_commit_completed")?.payload.changed, false);
+  const formulation = ai.formulationInputs.at(-1);
+  assert.deepEqual(formulation?.context.turnEvidence, []);
+
+  const replay = await runTurn(store, ai, "T-GROUNDING-HOSTILE", message, 20);
+  assert.equal(replay.replayed, true);
+  assert.equal((await store.readEventsByTurn(kinseedId, "T-GROUNDING-HOSTILE")).filter(
+    (event) => event.type === "validation_decision_recorded",
+  ).length, 1);
+});
+
+test("G0-A1 rejects empty, invented, and value-less supporting excerpts", async () => {
+  const message = "J’ai commencé à travailler à l’Atelier Nova en 2021.";
+  const cases = [
+    ["", 2021, "supporting_excerpt_empty"],
+    ["J’ai commencé en 2022", 2021, "supporting_excerpt_not_in_event_text"],
+    ["J’ai commencé à travailler à l’Atelier Nova", 2021, "proposition_value_not_in_supporting_excerpt"],
+  ];
+
+  for (const [index, [supportingExcerpt, value, reasonCode]] of cases.entries()) {
+    const { store } = await createScenario();
+    const ai = new GroundingTestEngine(hostileCandidate(supportingExcerpt, value));
+    await runTurn(store, ai, `T-GROUNDING-${index}`, message, 21 + index);
+    const events = await store.readEventsByTurn(kinseedId, `T-GROUNDING-${index}`);
+    assert.deepEqual(
+      events.find((event) => event.type === "validation_decision_recorded")?.payload.reasonCodes,
+      [reasonCode],
+    );
+    assert.equal(await store.getStateVersion(kinseedId), 0);
+  }
+});
+
 function assertTurnEventCounts(events, expected) {
   for (const [type, count] of Object.entries(expected)) {
     assert.equal(events.filter((event) => event.type === type).length, count, type);

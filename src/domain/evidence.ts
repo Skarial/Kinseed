@@ -6,6 +6,11 @@ export type EvidenceStatus = "active" | "superseded" | "invalidated";
 export type EvidenceRelation = "supports" | "contradicts";
 export type EvidenceWeight = "low" | "medium" | "high";
 
+export interface EvidenceGrounding {
+  readonly eventId: EntityId;
+  readonly supportingExcerpt: string;
+}
+
 export interface EvidenceItem {
   readonly id: EntityId;
   readonly kinseedId: EntityId;
@@ -13,6 +18,7 @@ export interface EvidenceItem {
   readonly proposition: Proposition;
   readonly sourceId: EntityId;
   readonly eventIds: readonly EntityId[];
+  readonly grounding: EvidenceGrounding | null;
   readonly extractionConfidence: EvidenceWeight;
   readonly status: EvidenceStatus;
   readonly supersedesId: EntityId | null;

@@ -115,6 +115,9 @@ async function assertExtraction(engine, turnId, message, predicate, value) {
     );
   }
   assert.deepEqual(candidates[0]?.proposition, proposition(value, predicate));
+  assert.ok(candidates[0]?.supportingExcerpt.trim().length > 0);
+  assert.ok(message.includes(candidates[0]?.supportingExcerpt));
+  assert.match(candidates[0]?.supportingExcerpt, new RegExp(`(?<!\\d)${value}(?!\\d)`));
 }
 
 async function createStore() {

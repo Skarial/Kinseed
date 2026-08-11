@@ -29,16 +29,16 @@ export class FakeAIEngine implements AIEngine {
   async extractEvidence(input: ExtractionInput): Promise<readonly CandidateEvidenceItem[]> {
     this.extractionInputs.push(input);
     this.traces.push({
-      provider: "fake", model: "fake-g0a1", engineVersion: "fake-g0a1-v1",
-      promptPolicyVersion: "fake-extraction-v1", operation: "extraction", turnId: input.turnId,
+      provider: "fake", model: "fake-g0a1", engineVersion: "fake-g0a1-v2",
+      promptPolicyVersion: "fake-extraction-v2", operation: "extraction", turnId: input.turnId,
       suppliedStateIds: [input.eventId], usage: { inputTokens: null, outputTokens: null },
     });
 
     if (input.message === FIRST_TESTIMONY) {
-      return [this.employmentStartYear(2022)];
+      return [this.employmentStartYear(2022, FIRST_TESTIMONY)];
     }
     if (input.message === CORRECTION) {
-      return [this.employmentStartYear(2021)];
+      return [this.employmentStartYear(2021, "J’ai commencé en 2021")];
     }
     if (input.message === HISTORY_DENIAL) {
       return [
@@ -50,8 +50,9 @@ export class FakeAIEngine implements AIEngine {
             value: 2022,
             context: { organisation: "Atelier Nova" },
           },
+          supportingExcerpt: "je ne t’ai jamais dit 2022",
           extractionConfidence: "high",
-          extractorVersion: "fake-g0a1-v1",
+          extractorVersion: "fake-g0a1-v2",
         },
       ];
     }
@@ -65,7 +66,7 @@ export class FakeAIEngine implements AIEngine {
   }): Promise<string> {
     this.formulationInputs.push(input);
     this.traces.push({
-      provider: "fake", model: "fake-g0a1", engineVersion: "fake-g0a1-v1",
+      provider: "fake", model: "fake-g0a1", engineVersion: "fake-g0a1-v2",
       promptPolicyVersion: "fake-formulation-v1", operation: "formulation", turnId: input.turnId,
       suppliedStateIds: [
         `state-version:${input.context.stateVersion}`,
@@ -110,7 +111,7 @@ export class FakeAIEngine implements AIEngine {
     return [...this.traces];
   }
 
-  private employmentStartYear(year: number): CandidateEvidenceItem {
+  private employmentStartYear(year: number, supportingExcerpt: string): CandidateEvidenceItem {
     return {
       kind: "testimony",
       proposition: {
@@ -119,8 +120,9 @@ export class FakeAIEngine implements AIEngine {
         value: year,
         context: { organisation: "Atelier Nova" },
       },
+      supportingExcerpt,
       extractionConfidence: "high",
-      extractorVersion: "fake-g0a1-v1",
+      extractorVersion: "fake-g0a1-v2",
     };
   }
 }

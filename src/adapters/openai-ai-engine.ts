@@ -11,8 +11,8 @@ import type {
 } from "../ports/ai-engine.js";
 
 const DEFAULT_EXPERIMENTAL_MODEL = "gpt-5.6-luna";
-const ENGINE_VERSION = "openai-g0a1-v1";
-const EXTRACTION_POLICY_VERSION = "g0a1-openai-extraction-v2";
+const ENGINE_VERSION = "openai-g0a1-v2";
+const EXTRACTION_POLICY_VERSION = "g0a1-openai-extraction-v3";
 const FORMULATION_POLICY_VERSION = "g0a1-openai-formulation-v1";
 const CONTROL_POLICY_VERSION = "g0a1-openai-control-v1";
 
@@ -28,7 +28,7 @@ const evidenceSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["kind", "subjectRef", "predicate", "value", "organisation"],
+        required: ["kind", "subjectRef", "predicate", "value", "organisation", "supportingExcerpt"],
         properties: {
           kind: { type: "string", enum: ["testimony"] },
           subjectRef: { type: "string", enum: ["H-TEST-001"] },
@@ -40,6 +40,7 @@ const evidenceSchema = {
           },
           value: { type: "integer" },
           organisation: { type: "string", enum: ["Atelier Nova"] },
+          supportingExcerpt: { type: "string" },
         },
       },
     },
@@ -73,7 +74,7 @@ export class OpenAIAIEngine implements AIEngine {
         {
           role: "system",
           content:
-            "Extract only G0-A1 testimony candidates from the current human message. Return no candidate for unrelated questions. Return at most one candidate. For a factual correction such as 'I started in 2021, not 2022', return only employment_start_year = 2021: 2022 is the corrected value, not a denial of historical testimony. Use denies_prior_employment_start_year_testimony = Y only when the message explicitly denies having said, declared, or indicated Y previously. Never infer personality, preference, emotion, value, loyalty, or any psychological trait.",
+            "Extract only G0-A1 testimony candidates from the current human message. Return no candidate for unrelated questions. Return at most one candidate. supportingExcerpt must be an exact verbatim substring of the current message, never a paraphrase, and must contain the extracted value. For a factual correction such as 'I started in 2021, not 2022', return only employment_start_year = 2021: 2022 is the corrected value, not a denial of historical testimony. Use denies_prior_employment_start_year_testimony = Y only when the message explicitly denies having said, declared, or indicated Y previously. Never infer personality, preference, emotion, value, loyalty, or any psychological trait.",
         },
         {
           role: "user",
@@ -178,6 +179,7 @@ function parseCandidates(outputText: string): readonly CandidateEvidenceItem[] {
       predicate: "employment_start_year" | "denies_prior_employment_start_year_testimony";
       value: number;
       organisation: "Atelier Nova";
+      supportingExcerpt: string;
     }[];
   };
   return parsed.candidates.map((candidate) => ({
@@ -188,6 +190,7 @@ function parseCandidates(outputText: string): readonly CandidateEvidenceItem[] {
       value: candidate.value,
       context: { organisation: candidate.organisation },
     },
+    supportingExcerpt: candidate.supportingExcerpt,
     extractionConfidence: "medium",
     extractorVersion: ENGINE_VERSION,
   }));
