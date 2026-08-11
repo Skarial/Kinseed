@@ -91,7 +91,8 @@ Ordre de lecture recommandé :
 4. [`docs/04-generation-0-roadmap-experimentale.md`](docs/04-generation-0-roadmap-experimentale.md) — fixe l’ordre G0-A → G0-F et les critères de sortie de chaque phase.
 5. [`docs/05-generation-0a-structures-et-cycle-vie.md`](docs/05-generation-0a-structures-et-cycle-vie.md) — détaille les structures minimales de G0-A, la couche `EvidenceItem` et leurs règles de promotion, révision et commit.
 6. [`docs/06-generation-0a-contrat-tour-et-evenements.md`](docs/06-generation-0a-contrat-tour-et-evenements.md) — fixe les événements minimaux, l’ordre causal d’un tour, l’idempotence et le comportement attendu en cas d’échec.
-7. [`docs/07-regles-fondatrices-heritage.md`](docs/07-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
+7. [`docs/07-generation-0a1-protocole-croyance-provenance.md`](docs/07-generation-0a1-protocole-croyance-provenance.md) — définit la première expérience exécutable G0-A1 sur la provenance, la persistance et la révision d’une croyance.
+8. [`docs/08-regles-fondatrices-heritage.md`](docs/08-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
 
 ### Convention de numérotation
 
@@ -132,4 +133,4 @@ Le projet ne considère pas ces mécanismes comme une preuve de conscience phén
 
 Le projet est actuellement en **phase de conception et de spécification expérimentale**.
 
-La priorité actuelle est **G0-A — Continuité minimale** : définir puis tester une première expérience exécutable capable de montrer qu’une histoire produit des états internes traçables et causalement utiles, au-delà du comportement spontané du LLM.
+La priorité actuelle est **G0-A1 — croyance, provenance et révision** : implémenter ensuite un premier scénario reproductible capable de montrer qu’un témoignage devient une preuve traçable, qu’une croyance persiste après remise à zéro du contexte LLM, puis qu’elle peut être corrigée sans réécrire son histoire.
