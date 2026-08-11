@@ -197,18 +197,53 @@ L’utilisateur doit savoir exactement ce qu’il achète.
 
 Kinseed ne doit pas utiliser de caisse aléatoire, tirage rare, mécanisme de casino ou rareté artificielle agressive pour pousser à la dépense.
 
-### 6.3 Question produit encore ouverte
+### 6.3 Contrôle total des cosmétiques achetés
 
-Le comportement exact d’un vêtement acheté reste à décider.
+Décision validée :
 
-Deux possibilités principales existent :
+> **Tout vêtement ou accessoire acheté avec de l’argent réel est entièrement contrôlable par l’utilisateur.**
 
-1. l’utilisateur débloque directement le vêtement et choisit quand l’avatar le porte ;
-2. l’utilisateur offre le vêtement au Kinseed, qui l’intègre à sa garde-robe et peut ensuite le porter selon ses propres préférences.
+Après l’achat, l’objet est ajouté définitivement à la garde-robe ou à l’inventaire cosmétique associé au Kinseed.
 
-La deuxième option est plus cohérente avec l’idée d’un individu autonome, mais elle devra être conçue de manière à ne pas frustrer un utilisateur qui vient de payer pour un objet.
+L’utilisateur doit pouvoir :
 
-Aucune décision définitive n’est prise sur ce point dans ce document.
+- équiper l’objet quand il le souhaite ;
+- le retirer quand il le souhaite ;
+- le remettre ultérieurement ;
+- visualiser les objets qu’il a achetés ;
+- composer librement les tenues dans les limites de compatibilité graphique prévues par le système.
+
+Le Kinseed ne doit pas pouvoir empêcher durablement l’utilisation d’un objet acheté, refuser de le porter au point de rendre l’achat inutilisable, ni retirer un achat de la garde-robe par une décision autonome.
+
+Cette règle prévaut sur l’autonomie vestimentaire du Kinseed parce qu’elle touche directement à une dépense réelle de l’utilisateur. L’utilisateur ne doit jamais avoir le sentiment d’avoir payé pour un contenu dont il perd ensuite le contrôle d’usage.
+
+### 6.4 Différence avec les objets acquis dans l’histoire
+
+Cette règle de contrôle total concerne spécifiquement les contenus obtenus par **achat réel**.
+
+Les vêtements, accessoires ou objets obtenus naturellement dans l’histoire du Kinseed — par exemple un cadeau, un héritage, une récompense liée à un événement ou un objet acquis par le Kinseed lui-même — pourront suivre des règles différentes.
+
+Ils pourront éventuellement être davantage liés :
+
+- aux préférences propres du Kinseed ;
+- à son histoire ;
+- à ses habitudes ;
+- à son âge ;
+- à ses relations.
+
+Ces règles restent à définir ultérieurement.
+
+La séparation à préserver est donc :
+
+```text
+achat avec argent réel
+        ↓
+contrôle utilisateur garanti
+
+objet acquis dans l’histoire
+        ↓
+règles potentiellement liées à l’autonomie du Kinseed
+```
 
 ---
 
@@ -285,6 +320,7 @@ Revenus complémentaires
         │
         └── vêtements / accessoires
                0,99 € → 4,99 € environ
+               contrôle utilisateur garanti après achat
 ```
 
 ---
@@ -316,6 +352,10 @@ Avant toute promesse commerciale définitive, Kinseed devra mesurer au minimum :
 
 Toute future idée de monétisation devra être évaluée avec cette règle.
 
+Une règle complémentaire s’applique aux achats réels :
+
+> **Lorsqu’un utilisateur dépense de l’argent pour un contenu cosmétique précis, Kinseed doit garantir qu’il pourra effectivement utiliser ce contenu.**
+
 ---
 
 ## 13. Décisions retenues et points ouverts
@@ -330,14 +370,16 @@ Toute future idée de monétisation devra être évaluée avec cette règle.
 6. Cible initiale à tester pour Kinseed Voice : **4,99 €/mois**, volume exact à valider.
 7. Les vêtements et accessoires peuvent être vendus séparément.
 8. Fourchette cosmétique initiale : **0,99 € à 4,99 €**.
-9. Pas de publicité, pas de loot boxes et pas de monétisation directe de l’affection, des souvenirs ou de la croissance.
-10. Les coûts LLM doivent être mesurés avant de promettre un usage textuel illimité à vie.
+9. **Tout cosmétique acheté avec de l’argent réel reste contrôlable par l’utilisateur : équipement, retrait et réutilisation à volonté.**
+10. Les objets acquis naturellement dans l’histoire pourront suivre des règles d’autonomie différentes, à définir ultérieurement.
+11. Pas de publicité, pas de loot boxes et pas de monétisation directe de l’affection, des souvenirs ou de la croissance.
+12. Les coûts LLM doivent être mesurés avant de promettre un usage textuel illimité à vie.
 
 ### Ouvert / à décider
 
 - volume exact de minutes inclus dans Kinseed Voice ;
 - prix et tailles des recharges vocales ;
-- comportement des vêtements achetés : équipement imposé ou cadeau intégré à l’autonomie du Kinseed ;
+- règles vestimentaires et d’usage des objets obtenus naturellement dans l’histoire du Kinseed ;
 - éventuels packs de monde ou décorations supplémentaires ;
 - place éventuelle d’une offre annuelle Voice ;
 - politique d’usage raisonnable du texte si les coûts l’exigent ;
