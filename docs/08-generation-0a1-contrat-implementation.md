@@ -4,14 +4,15 @@
 
 Ce document traduit le protocole `docs/07-generation-0a1-protocole-croyance-provenance.md` en un **contrat d’implémentation minimal**.
 
-Il ne contient pas encore le code de Kinseed et ne choisit pas encore la technologie de stockage local.
+Il ne contient pas encore le code de Kinseed. Le stockage du premier prototype est désormais encadré par `docs/decisions-techniques/005-stockage-prototype-g0a1.md` : le cœur dépend d’un port de persistance abstrait et les premiers tests utilisent un adaptateur en mémoire.
 
 Il respecte les décisions techniques déjà acceptées :
 
 - TypeScript pour le cœur métier ;
 - architecture local-first ;
 - modèle événementiel ;
-- indépendance vis-à-vis d’un fournisseur ou modèle IA particulier.
+- indépendance vis-à-vis d’un fournisseur ou modèle IA particulier ;
+- persistance abstraite avec `InMemoryStore` pour le premier stade expérimental.
 
 Principe :
 
@@ -471,9 +472,9 @@ Si aucune projection ne change, le tour peut être finalisé sans incrémenter l
 
 # 15. Capacités minimales du stockage
 
-Le choix SQLite / IndexedDB / autre reste ouvert.
+Le cœur métier ne dépend pas d’une technologie de stockage particulière.
 
-Quel que soit le stockage retenu plus tard, G0-A1 a besoin des capacités abstraites suivantes :
+Conformément à `docs/decisions-techniques/005-stockage-prototype-g0a1.md`, il dépend d’un port abstrait de persistance offrant au minimum :
 
 ```text
 append_event
@@ -486,7 +487,11 @@ atomic_commit(expected_state_version, mutations)
 check_idempotency_key
 ```
 
-La technologie sera choisie **après** validation de ces besoins, pas l’inverse.
+La première implémentation de ce port est un `InMemoryStore` destiné aux tests déterministes et au premier replay G0-A1.
+
+Le choix SQLite / IndexedDB / autre reste volontairement différé jusqu’au moment où la persistance après redémarrage devient elle-même un objet de validation.
+
+`InMemoryStore` ne doit pas contourner les invariants du futur stockage durable : séquence, idempotence, contrôle de `state_version` et atomicité logique doivent déjà être testés.
 
 ---
 
@@ -612,6 +617,8 @@ Résultat attendu :
 
 > **aucune panne ne peut produire une croyance partiellement mise à jour ou deux réponses émises pour le même tour.**
 
+Avec `InMemoryStore`, ces tests valident d’abord les garanties logiques du domaine et du port de persistance. La récupération après redémarrage réel devra être revalidée plus tard avec l’adaptateur local durable.
+
 ---
 
 # 21. Organisation de code recommandée, sans la créer encore
@@ -638,6 +645,10 @@ src/
   ports/
     persistence
     ai-engine
+
+  adapters/
+    persistence/
+      in-memory
 
 tests/
   domain/
@@ -668,6 +679,7 @@ Le premier lot de code ne doit pas introduire « pour plus tard » :
 - un framework frontend ;
 - Firebase ;
 - un ORM ;
+- SQLite ou IndexedDB tant que G0-A1 déterministe n’en a pas besoin ;
 - un système multi-utilisateur ;
 - des agents autonomes de fond ;
 - des émotions ;
@@ -681,28 +693,27 @@ Toute dépendance supplémentaire devra répondre à un besoin concret de G0-A1.
 
 # 23. Critère permettant enfin de coder
 
-La conception de G0-A1 est suffisamment précise pour commencer le code lorsque les trois points suivants sont explicitement acceptés :
+Les décisions nécessaires au premier lot de code sont désormais fixées :
 
-1. la représentation minimale `Proposition + belief_key` ;
-2. la frontière de stockage abstraite et le principe de commit atomique ;
-3. la stratégie de tests en trois couches : déterministe, intégration IA, end-to-end.
+1. représentation minimale `Proposition + belief_key` ;
+2. frontière `PersistencePort`, commit atomique et premier adaptateur `InMemoryStore` ;
+3. stratégie de tests en trois couches : déterministe, intégration IA, end-to-end.
 
-Une fois ces trois décisions validées, le premier développement peut commencer par **le domaine TypeScript et ses tests**, sans interface mobile.
+Le premier développement peut donc commencer par **le domaine TypeScript, le port de persistance, l’adaptateur en mémoire et les tests déterministes**, sans interface mobile et sans appel à un vrai LLM.
 
 ---
 
-# 24. Point encore ouvert avant implémentation
+# 24. Limite avant l’étape suivante
 
-Il reste une décision technique immédiatement nécessaire :
+Le stockage local durable reste à choisir, mais il ne bloque plus le premier développement G0-A1.
 
-> **quel stockage local minimal utiliser pour le prototype G0-A1 ?**
+Ce choix doit être rouvert avant de prétendre valider :
 
-Cette décision doit respecter ADR-002 mais ne doit pas anticiper inutilement la synchronisation ou l’application mobile finale.
+- persistance après fermeture de l’application ;
+- récupération après redémarrage ;
+- durabilité réelle sur disque ;
+- premier prototype mobile utilisable par une personne.
 
-Avant de choisir, il faudra comparer au minimum :
+À ce stade, SQLite, IndexedDB ou une autre solution devront être comparés à partir des besoins effectivement observés et non anticipés.
 
-- stockage en mémoire uniquement pour les premiers tests ;
-- persistance fichier simple pour un runner expérimental ;
-- SQLite ou autre stockage local structuré si les transactions atomiques deviennent nécessaires dès le prototype.
-
-Le choix doit privilégier la solution la plus petite capable de satisfaire les invariants G0-A1.
+La prochaine étape du projet est donc **le premier lot de code G0-A1**, limité au cœur métier déterministe et à ses tests.
