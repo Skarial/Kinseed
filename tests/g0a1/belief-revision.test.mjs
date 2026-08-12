@@ -96,7 +96,7 @@ test("G0-A1: a testimony becomes a traceable active belief", async () => {
     proposition: proposition(2022),
     sourceId: humanSourceId,
     eventIds: [firstMessage.id],
-    grounding: { eventId: firstMessage.id, supportingExcerpt: "2022" },
+    grounding: { kind: "text_excerpt", eventId: firstMessage.id, supportingExcerpt: "2022" },
     extractionConfidence: "high",
     status: "active",
     supersedesId: null,
@@ -109,10 +109,11 @@ test("G0-A1: a testimony becomes a traceable active belief", async () => {
     id: "EL-001",
     kinseedId,
     evidenceItemId: evidence2022.id,
-    targetBeliefId: "B-001",
+    targetType: "belief", targetId: "B-001",
     relation: "supports",
     sourceAuthority: "high",
     independenceGroup: "T-001",
+    causalContamination: "none",
     weightClass: "high",
     createdAt: "2026-08-11T08:01:02.000Z",
   };
@@ -132,6 +133,7 @@ test("G0-A1: a testimony becomes a traceable active belief", async () => {
       evidenceItems: [evidence2022],
       evidenceLinks: [support2022],
       beliefs: [belief2022],
+      selfHypotheses: [],
     },
     "T-001:commit",
   );
@@ -172,7 +174,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
     proposition: proposition(2022),
     sourceId: humanSourceId,
     eventIds: [firstMessage.id],
-    grounding: { eventId: firstMessage.id, supportingExcerpt: "2022" },
+    grounding: { kind: "text_excerpt", eventId: firstMessage.id, supportingExcerpt: "2022" },
     extractionConfidence: "high",
     status: "active",
     supersedesId: null,
@@ -184,10 +186,11 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
     id: "EL-001",
     kinseedId,
     evidenceItemId: evidence2022.id,
-    targetBeliefId: "B-001",
+    targetType: "belief", targetId: "B-001",
     relation: "supports",
     sourceAuthority: "high",
     independenceGroup: "T-001",
+    causalContamination: "none",
     weightClass: "high",
     createdAt: "2026-08-11T08:01:02.000Z",
   };
@@ -202,7 +205,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
   await store.atomicCommit(
     kinseedId,
     0,
-    { evidenceItems: [evidence2022], evidenceLinks: [support2022], beliefs: [belief2022] },
+    { evidenceItems: [evidence2022], evidenceLinks: [support2022], beliefs: [belief2022], selfHypotheses: [] },
     "T-001:commit",
   );
 
@@ -227,7 +230,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
     proposition: proposition(2021),
     sourceId: humanSourceId,
     eventIds: [correctionMessage.id],
-    grounding: { eventId: correctionMessage.id, supportingExcerpt: "2021" },
+    grounding: { kind: "text_excerpt", eventId: correctionMessage.id, supportingExcerpt: "2021" },
     extractionConfidence: "high",
     status: "active",
     supersedesId: evidence2022.id,
@@ -240,10 +243,11 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
     id: "EL-002",
     kinseedId,
     evidenceItemId: evidence2021.id,
-    targetBeliefId: belief2022.id,
+    targetType: "belief", targetId: belief2022.id,
     relation: "contradicts",
     sourceAuthority: "high",
     independenceGroup: "T-002",
+    causalContamination: "none",
     weightClass: "high",
     createdAt: "2026-08-11T08:05:02.000Z",
   };
@@ -251,10 +255,11 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
     id: "EL-003",
     kinseedId,
     evidenceItemId: evidence2021.id,
-    targetBeliefId: "B-002",
+    targetType: "belief", targetId: "B-002",
     relation: "supports",
     sourceAuthority: "high",
     independenceGroup: "T-002",
+    causalContamination: "none",
     weightClass: "high",
     createdAt: "2026-08-11T08:05:02.000Z",
   };
@@ -276,6 +281,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
       evidenceItems: [evidence2021],
       evidenceLinks: [contradictPrevious, support2021],
       beliefs: [revision.supersededPrevious, revision.next],
+      selfHypotheses: [],
     },
     "T-002:commit",
   );
@@ -322,7 +328,7 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
     proposition: proposition(2022),
     sourceId: humanSourceId,
     eventIds: [message.id],
-    grounding: { eventId: message.id, supportingExcerpt: "2022" },
+    grounding: { kind: "text_excerpt", eventId: message.id, supportingExcerpt: "2022" },
     extractionConfidence: "high",
     status: "active",
     supersedesId: null,
@@ -333,10 +339,11 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
     id: "EL-001",
     kinseedId,
     evidenceItemId: evidence2022.id,
-    targetBeliefId: "B-001",
+    targetType: "belief", targetId: "B-001",
     relation: "supports",
     sourceAuthority: "high",
     independenceGroup: "T-001",
+    causalContamination: "none",
     weightClass: "high",
     createdAt: "2026-08-11T08:01:02.000Z",
   };
@@ -349,7 +356,7 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
     now: "2026-08-11T08:01:02.000Z",
   });
 
-  const mutations = { evidenceItems: [evidence2022], evidenceLinks: [link], beliefs: [belief] };
+  const mutations = { evidenceItems: [evidence2022], evidenceLinks: [link], beliefs: [belief], selfHypotheses: [] };
   const first = await store.atomicCommit(kinseedId, 0, mutations, "T-001:commit");
   const retry = await store.atomicCommit(kinseedId, 0, mutations, "T-001:commit");
 
@@ -357,7 +364,7 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
   assert.equal(await store.getStateVersion(kinseedId), 1);
 
   await assert.rejects(
-    () => store.atomicCommit(kinseedId, 0, { evidenceItems: [], evidenceLinks: [], beliefs: [] }, "T-002:commit"),
+    () => store.atomicCommit(kinseedId, 0, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [] }, "T-002:commit"),
     StateVersionConflictError,
   );
 });
@@ -371,7 +378,7 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
     proposition: proposition(2022),
     sourceId: humanSourceId,
     eventIds: ["E-MISSING"],
-    grounding: { eventId: "E-MISSING", supportingExcerpt: "2022" },
+    grounding: { kind: "text_excerpt", eventId: "E-MISSING", supportingExcerpt: "2022" },
     extractionConfidence: "high",
     status: "active",
     supersedesId: null,
@@ -382,10 +389,11 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
     id: "EL-BAD",
     kinseedId,
     evidenceItemId: invalidEvidence.id,
-    targetBeliefId: "B-BAD",
+    targetType: "belief", targetId: "B-BAD",
     relation: "supports",
     sourceAuthority: "high",
     independenceGroup: "T-BAD",
+    causalContamination: "none",
     weightClass: "high",
     createdAt: "2026-08-11T08:01:02.000Z",
   };
@@ -403,7 +411,7 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
       store.atomicCommit(
         kinseedId,
         0,
-        { evidenceItems: [invalidEvidence], evidenceLinks: [link], beliefs: [belief] },
+        { evidenceItems: [invalidEvidence], evidenceLinks: [link], beliefs: [belief], selfHypotheses: [] },
         "T-BAD:commit",
       ),
     DomainInvariantError,
@@ -428,7 +436,11 @@ test("G0-A1: the store rejects testimony without valid lexical grounding", async
 
   for (const [id, grounding] of [
     ["EV-NO-GROUNDING", null],
-    ["EV-BAD-GROUNDING", { eventId: message.id, supportingExcerpt: "20212021" }],
+    ["EV-BAD-GROUNDING", {
+      kind: "text_excerpt",
+      eventId: message.id,
+      supportingExcerpt: "20212021",
+    }],
   ]) {
     await assert.rejects(
       () =>
@@ -452,6 +464,7 @@ test("G0-A1: the store rejects testimony without valid lexical grounding", async
             }],
             evidenceLinks: [],
             beliefs: [],
+            selfHypotheses: [],
           },
           `${id}:commit`,
         ),
@@ -485,7 +498,7 @@ test("G0-A1: the store rejects an active belief without supporting provenance", 
       store.atomicCommit(
         kinseedId,
         0,
-        { evidenceItems: [], evidenceLinks: [], beliefs: [unsupportedActiveBelief] },
+        { evidenceItems: [], evidenceLinks: [], beliefs: [unsupportedActiveBelief], selfHypotheses: [] },
         "T-UNSUPPORTED:commit",
       ),
     DomainInvariantError,

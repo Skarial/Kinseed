@@ -104,6 +104,8 @@ export class FakeAIEngine implements AIEngine {
           default:
             return "Je n’ai pas de conclusion durable à ajouter.";
         }
+      default:
+        return "Je n’ai pas de réponse à formuler.";
     }
   }
 

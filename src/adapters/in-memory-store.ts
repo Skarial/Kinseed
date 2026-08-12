@@ -6,10 +6,14 @@ import {
   StateVersionConflictError,
 } from "../domain/errors.js";
 import type { EvidenceItem, EvidenceLink } from "../domain/evidence.js";
-import { validateTextEvidenceGrounding } from "../domain/evidence-grounding.js";
+import {
+  validateBehavioralObservationGrounding,
+  validateTextEvidenceGrounding,
+} from "../domain/evidence-grounding.js";
 import type { Event } from "../domain/event.js";
 import { propositionEquals } from "../domain/proposition.js";
 import type { EntityId, StateVersion, TurnId } from "../domain/primitives.js";
+import { buildSelfHypothesisKey, type SelfHypothesis } from "../domain/self-hypothesis.js";
 import type { Source } from "../domain/source.js";
 import type {
   AtomicCommitResult,
@@ -25,6 +29,7 @@ interface KinseedBucket {
   readonly evidenceItems: Map<EntityId, EvidenceItem>;
   readonly evidenceLinks: Map<EntityId, EvidenceLink>;
   readonly beliefs: Map<EntityId, Belief>;
+  readonly selfHypotheses: Map<EntityId, SelfHypothesis>;
   readonly commitResults: Map<string, { readonly result: AtomicCommitResult; readonly fingerprint: string }>;
 }
 
@@ -140,6 +145,35 @@ export class InMemoryStore implements PersistencePort {
       .sort((left, right) => left.version - right.version);
   }
 
+  async readSelfHypothesis(
+    kinseedId: EntityId,
+    selfHypothesisId: EntityId,
+  ): Promise<SelfHypothesis | null> {
+    return this.getBucket(kinseedId).selfHypotheses.get(selfHypothesisId) ?? null;
+  }
+
+  async readActiveSelfHypothesisByKey(
+    kinseedId: EntityId,
+    hypothesisKey: string,
+  ): Promise<SelfHypothesis | null> {
+    const matches = [...this.getBucket(kinseedId).selfHypotheses.values()].filter(
+      (hypothesis) => hypothesis.hypothesisKey === hypothesisKey && hypothesis.status === "active",
+    );
+    if (matches.length > 1) {
+      throw new DomainInvariantError(`More than one active SelfHypothesis for key ${hypothesisKey}`);
+    }
+    return matches[0] ?? null;
+  }
+
+  async readSelfHypothesisHistoryByKey(
+    kinseedId: EntityId,
+    hypothesisKey: string,
+  ): Promise<readonly SelfHypothesis[]> {
+    return [...this.getBucket(kinseedId).selfHypotheses.values()]
+      .filter((hypothesis) => hypothesis.hypothesisKey === hypothesisKey)
+      .sort((left, right) => left.version - right.version);
+  }
+
   async atomicCommit(
     kinseedId: EntityId,
     expectedStateVersion: StateVersion,
@@ -163,6 +197,7 @@ export class InMemoryStore implements PersistencePort {
     const nextEvidenceItems = new Map(bucket.evidenceItems);
     const nextEvidenceLinks = new Map(bucket.evidenceLinks);
     const nextBeliefs = new Map(bucket.beliefs);
+    const nextSelfHypotheses = new Map(bucket.selfHypotheses);
 
     for (const evidenceItem of mutations.evidenceItems) {
       this.assertSameKinseed(kinseedId, evidenceItem.kinseedId, evidenceItem.id);
@@ -181,6 +216,15 @@ export class InMemoryStore implements PersistencePort {
       nextBeliefs.set(belief.id, belief);
     }
 
+    for (const hypothesis of mutations.selfHypotheses) {
+      this.assertSameKinseed(kinseedId, hypothesis.kinseedId, hypothesis.id);
+      const existing = nextSelfHypotheses.get(hypothesis.id);
+      if (existing !== undefined) {
+        this.assertSelfHypothesisReplacementIsSafe(existing, hypothesis);
+      }
+      nextSelfHypotheses.set(hypothesis.id, hypothesis);
+    }
+
     for (const evidenceLink of mutations.evidenceLinks) {
       this.assertSameKinseed(kinseedId, evidenceLink.kinseedId, evidenceLink.id);
       if (nextEvidenceLinks.has(evidenceLink.id)) {
@@ -194,6 +238,7 @@ export class InMemoryStore implements PersistencePort {
       nextEvidenceItems,
       nextEvidenceLinks,
       nextBeliefs,
+      nextSelfHypotheses,
     );
 
     if (this.nextAtomicCommitFailure !== null) {
@@ -205,7 +250,8 @@ export class InMemoryStore implements PersistencePort {
     const changed =
       mutations.evidenceItems.length > 0 ||
       mutations.evidenceLinks.length > 0 ||
-      mutations.beliefs.length > 0;
+      mutations.beliefs.length > 0 ||
+      mutations.selfHypotheses.length > 0;
 
     bucket.evidenceItems.clear();
     for (const [id, item] of nextEvidenceItems) bucket.evidenceItems.set(id, item);
@@ -213,6 +259,8 @@ export class InMemoryStore implements PersistencePort {
     for (const [id, link] of nextEvidenceLinks) bucket.evidenceLinks.set(id, link);
     bucket.beliefs.clear();
     for (const [id, belief] of nextBeliefs) bucket.beliefs.set(id, belief);
+    bucket.selfHypotheses.clear();
+    for (const [id, hypothesis] of nextSelfHypotheses) bucket.selfHypotheses.set(id, hypothesis);
 
     const previousStateVersion = bucket.stateVersion;
     if (changed) {
@@ -244,6 +292,7 @@ export class InMemoryStore implements PersistencePort {
       evidenceItems: new Map(),
       evidenceLinks: new Map(),
       beliefs: new Map(),
+      selfHypotheses: new Map(),
       commitResults: new Map(),
     };
   }
@@ -278,11 +327,32 @@ export class InMemoryStore implements PersistencePort {
     }
   }
 
+  private assertSelfHypothesisReplacementIsSafe(
+    existing: SelfHypothesis,
+    replacement: SelfHypothesis,
+  ): void {
+    if (
+      existing.id !== replacement.id ||
+      existing.kinseedId !== replacement.kinseedId ||
+      existing.hypothesisKey !== replacement.hypothesisKey ||
+      existing.version !== replacement.version ||
+      !propositionEquals(existing.proposition, replacement.proposition) ||
+      existing.stage !== replacement.stage ||
+      existing.previousVersionId !== replacement.previousVersionId ||
+      existing.createdAt !== replacement.createdAt
+    ) {
+      throw new DomainInvariantError(
+        `SelfHypothesis ${existing.id} immutable fields cannot be rewritten`,
+      );
+    }
+  }
+
   private validateResultingState(
     eventsById: ReadonlyMap<EntityId, Event>,
     evidenceItems: ReadonlyMap<EntityId, EvidenceItem>,
     evidenceLinks: ReadonlyMap<EntityId, EvidenceLink>,
     beliefs: ReadonlyMap<EntityId, Belief>,
+    selfHypotheses: ReadonlyMap<EntityId, SelfHypothesis>,
   ): void {
     for (const evidenceItem of evidenceItems.values()) {
       if (!this.sources.has(evidenceItem.sourceId)) {
@@ -334,6 +404,19 @@ export class InMemoryStore implements PersistencePort {
         }
       }
 
+      if (evidenceItem.kind === "behavioral_observation") {
+        if (evidenceItem.grounding === null) {
+          throw new DomainInvariantError(`Behavioral observation ${evidenceItem.id} must have grounding`);
+        }
+        const groundingEvent = eventsById.get(evidenceItem.grounding.eventId);
+        if (groundingEvent === undefined) {
+          throw new DomainInvariantError(
+            `EvidenceItem ${evidenceItem.id} references unknown grounding event ${evidenceItem.grounding.eventId}`,
+          );
+        }
+        validateBehavioralObservationGrounding(evidenceItem, groundingEvent);
+      }
+
       if (evidenceItem.supersedesId !== null) {
         const superseded = evidenceItems.get(evidenceItem.supersedesId);
         if (superseded === undefined || superseded.id === evidenceItem.id) {
@@ -350,9 +433,23 @@ export class InMemoryStore implements PersistencePort {
           `EvidenceLink ${link.id} references unknown EvidenceItem ${link.evidenceItemId}`,
         );
       }
-      if (!beliefs.has(link.targetBeliefId)) {
+      if (link.targetType !== "belief" && link.targetType !== "self_hypothesis") {
+        throw new DomainInvariantError(`EvidenceLink ${link.id} has invalid targetType`);
+      }
+      if (
+        link.causalContamination !== "none" &&
+        link.causalContamination !== "influenced_by_target"
+      ) {
+        throw new DomainInvariantError(`EvidenceLink ${link.id} has invalid causalContamination`);
+      }
+      if (link.targetType === "belief" && !beliefs.has(link.targetId)) {
         throw new DomainInvariantError(
-          `EvidenceLink ${link.id} references unknown Belief ${link.targetBeliefId}`,
+          `EvidenceLink ${link.id} references unknown Belief ${link.targetId}`,
+        );
+      }
+      if (link.targetType === "self_hypothesis" && !selfHypotheses.has(link.targetId)) {
+        throw new DomainInvariantError(
+          `EvidenceLink ${link.id} references unknown SelfHypothesis ${link.targetId}`,
         );
       }
     }
@@ -372,7 +469,8 @@ export class InMemoryStore implements PersistencePort {
         const link = evidenceLinks.get(linkId);
         if (
           link === undefined ||
-          link.targetBeliefId !== belief.id ||
+          link.targetType !== "belief" ||
+          link.targetId !== belief.id ||
           link.relation !== "supports"
         ) {
           throw new DomainInvariantError(
@@ -385,7 +483,8 @@ export class InMemoryStore implements PersistencePort {
         const link = evidenceLinks.get(linkId);
         if (
           link === undefined ||
-          link.targetBeliefId !== belief.id ||
+          link.targetType !== "belief" ||
+          link.targetId !== belief.id ||
           link.relation !== "contradicts"
         ) {
           throw new DomainInvariantError(
@@ -408,6 +507,85 @@ export class InMemoryStore implements PersistencePort {
           );
         }
         activeByKey.set(belief.beliefKey, belief.id);
+      }
+    }
+
+    const currentSelfHypothesisByKey = new Map<string, EntityId>();
+    for (const hypothesis of selfHypotheses.values()) {
+      if (hypothesis.hypothesisKey !== buildSelfHypothesisKey(hypothesis.proposition)) {
+        throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has inconsistent hypothesisKey`);
+      }
+      if (
+        hypothesis.proposition.subjectRef !== hypothesis.kinseedId ||
+        hypothesis.proposition.predicate !== "decision_style_under_uncertainty" ||
+        hypothesis.proposition.context.protocol !== "G0-A2" ||
+        (hypothesis.proposition.value !== "seek_clarification" &&
+          hypothesis.proposition.value !== "use_available_information")
+      ) {
+        throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has invalid G0-A2 proposition`);
+      }
+      if (hypothesis.stage !== "hypothesis") {
+        throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has invalid stage`);
+      }
+      if (
+        hypothesis.status !== "active" &&
+        hypothesis.status !== "disputed" &&
+        hypothesis.status !== "superseded"
+      ) {
+        throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has invalid status`);
+      }
+      if (hypothesis.confidence !== "low" && hypothesis.confidence !== "moderate") {
+        throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has invalid G0-A2 confidence`);
+      }
+      if (!Number.isInteger(hypothesis.version) || hypothesis.version < 1) {
+        throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has invalid version`);
+      }
+      if (hypothesis.version === 1 && hypothesis.previousVersionId !== null) {
+        throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} version 1 must not have predecessor`);
+      }
+      if (hypothesis.version > 1) {
+        if (hypothesis.previousVersionId === null) {
+          throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} must have predecessor`);
+        }
+        const previous = selfHypotheses.get(hypothesis.previousVersionId);
+        if (
+          previous === undefined ||
+          previous.hypothesisKey !== hypothesis.hypothesisKey ||
+          previous.version !== hypothesis.version - 1
+        ) {
+          throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has invalid predecessor`);
+        }
+      }
+      for (const linkId of hypothesis.supportLinkIds) {
+        const link = evidenceLinks.get(linkId);
+        if (
+          link === undefined ||
+          link.targetType !== "self_hypothesis" ||
+          link.targetId !== hypothesis.id ||
+          link.relation !== "supports"
+        ) {
+          throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has invalid supporting EvidenceLink ${linkId}`);
+        }
+      }
+      for (const linkId of hypothesis.againstLinkIds) {
+        const link = evidenceLinks.get(linkId);
+        if (
+          link === undefined ||
+          link.targetType !== "self_hypothesis" ||
+          link.targetId !== hypothesis.id ||
+          link.relation !== "contradicts"
+        ) {
+          throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has invalid contradicting EvidenceLink ${linkId}`);
+        }
+      }
+      if (hypothesis.status === "active" || hypothesis.status === "disputed") {
+        const existing = currentSelfHypothesisByKey.get(hypothesis.hypothesisKey);
+        if (existing !== undefined) {
+          throw new DomainInvariantError(
+            `SelfHypotheses ${existing} and ${hypothesis.id} are both current for ${hypothesis.hypothesisKey}`,
+          );
+        }
+        currentSelfHypothesisByKey.set(hypothesis.hypothesisKey, hypothesis.id);
       }
     }
   }

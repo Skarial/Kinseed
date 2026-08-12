@@ -414,7 +414,7 @@ async function commitTurn(
     }
   }
 
-  const mutations: CommitMutations = { evidenceItems, evidenceLinks, beliefs };
+  const mutations: CommitMutations = { evidenceItems, evidenceLinks, beliefs, selfHypotheses: [] };
   return persistence.atomicCommit(input.kinseedId, stateVersion, mutations, commitKey);
 }
 
@@ -437,7 +437,11 @@ async function validateTemporaryCandidates(
         proposition: candidate.proposition,
         sourceId: input.humanSourceId,
         eventIds: [inputEvent.id],
-        grounding: { eventId: inputEvent.id, supportingExcerpt: candidate.supportingExcerpt },
+        grounding: {
+          kind: "text_excerpt",
+          eventId: inputEvent.id,
+          supportingExcerpt: candidate.supportingExcerpt,
+        },
         extractionConfidence: candidate.extractionConfidence,
         status: "active",
         supersedesId: null,
@@ -479,7 +483,11 @@ async function createEvidenceItem(
     proposition: candidate.proposition,
     sourceId: input.humanSourceId,
     eventIds: [inputEvent.id],
-    grounding: { eventId: inputEvent.id, supportingExcerpt: candidate.supportingExcerpt },
+    grounding: {
+      kind: "text_excerpt",
+      eventId: inputEvent.id,
+      supportingExcerpt: candidate.supportingExcerpt,
+    },
     extractionConfidence: candidate.extractionConfidence,
     status: "active",
     supersedesId,
@@ -507,18 +515,20 @@ async function currentSupportingEvidenceId(
 function createEvidenceLink(
   kinseedId: EntityId,
   evidenceItemId: EntityId,
-  targetBeliefId: EntityId,
+  targetId: EntityId,
   relation: "supports" | "contradicts",
   createdAt: Timestamp,
 ): EvidenceLink {
   return {
-    id: `EL-${evidenceItemId}-${targetBeliefId}-${relation}`,
+    id: `EL-${evidenceItemId}-${targetId}-${relation}`,
     kinseedId,
     evidenceItemId,
-    targetBeliefId,
+    targetType: "belief",
+    targetId,
     relation,
     sourceAuthority: "high",
     independenceGroup: evidenceItemId,
+    causalContamination: "none",
     weightClass: "high",
     createdAt,
   };
@@ -580,6 +590,7 @@ function selectIntention(
     triggerEventIds: [inputEventId],
     triggerEvidenceItemIds: [],
     triggerBeliefIds: currentBelief === null ? [] : [currentBelief.id],
+    triggerSelfHypothesisIds: [],
     motivation: noValidGroundedEvidence
       ? "no_valid_grounded_evidence"
       : motivationFor(input.message, kind),
@@ -702,6 +713,7 @@ function reconstructHistoricalIntention(
     triggerEventIds: [inputEventId],
     triggerEvidenceItemIds: [],
     triggerBeliefIds: currentBelief === null ? [] : [currentBelief.id],
+    triggerSelfHypothesisIds: [],
     motivation,
     observedStateVersion: event.observedStateVersion,
     status: "selected",

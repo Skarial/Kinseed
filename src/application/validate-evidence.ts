@@ -1,6 +1,7 @@
 import { DomainInvariantError } from "../domain/errors.js";
 import {
   type GroundingRejectionCode,
+  validateBehavioralObservationGrounding,
   validateTextEvidenceGrounding,
 } from "../domain/evidence-grounding.js";
 import type { EvidenceItem } from "../domain/evidence.js";
@@ -41,6 +42,17 @@ export async function validateEvidenceItem(
     if (candidate.grounding?.eventId === eventId) groundingEvent = event;
   }
 
+  if (candidate.kind === "behavioral_observation") {
+    if (candidate.grounding === null) {
+      throw new DomainInvariantError(`Behavioral observation ${candidate.id} must have grounding`);
+    }
+    const event = await persistence.readEventById(candidate.kinseedId, candidate.grounding.eventId);
+    if (event === null) {
+      throw new DomainInvariantError(`Behavioral observation ${candidate.id} grounding event is unavailable`);
+    }
+    validateBehavioralObservationGrounding(candidate, event);
+    return null;
+  }
   if (candidate.kind !== "testimony") return null;
   if (groundingEvent === null) {
     throw new DomainInvariantError(`Testimony ${candidate.id} grounding event is unavailable`);
