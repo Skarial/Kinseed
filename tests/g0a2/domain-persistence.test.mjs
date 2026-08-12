@@ -360,7 +360,7 @@ test("G0-A2: EvidenceLink and SelfHypothesis provenance invariants are enforced"
     const store = await createStore();
     const source = await appendIntention(store);
     const evidence = observation(source);
-    const value = hypothesis("SH-1", selfProposition(), { supportLinkIds: ["EL-SH-1"] });
+    const value = hypothesis("SH-1", selfProposition(), { status: "disputed", supportLinkIds: ["EL-SH-1"] });
     const link = selfLink("EL-SH-1", evidence.id, value.id);
     await assert.doesNotReject(() => store.atomicCommit(
       kinseedId, 0, mutations({ evidenceItems: [evidence], evidenceLinks: [link], selfHypotheses: [value] }), "SH:link",
@@ -402,12 +402,12 @@ test("G0-A2: EvidenceLink and SelfHypothesis provenance invariants are enforced"
   });
 });
 
-test("G0-A2: hypotheses persist, sort by version, and expose only active state", async () => {
+test("G0-A2: hypotheses persist, sort by version, and omit disputed state from active reads", async () => {
   const store = await createStore();
   const key = buildSelfHypothesisKey(selfProposition());
   const first = hypothesis("SH-1", selfProposition(), { status: "superseded" });
   const second = hypothesis("SH-2", selfProposition("use_available_information"), {
-    version: 2, previousVersionId: first.id,
+    version: 2, previousVersionId: first.id, status: "disputed",
   });
   await store.atomicCommit(
     kinseedId, 0, mutations({ selfHypotheses: [second, first] }), "SH:history",
@@ -417,7 +417,7 @@ test("G0-A2: hypotheses persist, sort by version, and expose only active state",
     (await store.readSelfHypothesisHistoryByKey(kinseedId, key)).map((item) => item.id),
     [first.id, second.id],
   );
-  assert.equal((await store.readActiveSelfHypothesisByKey(kinseedId, key))?.id, second.id);
+  assert.equal(await store.readActiveSelfHypothesisByKey(kinseedId, key), null);
 
   const disputedStore = await createStore();
   const disputed = hypothesis("SH-DISPUTED", selfProposition(), { status: "disputed" });
@@ -482,11 +482,11 @@ test("G0-A2: SelfHypothesis histories are linear and current only at the latest 
       DomainInvariantError,
     );
   });
-  await t.test("v1 superseded to v2 active is accepted", async () => {
+  await t.test("v1 superseded to v2 disputed is accepted", async () => {
     const store = await createStore();
     const first = hypothesis("SH-1", selfProposition(), { status: "superseded" });
     const second = hypothesis("SH-2", selfProposition("use_available_information"), {
-      version: 2, previousVersionId: first.id, status: "active",
+      version: 2, previousVersionId: first.id, status: "disputed",
     });
     await assert.doesNotReject(() => store.atomicCommit(
       kinseedId, 0, mutations({ selfHypotheses: [first, second] }), "SH:valid-active",
@@ -509,7 +509,7 @@ test("G0-A2: SelfHypothesis histories are linear and current only at the latest 
 
 test("G0-A2: SelfHypothesis commits are idempotent and reject a different fingerprint", async () => {
   const store = await createStore();
-  const value = hypothesis("SH-1");
+  const value = hypothesis("SH-1", selfProposition(), { status: "disputed" });
   const original = mutations({ selfHypotheses: [value] });
   const first = await store.atomicCommit(kinseedId, 0, original, "SH:retry");
   const retry = await store.atomicCommit(kinseedId, 0, original, "SH:retry");

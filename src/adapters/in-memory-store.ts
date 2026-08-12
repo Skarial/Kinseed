@@ -458,6 +458,38 @@ export class InMemoryStore implements PersistencePort {
           `EvidenceLink ${link.id} references unknown SelfHypothesis ${link.targetId}`,
         );
       }
+      if (link.targetType === "self_hypothesis") {
+        const evidenceItem = evidenceItems.get(link.evidenceItemId);
+        const hypothesis = selfHypotheses.get(link.targetId);
+        if (evidenceItem === undefined || hypothesis === undefined || evidenceItem.kind !== "behavioral_observation") {
+          throw new DomainInvariantError(`EvidenceLink ${link.id} must target SelfHypothesis from behavioral observation`);
+        }
+        const situationId = evidenceItem.proposition.context.situationId;
+        if (typeof situationId !== "string" || link.independenceGroup !== `g0a2:${situationId}`) {
+          throw new DomainInvariantError(`EvidenceLink ${link.id} has forged independenceGroup`);
+        }
+        const expectedRelation = evidenceItem.proposition.value === hypothesis.proposition.value
+          ? "supports"
+          : "contradicts";
+        if (link.relation !== expectedRelation) {
+          throw new DomainInvariantError(`EvidenceLink ${link.id} has relation inconsistent with observation`);
+        }
+        const sourceEvent = evidenceItem.grounding === null
+          ? undefined
+          : eventsById.get(evidenceItem.grounding.eventId);
+        if (sourceEvent === undefined) {
+          throw new DomainInvariantError(`EvidenceLink ${link.id} has invalid behavioral provenance`);
+        }
+        validateBehavioralObservationGrounding(evidenceItem, sourceEvent);
+        if (
+          ["S1", "S2", "S3", "S4"].includes(situationId) &&
+          Array.isArray(sourceEvent.payload.triggerSelfHypothesisIds) &&
+          sourceEvent.payload.triggerSelfHypothesisIds.length === 0 &&
+          (link.causalContamination !== "none" || link.sourceAuthority !== "high" || link.weightClass !== "high")
+        ) {
+          throw new DomainInvariantError(`EvidenceLink ${link.id} has invalid initial fixture weight`);
+        }
+      }
     }
 
     const activeByKey = new Map<string, EntityId>();
@@ -582,6 +614,30 @@ export class InMemoryStore implements PersistencePort {
           link.relation !== "contradicts"
         ) {
           throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has invalid contradicting EvidenceLink ${linkId}`);
+        }
+      }
+      if (hypothesis.status === "active") {
+        if (hypothesis.confidence !== "moderate") {
+          throw new DomainInvariantError(`Active SelfHypothesis ${hypothesis.id} must have moderate confidence`);
+        }
+        const supportGroups = new Set<string>();
+        const againstGroups = new Set<string>();
+        for (const linkId of hypothesis.supportLinkIds) {
+          const link = evidenceLinks.get(linkId);
+          if (link?.causalContamination === "none") supportGroups.add(link.independenceGroup);
+        }
+        for (const linkId of hypothesis.againstLinkIds) {
+          const link = evidenceLinks.get(linkId);
+          if (link?.causalContamination === "none") againstGroups.add(link.independenceGroup);
+        }
+        for (const group of [...supportGroups]) {
+          if (againstGroups.has(group)) {
+            supportGroups.delete(group);
+            againstGroups.delete(group);
+          }
+        }
+        if (supportGroups.size < 3 || againstGroups.size < 1) {
+          throw new DomainInvariantError(`Active SelfHypothesis ${hypothesis.id} does not satisfy G0-A2 threshold`);
         }
       }
       const history = selfHypothesesByKey.get(hypothesis.hypothesisKey) ?? [];
