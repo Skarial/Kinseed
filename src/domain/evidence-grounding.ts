@@ -89,6 +89,16 @@ export function validateBehavioralObservationGrounding(
       `Behavioral observation ${evidenceItem.id} must originate from intention_selected schema v2`,
     );
   }
+  if (typeof event.payload.intentionId !== "string") {
+    throw new DomainInvariantError(
+      `Behavioral observation ${evidenceItem.id} source intention has no intentionId`,
+    );
+  }
+  if (typeof event.payload.motivation !== "string") {
+    throw new DomainInvariantError(
+      `Behavioral observation ${evidenceItem.id} source intention has no motivation`,
+    );
+  }
   const situationId = event.payload.situationId;
   const intentionKind = event.payload.kind;
   if (typeof situationId !== "string") {

@@ -184,6 +184,30 @@ test("G0-A2: behavioral observation rejects invalid source, payload, mapping and
     const source = await appendIntention(store, { payloadSchemaVersion: 1 });
     await assert.rejects(() => validateEvidenceItem(observation(source), store), DomainInvariantError);
   });
+  await t.test("missing intentionId", async () => {
+    const store = await createStore();
+    const source = await appendIntention(store, {
+      payload: {
+        kind: "ask_clarification",
+        motivation: "controlled_historical_fixture",
+        situationId: "S1",
+        triggerSelfHypothesisIds: [],
+      },
+    });
+    await assert.rejects(() => validateEvidenceItem(observation(source), store), DomainInvariantError);
+  });
+  await t.test("missing motivation", async () => {
+    const store = await createStore();
+    const source = await appendIntention(store, {
+      payload: {
+        intentionId: "I-S1",
+        kind: "ask_clarification",
+        situationId: "S1",
+        triggerSelfHypothesisIds: [],
+      },
+    });
+    await assert.rejects(() => validateEvidenceItem(observation(source), store), DomainInvariantError);
+  });
   await t.test("wrong intention to proposition mapping", async () => {
     const store = await createStore();
     const source = await appendIntention(store);
