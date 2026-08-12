@@ -95,7 +95,8 @@ Ordre de lecture recommandé :
 8. [`docs/08-generation-0a1-contrat-implementation.md`](docs/08-generation-0a1-contrat-implementation.md) — traduit G0-A1 en contrat d’implémentation minimal, définit les invariants et la stratégie de tests.
 9. [`docs/09-generation-0a1-resultats-validation.md`](docs/09-generation-0a1-resultats-validation.md) — consigne la validation expérimentale limitée de G0-A1, ses résultats reproductibles et sa prochaine limite de robustesse.
 10. [`docs/10-generation-0a2-protocole-premiere-hypothese-soi.md`](docs/10-generation-0a2-protocole-premiere-hypothese-soi.md) — définit la sous-expérience G0-A2 sur une première `SelfHypothesis` provisoire, sa provenance, son influence causale et son ablation.
-11. [`docs/11-regles-fondatrices-heritage.md`](docs/11-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
+11. [`docs/11-generation-0a2-contrat-implementation.md`](docs/11-generation-0a2-contrat-implementation.md) — fixe les structures, invariants, contrôles et reprises minimaux du cœur déterministe G0-A2.
+12. [`docs/12-regles-fondatrices-heritage.md`](docs/12-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
 
 Les décisions techniques sont documentées séparément dans `docs/decisions-techniques/`. Pour G0-A1, ADR-005 fixe l’utilisation initiale d’un `PersistencePort` avec un adaptateur `InMemoryStore`, sans choisir prématurément le stockage local durable.
 

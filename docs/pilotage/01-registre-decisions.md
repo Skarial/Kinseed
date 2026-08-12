@@ -57,7 +57,7 @@ Les ADR de `docs/decisions-techniques/` restent les sources canoniques pour les 
 | ID | Domaine | Décision | Statut | Source canonique |
 |---|---|---|---|---|
 | D-001 | Mission | Kinseed vise un individu numérique persistant dont l’état actuel dépend de son histoire. | VALIDÉE | `README.md`, `docs/01-generation-0-specification-conceptuelle.md` |
-| D-002 | Héritage | La transmission intergénérationnelle doit permettre combinaison, transformation, variation et oubli, jamais une simple copie. | VALIDÉE | `docs/11-regles-fondatrices-heritage.md` |
+| D-002 | Héritage | La transmission intergénérationnelle doit permettre combinaison, transformation, variation et oubli, jamais une simple copie. | VALIDÉE | `docs/12-regles-fondatrices-heritage.md` |
 | D-003 | Priorité | La priorité actuelle est le premier Kinseed de génération 0 ; reproduction, société et lignées restent hors priorité immédiate. | VALIDÉE | `README.md`, `docs/04-generation-0-roadmap-experimentale.md` |
 | D-004 | Architecture IA | Le LLM comprend et formule ; l’état Kinseed conserve la continuité, la causalité et les écritures durables. | VALIDÉE | `README.md`, `docs/03-generation-0-architecture-conceptuelle.md`, ADR-004 |
 | D-005 | Événements | L’histoire fiable repose sur un modèle événementiel traçable avec ordre causal et validation des écritures durables. | VALIDÉE | `docs/06-generation-0a-contrat-tour-et-evenements.md`, ADR-003 |
@@ -73,6 +73,7 @@ Les ADR de `docs/decisions-techniques/` restent les sources canoniques pour les 
 | D-015 | Vie | Le cycle de vie, le vieillissement et la fin de vie appartiennent à la vision produit mais ne doivent pas détourner la priorité expérimentale actuelle. | VALIDÉE AU NIVEAU PRODUIT | `docs/produit/04-cycle-de-vie-vieillissement-et-fin-de-vie.md` |
 | D-016 | Grounding | Les témoignages textuels G0-A1 doivent fournir un `supportingExcerpt` vérifiable ; une validation lexicale déterministe est requise avant influence ou persistance. | EXPÉRIMENTALE | `docs/05-generation-0a-structures-et-cycle-vie.md`, `docs/08-generation-0a1-contrat-implementation.md` |
 | D-017 | Reprise causale | Le résultat de validation temporaire est checkpointé avant l’intention ; après ce checkpoint, une reprise réutilise les preuves, l’intention et la réponse historiques sans relancer silencieusement l’IA. | EXPÉRIMENTALE | `docs/06-generation-0a-contrat-tour-et-evenements.md`, `docs/08-generation-0a1-contrat-implementation.md` |
+| D-018 | G0-A2 / hypothèse sur soi | G0-A2 teste une première `SelfHypothesis` provisoire et contextuelle fondée sur plusieurs observations comportementales indépendantes issues de décisions structurées enregistrées ; son influence doit être démontrée par contrôle et ablation. | EXPÉRIMENTALE | `docs/10-generation-0a2-protocole-premiere-hypothese-soi.md`, `docs/11-generation-0a2-contrat-implementation.md` |
 
 ---
 

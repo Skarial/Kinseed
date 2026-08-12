@@ -4,7 +4,7 @@
 
 Ce document définit le protocole conceptuel de **G0-A2 — première hypothèse sur soi**.
 
-Il fait suite à G0-A1, validé dans son périmètre expérimental, et décrit ce qui doit être démontré avant de définir le contrat d’implémentation de G0-A2.
+Il fait suite à G0-A1, validé dans son périmètre expérimental, et décrit ce qui doit être démontré. Son contrat d’implémentation minimal est désormais défini dans `docs/11-generation-0a2-contrat-implementation.md`.
 
 G0-A2 reste une sous-expérience de G0-A. Elle ne valide pas G0-A complet et ne commence ni G0-B ni G0-C.
 
