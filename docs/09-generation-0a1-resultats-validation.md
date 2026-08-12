@@ -75,7 +75,7 @@ La suite déterministe produit :
 0 FAIL
 ```
 
-Elle vérifie notamment la provenance, la révision des croyances, `supersedesId`, l’unicité de la croyance active, l’atomicité, l’idempotence et le protocole T1 → T7 avec le moteur factice. Elle couvre aussi le grounding lexical minimal et les scénarios de reprise causale R1 à R7 : checkpoint `EVIDENCE_READY`, absence de ré-extraction après checkpoint, réutilisation de l’intention historique et absence d’opération IA après `kinseed_message_emitted`.
+Elle vérifie notamment la provenance, la révision des croyances, `supersedesId`, l’unicité de la croyance active, l’atomicité, l’idempotence et le protocole T1 → T7 avec le moteur factice. Elle couvre aussi le grounding lexical minimal et les scénarios de reprise causale R1 à R8 : checkpoint `EVIDENCE_READY`, absence de ré-extraction après checkpoint, réutilisation de l’intention historique, absence d’opération IA après `kinseed_message_emitted`, récupération après commit déjà appliqué et rejet des états historiques impossibles.
 
 ---
 
