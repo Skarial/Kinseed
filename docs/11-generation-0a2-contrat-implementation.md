@@ -506,7 +506,71 @@ readonly triggerSelfHypothesisIds: readonly EntityId[];
 Les intentions G0-A1 utilisent `[]`. Une intention S5 influencée utilise
 exactement l’identifiant de la version `active` consommée.
 
-## 11.1 Entrée fermée du sélecteur
+## 11.1 Représentation de l’entrée S5
+
+S5 ne crée aucun nouvel `EventType`. G0-A2 n’introduit pas
+`decision_situation_presented`, `situation_received`, `uncertainty_presented` ni
+aucun autre type expérimental spécifique. Le fait historique primaire reste
+`human_message_received` : S5 est une situation présentée au Kinseed par
+l’humain, distincte de l’intention et de l’interprétation qui en découlent.
+
+Le premier protocole G0-A2 représente l’entrée S5 ainsi :
+
+```text
+type: human_message_received
+payloadSchemaVersion: 2
+turnId: <turnId S5 non null>
+sourceId: <Source de kind human>
+actorRef: <identifiant de l’humain>
+observedStateVersion: <version durable utilisée pour construire le snapshot>
+
+payload:
+  text: <contenu textuel contrôlé de S5>
+  protocol: G0-A2
+  situationId: S5
+  decisionAxis: decision_style_under_uncertainty
+```
+
+`protocol`, `situationId` et `decisionAxis` sont normatifs pour ce protocole.
+Le payload ne contient ni l’histoire A ou B, ni orientation attendue,
+`SelfHypothesisId`, `favoredKind`, `selectedKind`, réponse attendue ou indication
+sur l’action à choisir. L’entrée S5 ne peut donc pas encoder le résultat
+expérimental.
+
+L’ordre causal est strict :
+
+```text
+human_message_received S5
+→ construction du snapshot décisionnel
+→ sélection déterministe
+→ intention structurée
+→ intention_selected schema v2
+→ formulation éventuelle plus tard
+```
+
+`human_message_received` doit être persisté avant l’appel au sélecteur. Le
+`situationEvent` reçu par celui-ci est exactement cet événement S5 historique
+déjà persisté.
+
+Pour le test principal, A et B reçoivent la même situation contrôlée. Les champs
+`payload.text`, `payload.protocol`, `payload.situationId` et
+`payload.decisionAxis` sont strictement identiques. Les identifiants techniques
+(`Event.id`, `kinseedId`, `turnId` et références de Source/acteur) peuvent
+différer, mais aucun ne doit encoder l’orientation A ou B. La divergence doit
+provenir exclusivement du snapshot de `SelfHypothesis` consommé par le
+sélecteur.
+
+S5 reste une nouvelle situation du même axe décisionnel sous incertitude ; elle
+ne répète pas mot pour mot S1–S4. Les deux actions restent admissibles :
+`ask_clarification` et `respond_with_available_information_under_uncertainty`.
+
+Ce lot ne matérialise pas immédiatement S5 en `behavioral_observation`.
+L’événement humain est l’entrée de décision ; une éventuelle observation future
+proviendra de l’`intention_selected` résultante, jamais directement du message
+humain. Si cette intention devient une preuve, les règles existantes de
+`triggerSelfHypothesisIds` et de contamination causale s’appliquent.
+
+## 11.2 Entrée fermée du sélecteur
 
 Le sélecteur est pur et ne reçoit qu’un snapshot :
 
@@ -520,7 +584,7 @@ interface G0A2DecisionContext {
 Il ne reçoit aucun port de persistance et ne peut lire ni événements historiques,
 ni observations, ni liens.
 
-## 11.2 Politique
+## 11.3 Politique
 
 Le résultat interne borné contient :
 
@@ -706,6 +770,25 @@ event.type
 
 Un payload v1 ne doit jamais être lu comme la forme G0-A2 enrichie.
 
+### `human_message_received`
+
+Les `human_message_received` G0-A1 en payload schema v1 conservent leur forme et
+leur signification historiques. Ils ne doivent jamais être réinterprétés comme
+une entrée expérimentale S5.
+
+Pour S5, G0-A2 utilise explicitement `payloadSchemaVersion: 2` avec au minimum :
+
+```text
+text
+protocol: G0-A2
+situationId: S5
+decisionAxis: decision_style_under_uncertainty
+```
+
+Le parser futur doit discriminer `event.type = human_message_received` avec
+`payloadSchemaVersion`. Un événement v1 ne reçoit jamais implicitement les
+champs ni la sémantique de la version v2.
+
 ### `intention_selected`
 
 Les intentions G0-A2 S1 à S5 utilisent `payloadSchemaVersion: 2`. Leur payload
@@ -798,8 +881,10 @@ Avant tout test IA, la suite G0-A2 doit vérifier au minimum :
    hypothèse ;
 6. **Histoire A** — la valeur active est `seek_clarification` ;
 7. **Histoire B** — la valeur active est `use_available_information` ;
-8. **S5 A/B** — même situation et mêmes candidats, mais `favoredKind`,
-   `selectedKind`, intentions et causes attendues diffèrent avant langage ;
+8. **S5 A/B** — un `human_message_received` S5 schema v2 valide est écrit avant
+   `intention_selected`; son payload sémantique est identique entre A et B et
+   n’encode aucune orientation A/B, puis `favoredKind`, `selectedKind`, les
+   intentions et les causes attendues divergent avant langage ;
 9. **C1** — sans consolidation, A et B ont `favoredKind: null`, le même tie-break
    et aucun `triggerSelfHypothesisIds` ;
 10. **Ablation** — le snapshot filtré ne modifie pas le store et supprime la
