@@ -481,13 +481,30 @@ export class InMemoryStore implements PersistencePort {
           throw new DomainInvariantError(`EvidenceLink ${link.id} has invalid behavioral provenance`);
         }
         validateBehavioralObservationGrounding(evidenceItem, sourceEvent);
+        const triggerIds = sourceEvent.payload.triggerSelfHypothesisIds;
+        if (!Array.isArray(triggerIds) || !triggerIds.every((id) => typeof id === "string")) {
+          throw new DomainInvariantError(`EvidenceLink ${link.id} has invalid causal provenance`);
+        }
+        const triggerHypotheses = triggerIds.map((triggerId) => {
+          const trigger = selfHypotheses.get(triggerId);
+          if (trigger === undefined) {
+            throw new DomainInvariantError(
+              `EvidenceLink ${link.id} references unknown trigger SelfHypothesis ${triggerId}`,
+            );
+          }
+          return trigger;
+        });
+        const influencedByTarget = triggerHypotheses.some(
+          (trigger) => trigger.hypothesisKey === hypothesis.hypothesisKey,
+        );
+        const expectedContamination = influencedByTarget ? "influenced_by_target" : "none";
+        const expectedWeight = influencedByTarget ? "low" : "high";
         if (
-          ["S1", "S2", "S3", "S4"].includes(situationId) &&
-          Array.isArray(sourceEvent.payload.triggerSelfHypothesisIds) &&
-          sourceEvent.payload.triggerSelfHypothesisIds.length === 0 &&
-          (link.causalContamination !== "none" || link.sourceAuthority !== "high" || link.weightClass !== "high")
+          link.causalContamination !== expectedContamination ||
+          link.sourceAuthority !== "high" ||
+          link.weightClass !== expectedWeight
         ) {
-          throw new DomainInvariantError(`EvidenceLink ${link.id} has invalid initial fixture weight`);
+          throw new DomainInvariantError(`EvidenceLink ${link.id} has weight inconsistent with causal provenance`);
         }
       }
     }

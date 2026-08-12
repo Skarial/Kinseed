@@ -2,16 +2,23 @@ import { DomainInvariantError } from "../domain/errors.js";
 import type { EvidenceItem, EvidenceLink } from "../domain/evidence.js";
 import type { Event } from "../domain/event.js";
 import {
+  buildG0A2SelfHypothesisLinkId,
+  buildInitialG0A2SelfHypothesisId,
   planInitialG0A2SelfHypothesisConsolidation,
   type G0A2InitialConsolidationPlan,
+  type G0A2ConsolidationObservation,
 } from "../domain/g0a2-self-hypothesis-consolidation.js";
 import { propositionEquals, type Proposition } from "../domain/proposition.js";
 import type { EntityId, ScalarValue, SerializableValue, StateVersion } from "../domain/primitives.js";
-import { type SelfHypothesis } from "../domain/self-hypothesis.js";
+import { buildSelfHypothesisKey, type SelfHypothesis } from "../domain/self-hypothesis.js";
 import type { AtomicCommitResult, PersistencePort } from "../ports/persistence.js";
 import { validateEvidenceItem } from "./validate-evidence.js";
 
 const SCOPE = "self_hypothesis_consolidation";
+const INITIAL_SITUATION_IDS = ["S1", "S2", "S3", "S4"] as const;
+const INITIAL_INDEPENDENCE_GROUPS = INITIAL_SITUATION_IDS.map(
+  (situationId) => `g0a2:${situationId}`,
+);
 
 export interface ConsolidateG0A2SelfHypothesisInput {
   readonly kinseedId: EntityId;
@@ -38,7 +45,7 @@ export async function consolidateInitialG0A2SelfHypothesis(
   const source = await persistence.readSource(input.systemSourceId);
   if (source?.kind !== "system") throw new DomainInvariantError("G0-A2 consolidation requires a system source");
   const events = await persistence.readEventsInSequence(input.kinseedId);
-  const checkpoint = findCheckpoint(events, input.consolidationId);
+  const checkpoint = findCheckpoint(events, input);
   const completion = findCompletion(events, input.consolidationId);
   if (completion !== null && checkpoint === null) {
     throw new DomainInvariantError(`G0-A2 consolidation ${input.consolidationId} completed without checkpoint`);
@@ -47,13 +54,13 @@ export async function consolidateInitialG0A2SelfHypothesis(
   let plan: G0A2InitialConsolidationPlan;
   let checkpointEvent: Event;
   if (checkpoint !== null) {
-    plan = parseCheckpoint(checkpoint, input);
+    plan = await parseCheckpoint(checkpoint, input, persistence);
     checkpointEvent = checkpoint;
   } else {
     const observations = await readObservations(input, persistence);
     const existing = await persistence.readSelfHypothesisHistoryByKey(
       input.kinseedId,
-      planKey(input.candidateProposition),
+      buildSelfHypothesisKey(input.candidateProposition),
     );
     if (existing.length !== 0) {
       throw new DomainInvariantError("G0-A2 initial consolidation cannot follow existing SelfHypothesis history");
@@ -103,7 +110,7 @@ export async function consolidateInitialG0A2SelfHypothesis(
 async function readObservations(
   input: ConsolidateG0A2SelfHypothesisInput,
   persistence: PersistencePort,
-) {
+): Promise<readonly G0A2ConsolidationObservation[]> {
   if (input.evidenceItemIds.length !== 4 || new Set(input.evidenceItemIds).size !== 4) {
     throw new DomainInvariantError("G0-A2 initial consolidation requires four distinct EvidenceItems");
   }
@@ -129,7 +136,19 @@ async function readObservations(
     }
     observations.push({ evidenceItem, sourceEvent });
   }
-  return observations;
+  const ordered = observations.sort(
+    (left, right) => left.sourceEvent.sequence - right.sourceEvent.sequence,
+  );
+  const situationIds = new Set(
+    ordered.map((item) => item.evidenceItem.proposition.context.situationId),
+  );
+  if (
+    situationIds.size !== INITIAL_SITUATION_IDS.length ||
+    INITIAL_SITUATION_IDS.some((situationId) => !situationIds.has(situationId))
+  ) {
+    throw new DomainInvariantError("G0-A2 initial consolidation observations must cover S1 through S4 once");
+  }
+  return ordered;
 }
 
 async function appendCheckpoint(
@@ -173,9 +192,19 @@ async function appendCompletion(
   });
 }
 
-function findCheckpoint(events: readonly Event[], consolidationId: string): Event | null {
-  const matches = events.filter((event) => event.type === "validation_decision_recorded" && event.payloadSchemaVersion === 3 && event.payload.scope === SCOPE && event.payload.consolidationId === consolidationId);
-  if (matches.length > 1) throw new DomainInvariantError(`G0-A2 consolidation ${consolidationId} has multiple checkpoints`);
+function findCheckpoint(
+  events: readonly Event[],
+  input: ConsolidateG0A2SelfHypothesisInput,
+): Event | null {
+  const matches = events.filter((event) =>
+    event.id === checkpointId(input) ||
+    event.idempotencyKey === decisionKey(input) ||
+    (
+      event.type === "validation_decision_recorded" &&
+      event.payload.scope === SCOPE &&
+      event.payload.consolidationId === input.consolidationId
+    ));
+  if (matches.length > 1) throw new DomainInvariantError(`G0-A2 consolidation ${input.consolidationId} has multiple checkpoints`);
   return matches[0] ?? null;
 }
 
@@ -185,29 +214,85 @@ function findCompletion(events: readonly Event[], consolidationId: string): Even
   return matches[0] ?? null;
 }
 
-function parseCheckpoint(event: Event, input: ConsolidateG0A2SelfHypothesisInput): G0A2InitialConsolidationPlan {
-  if (event.id !== checkpointId(input) || event.idempotencyKey !== decisionKey(input) || event.turnId !== null || event.sourceId !== input.systemSourceId) {
+async function parseCheckpoint(
+  event: Event,
+  input: ConsolidateG0A2SelfHypothesisInput,
+  persistence: PersistencePort,
+): Promise<G0A2InitialConsolidationPlan> {
+  if (
+    event.id !== checkpointId(input) ||
+    event.kinseedId !== input.kinseedId ||
+    event.type !== "validation_decision_recorded" ||
+    event.payloadSchemaVersion !== 3 ||
+    event.idempotencyKey !== decisionKey(input) ||
+    event.turnId !== null ||
+    event.sourceId !== input.systemSourceId
+  ) {
     throw new DomainInvariantError("G0-A2 consolidation checkpoint identity is incoherent");
   }
   const payload = record(event.payload, "checkpoint");
+  if (
+    string(payload.scope, "scope") !== SCOPE ||
+    string(payload.consolidationId, "consolidationId") !== input.consolidationId
+  ) {
+    throw new DomainInvariantError("G0-A2 consolidation checkpoint scope is incoherent");
+  }
   const candidate = parseProposition(payload.candidateProposition);
   const evidenceIds = strings(payload.inputEvidenceItemIds, "inputEvidenceItemIds");
-  if (!propositionEquals(candidate, input.candidateProposition) || planKey(candidate) !== string(payload.hypothesisKey, "hypothesisKey") || !sameSet(evidenceIds, input.evidenceItemIds)) {
+  const hypothesisKey = buildSelfHypothesisKey(candidate);
+  if (
+    !propositionEquals(candidate, input.candidateProposition) ||
+    hypothesisKey !== string(payload.hypothesisKey, "hypothesisKey") ||
+    !sameSet(evidenceIds, input.evidenceItemIds)
+  ) {
     throw new DomainInvariantError("G0-A2 consolidation checkpoint conflicts with requested identity");
+  }
+  const observations = await readObservations(input, persistence);
+  const canonicalEvidenceIds = observations.map((item) => item.evidenceItem.id);
+  const canonicalCauseIds = observations.map((item) => item.sourceEvent.id);
+  const timestamp = observations.at(-1)?.sourceEvent.occurredAt;
+  if (
+    timestamp === undefined ||
+    !sameList(evidenceIds, canonicalEvidenceIds) ||
+    !sameList(event.causedByEventIds, canonicalCauseIds) ||
+    event.occurredAt !== timestamp
+  ) {
+    throw new DomainInvariantError("G0-A2 consolidation checkpoint provenance is incoherent");
   }
   const outcome = string(payload.outcome, "outcome");
   if (outcome !== "create" && outcome !== "no_change") throw new DomainInvariantError("G0-A2 consolidation checkpoint outcome is invalid");
   const links = parseLinks(payload.linkSnapshots);
   const hypothesis = payload.nextHypothesisSnapshot === null ? null : parseHypothesis(payload.nextHypothesisSnapshot);
-  if ((outcome === "create") !== (hypothesis !== null) || (outcome === "create") !== (links.length === 4)) {
-    throw new DomainInvariantError("G0-A2 consolidation checkpoint snapshots are incoherent");
+  const supportGroups = strings(payload.countedSupportGroups, "countedSupportGroups");
+  const againstGroups = strings(payload.countedAgainstGroups, "countedAgainstGroups");
+  validateCountedGroups(supportGroups, againstGroups);
+  const ignoredContaminatedLinkIds = strings(
+    payload.ignoredContaminatedLinkIds,
+    "ignoredContaminatedLinkIds",
+  );
+  if (ignoredContaminatedLinkIds.length !== 0 || payload.supersededHypothesisId !== null) {
+    throw new DomainInvariantError("G0-A2 initial consolidation checkpoint contains unsupported history");
   }
-  const timestamp = event.occurredAt;
+  if (outcome === "create") {
+    validateCreateSnapshots(
+      input,
+      event,
+      candidate,
+      hypothesisKey,
+      observations,
+      links,
+      hypothesis,
+      supportGroups,
+      againstGroups,
+    );
+  } else if (hypothesis !== null || links.length !== 0) {
+    throw new DomainInvariantError("G0-A2 no_change checkpoint must not contain durable snapshots");
+  }
   return {
-    outcome, hypothesisKey: planKey(candidate),
-    countedSupportGroups: strings(payload.countedSupportGroups, "countedSupportGroups"),
-    countedAgainstGroups: strings(payload.countedAgainstGroups, "countedAgainstGroups"),
-    ignoredContaminatedLinkIds: strings(payload.ignoredContaminatedLinkIds, "ignoredContaminatedLinkIds"),
+    outcome, hypothesisKey, inputEvidenceItemIds: evidenceIds,
+    countedSupportGroups: supportGroups,
+    countedAgainstGroups: againstGroups,
+    ignoredContaminatedLinkIds,
     linkSnapshots: links, nextHypothesisSnapshot: hypothesis, timestamp,
   };
 }
@@ -216,7 +301,7 @@ function serializePlan(input: ConsolidateG0A2SelfHypothesisInput, plan: G0A2Init
   return {
     scope: SCOPE, consolidationId: input.consolidationId, hypothesisKey: plan.hypothesisKey,
     candidateProposition: serializeProposition(input.candidateProposition),
-    inputEvidenceItemIds: [...input.evidenceItemIds],
+    inputEvidenceItemIds: [...plan.inputEvidenceItemIds],
     countedSupportGroups: [...plan.countedSupportGroups], countedAgainstGroups: [...plan.countedAgainstGroups],
     ignoredContaminatedLinkIds: [...plan.ignoredContaminatedLinkIds], outcome: plan.outcome,
     linkSnapshots: plan.linkSnapshots.map(serializeLink),
@@ -248,6 +333,114 @@ function parseHypothesis(value: SerializableValue | undefined): SelfHypothesis {
   return { id: string(h.id, "id"), kinseedId: string(h.kinseedId, "kinseedId"), hypothesisKey: string(h.hypothesisKey, "hypothesisKey"), version: 1, proposition: parseProposition(h.proposition), stage: "hypothesis", supportLinkIds: strings(h.supportLinkIds, "supportLinkIds"), againstLinkIds: strings(h.againstLinkIds, "againstLinkIds"), confidence: "moderate", status: "active", previousVersionId: null, createdAt: string(h.createdAt, "createdAt"), updatedAt: string(h.updatedAt, "updatedAt") };
 }
 
+function validateCreateSnapshots(
+  input: ConsolidateG0A2SelfHypothesisInput,
+  checkpoint: Event,
+  candidate: Proposition,
+  hypothesisKey: string,
+  observations: readonly G0A2ConsolidationObservation[],
+  links: readonly EvidenceLink[],
+  hypothesis: SelfHypothesis | null,
+  supportGroups: readonly string[],
+  againstGroups: readonly string[],
+): void {
+  const expectedHypothesisId = buildInitialG0A2SelfHypothesisId(
+    input.kinseedId,
+    input.consolidationId,
+  );
+  if (
+    hypothesis === null ||
+    hypothesis.id !== expectedHypothesisId ||
+    hypothesis.kinseedId !== input.kinseedId ||
+    hypothesis.hypothesisKey !== hypothesisKey ||
+    !propositionEquals(hypothesis.proposition, candidate) ||
+    hypothesis.version !== 1 ||
+    hypothesis.previousVersionId !== null ||
+    hypothesis.stage !== "hypothesis" ||
+    hypothesis.status !== "active" ||
+    hypothesis.confidence !== "moderate" ||
+    hypothesis.createdAt !== checkpoint.occurredAt ||
+    hypothesis.updatedAt !== checkpoint.occurredAt ||
+    links.length !== 4
+  ) {
+    throw new DomainInvariantError("G0-A2 create checkpoint hypothesis snapshot is incoherent");
+  }
+
+  const expectedSupportGroups: string[] = [];
+  const expectedAgainstGroups: string[] = [];
+  const expectedSupportLinkIds: EntityId[] = [];
+  const expectedAgainstLinkIds: EntityId[] = [];
+  const seenEvidenceIds = new Set<EntityId>();
+  for (const [index, observation] of observations.entries()) {
+    const link = links[index];
+    const situationId = observation.evidenceItem.proposition.context.situationId;
+    const relation = observation.evidenceItem.proposition.value === candidate.value
+      ? "supports"
+      : "contradicts";
+    const independenceGroup = `g0a2:${String(situationId)}`;
+    const expectedLinkId = buildG0A2SelfHypothesisLinkId(
+      input.consolidationId,
+      observation.evidenceItem.id,
+      expectedHypothesisId,
+      relation,
+    );
+    if (
+      link === undefined ||
+      seenEvidenceIds.has(link.evidenceItemId) ||
+      link.id !== expectedLinkId ||
+      link.kinseedId !== input.kinseedId ||
+      link.evidenceItemId !== observation.evidenceItem.id ||
+      link.targetType !== "self_hypothesis" ||
+      link.targetId !== expectedHypothesisId ||
+      link.relation !== relation ||
+      link.independenceGroup !== independenceGroup ||
+      link.sourceAuthority !== "high" ||
+      link.causalContamination !== "none" ||
+      link.weightClass !== "high" ||
+      link.createdAt !== observation.sourceEvent.occurredAt
+    ) {
+      throw new DomainInvariantError("G0-A2 create checkpoint link snapshot is incoherent");
+    }
+    seenEvidenceIds.add(link.evidenceItemId);
+    if (relation === "supports") {
+      expectedSupportGroups.push(independenceGroup);
+      expectedSupportLinkIds.push(link.id);
+    } else {
+      expectedAgainstGroups.push(independenceGroup);
+      expectedAgainstLinkIds.push(link.id);
+    }
+  }
+  if (
+    expectedSupportGroups.length < 3 ||
+    expectedAgainstGroups.length < 1 ||
+    !sameList(supportGroups, expectedSupportGroups) ||
+    !sameList(againstGroups, expectedAgainstGroups) ||
+    !sameList(hypothesis.supportLinkIds, expectedSupportLinkIds) ||
+    !sameList(hypothesis.againstLinkIds, expectedAgainstLinkIds)
+  ) {
+    throw new DomainInvariantError("G0-A2 create checkpoint counted groups are incoherent");
+  }
+}
+
+function validateCountedGroups(
+  supportGroups: readonly string[],
+  againstGroups: readonly string[],
+): void {
+  const supportSet = new Set(supportGroups);
+  const againstSet = new Set(againstGroups);
+  const allGroups = new Set([...supportGroups, ...againstGroups]);
+  if (
+    supportSet.size !== supportGroups.length ||
+    againstSet.size !== againstGroups.length ||
+    [...supportSet].some((group) => againstSet.has(group)) ||
+    allGroups.size !== INITIAL_INDEPENDENCE_GROUPS.length ||
+    INITIAL_INDEPENDENCE_GROUPS.some((group) => !allGroups.has(group)) ||
+    [...allGroups].some((group) => !INITIAL_INDEPENDENCE_GROUPS.includes(group))
+  ) {
+    throw new DomainInvariantError("G0-A2 consolidation counted groups are incoherent");
+  }
+}
+
 function parseProposition(value: SerializableValue | undefined): Proposition {
   const p = record(value, "proposition"); const context = record(p.context, "context"); const result: Record<string, ScalarValue> = {};
   for (const [key, item] of Object.entries(context)) { if (!scalar(item)) throw new DomainInvariantError("G0-A2 consolidation context is invalid"); result[key] = item; }
@@ -269,7 +462,7 @@ function strings(value: SerializableValue | undefined, label: string): readonly 
 function scalar(value: SerializableValue | undefined): value is ScalarValue { return value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean"; }
 function weight(value: SerializableValue | undefined): "low" | "medium" | "high" { const result = string(value, "weight"); if (result !== "low" && result !== "medium" && result !== "high") throw new DomainInvariantError("G0-A2 consolidation weight is invalid"); return result; }
 function sameSet(left: readonly string[], right: readonly string[]): boolean { return left.length === right.length && new Set(left).size === left.length && left.every((item) => right.includes(item)); }
-function planKey(proposition: Proposition): string { return JSON.stringify([proposition.subjectRef, proposition.predicate, Object.entries(proposition.context).sort(([a], [b]) => a.localeCompare(b))]); }
+function sameList(left: readonly string[], right: readonly string[]): boolean { return left.length === right.length && left.every((item, index) => item === right[index]); }
 function checkpointId(input: ConsolidateG0A2SelfHypothesisInput): EntityId { return `E-G0A2-${input.kinseedId}-${input.consolidationId}-decision`; }
 function completionId(input: ConsolidateG0A2SelfHypothesisInput): EntityId { return `E-G0A2-${input.kinseedId}-${input.consolidationId}-completed`; }
 function decisionKey(input: ConsolidateG0A2SelfHypothesisInput): string { return `g0a2:${input.kinseedId}:${input.consolidationId}:decision`; }

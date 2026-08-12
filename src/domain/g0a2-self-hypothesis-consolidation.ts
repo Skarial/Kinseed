@@ -15,6 +15,7 @@ export interface G0A2ConsolidationObservation {
 export interface G0A2InitialConsolidationPlan {
   readonly outcome: G0A2ConsolidationOutcome;
   readonly hypothesisKey: string;
+  readonly inputEvidenceItemIds: readonly EntityId[];
   readonly countedSupportGroups: readonly string[];
   readonly countedAgainstGroups: readonly string[];
   readonly ignoredContaminatedLinkIds: readonly EntityId[];
@@ -84,6 +85,7 @@ export function planInitialG0A2SelfHypothesisConsolidation(input: {
     return {
       outcome,
       hypothesisKey,
+      inputEvidenceItemIds: ordered.map((entry) => entry.evidenceItem.id),
       countedSupportGroups: supportGroups,
       countedAgainstGroups: againstGroups,
       ignoredContaminatedLinkIds: [],
@@ -124,6 +126,7 @@ export function planInitialG0A2SelfHypothesisConsolidation(input: {
   return {
     outcome,
     hypothesisKey,
+    inputEvidenceItemIds: ordered.map((entry) => entry.evidenceItem.id),
     countedSupportGroups: supportGroups,
     countedAgainstGroups: againstGroups,
     ignoredContaminatedLinkIds: [],

@@ -26,6 +26,36 @@ function input(kinseedId, evidenceItemIds, consolidationId = "initial", value = 
   return { kinseedId, consolidationId, systemSourceId, candidateProposition: { subjectRef: kinseedId, predicate: "decision_style_under_uncertainty", value, context: { protocol: "G0-A2" } }, evidenceItemIds, engineVersion };
 }
 
+async function checkpointedScenario(kinseedId, kinds = ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"]) {
+  const setup = await scenario(kinseedId, kinds);
+  const request = input(kinseedId, setup.evidenceItemIds);
+  setup.store.failNextAtomicCommitForTests();
+  await assert.rejects(() => consolidateInitialG0A2SelfHypothesis(request, setup.store));
+  const checkpoint = (await setup.store.readEventsInSequence(kinseedId)).find(
+    (event) => event.type === "validation_decision_recorded" && event.payload.scope === "self_hypothesis_consolidation",
+  );
+  assert.ok(checkpoint);
+  return { ...setup, request, checkpoint };
+}
+
+function persistenceWithCheckpoint(store, replacement) {
+  return new Proxy(store, {
+    get(target, property, receiver) {
+      if (property === "readEventsInSequence") {
+        return async (kinseedId) => (await target.readEventsInSequence(kinseedId)).map(
+          (event) => event.id === replacement.id ? replacement : event,
+        );
+      }
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+}
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 test("G0-A2 initial consolidation creates the 3/1 hypothesis for history A", async () => {
   const kinseedId = "K-CONS-A";
   const { store, evidenceItemIds } = await scenario(kinseedId, ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"]);
@@ -41,6 +71,37 @@ test("G0-A2 initial consolidation creates the 3/1 hypothesis for history A", asy
   const checkpoint = events.find((event) => event.type === "validation_decision_recorded" && event.payloadSchemaVersion === 3);
   const completed = events.find((event) => event.type === "state_commit_completed" && event.payload.scope === "self_hypothesis_consolidation");
   assert.ok(checkpoint); assert.ok(completed); assert.deepEqual(completed?.causedByEventIds, [checkpoint?.id]);
+});
+
+test("G0-A2 initial consolidation canonicalizes checkpoint evidence order", async () => {
+  const kinseedId = "K-CONS-ORDER";
+  const kinds = ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"];
+  const { store, events, evidenceItemIds } = await scenario(kinseedId, kinds);
+  const shuffled = [evidenceItemIds[2], evidenceItemIds[0], evidenceItemIds[3], evidenceItemIds[1]];
+  const result = await consolidateInitialG0A2SelfHypothesis(input(kinseedId, shuffled), store);
+  assert.equal(result.outcome, "create");
+  const recorded = await store.readEventsInSequence(kinseedId);
+  const checkpoint = recorded.find((event) => event.type === "validation_decision_recorded" && event.payload.scope === "self_hypothesis_consolidation");
+  assert.deepEqual(checkpoint?.payload.inputEvidenceItemIds, evidenceItemIds);
+  assert.deepEqual(checkpoint?.causedByEventIds, events.map((event) => event.id));
+
+  const orderedSetup = await scenario(kinseedId, kinds);
+  await consolidateInitialG0A2SelfHypothesis(
+    input(kinseedId, orderedSetup.evidenceItemIds),
+    orderedSetup.store,
+  );
+  const orderedCheckpoint = (await orderedSetup.store.readEventsInSequence(kinseedId)).find(
+    (event) => event.type === "validation_decision_recorded" && event.payload.scope === "self_hypothesis_consolidation",
+  );
+  assert.deepEqual(checkpoint?.payload, orderedCheckpoint?.payload);
+
+  const eventCount = recorded.length;
+  const replay = await consolidateInitialG0A2SelfHypothesis(
+    input(kinseedId, [evidenceItemIds[3], evidenceItemIds[1], evidenceItemIds[0], evidenceItemIds[2]]),
+    store,
+  );
+  assert.equal(replay.replayed, true);
+  assert.equal((await store.readEventsInSequence(kinseedId)).length, eventCount);
 });
 
 test("G0-A2 initial consolidation mirrors history B", async () => {
@@ -74,6 +135,21 @@ test("G0-A2 consolidation recovers checkpoint, commit and completion boundaries"
   const replay = await consolidateInitialG0A2SelfHypothesis(request, store); assert.equal(replay.replayed, true); assert.equal((await store.readEventsInSequence(kinseedId)).length, eventCount);
 });
 
+test("G0-A2 recovery preserves historical no_change without redeciding", async () => {
+  const setup = await checkpointedScenario("K-CONS-NO-REDECIDE");
+  const historical = clone(setup.checkpoint);
+  historical.payload.outcome = "no_change";
+  historical.payload.linkSnapshots = [];
+  historical.payload.nextHypothesisSnapshot = null;
+  const recovered = await consolidateInitialG0A2SelfHypothesis(
+    setup.request,
+    persistenceWithCheckpoint(setup.store, historical),
+  );
+  assert.equal(recovered.outcome, "no_change");
+  assert.equal(recovered.selfHypothesisId, null);
+  assert.equal(await setup.store.getStateVersion(setup.request.kinseedId), 1);
+});
+
 test("G0-A2 consolidation recovers an applied commit whose completion failed", async () => {
   const kinseedId = "K-CONS-APP"; const { store, evidenceItemIds } = await scenario(kinseedId, ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"]); const request = input(kinseedId, evidenceItemIds);
   let fail = true; const persistence = new Proxy(store, { get(target, property, receiver) { if (property === "appendEvent") return async (event) => { if (fail && event.type === "state_commit_completed" && event.payload.scope === "self_hypothesis_consolidation") { fail = false; throw new Error("completion failed"); } return target.appendEvent(event); }; const value = Reflect.get(target, property, receiver); return typeof value === "function" ? value.bind(target) : value; } });
@@ -85,6 +161,96 @@ test("G0-A2 consolidation rejects a conflicting identity", async () => {
   const kinseedId = "K-CONS-ID"; const { store, evidenceItemIds } = await scenario(kinseedId, ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"]);
   await consolidateInitialG0A2SelfHypothesis(input(kinseedId, evidenceItemIds), store);
   await assert.rejects(() => consolidateInitialG0A2SelfHypothesis(input(kinseedId, evidenceItemIds, "initial", "use_available_information"), store), DomainInvariantError);
+  await assert.rejects(
+    () => consolidateInitialG0A2SelfHypothesis(
+      input(kinseedId, [...evidenceItemIds.slice(0, 3), "EV-OTHER-SET"]),
+      store,
+    ),
+    DomainInvariantError,
+  );
+});
+
+test("G0-A2 consolidation rejects malformed historical checkpoint snapshots", async (t) => {
+  const cases = [
+    {
+      name: "causedByEventIds are incoherent",
+      mutate(checkpoint) { checkpoint.causedByEventIds.reverse(); },
+    },
+    {
+      name: "checkpoint timestamp is incoherent",
+      mutate(checkpoint) { checkpoint.occurredAt = "2026-08-13T10:00:03.000Z"; },
+    },
+    {
+      name: "hypothesis proposition differs from candidate",
+      mutate(checkpoint) { checkpoint.payload.nextHypothesisSnapshot.proposition.value = "use_available_information"; },
+    },
+    {
+      name: "hypothesis key is incoherent",
+      mutate(checkpoint) { checkpoint.payload.nextHypothesisSnapshot.hypothesisKey = "forged-key"; },
+    },
+    {
+      name: "hypothesis id is not deterministic",
+      mutate(checkpoint) { checkpoint.payload.nextHypothesisSnapshot.id = "SH-FORGED"; },
+    },
+    {
+      name: "link targets another hypothesis",
+      mutate(checkpoint) { checkpoint.payload.linkSnapshots[0].targetId = "SH-FORGED"; },
+    },
+    {
+      name: "link duplicates an EvidenceItem",
+      mutate(checkpoint) { checkpoint.payload.linkSnapshots[1].evidenceItemId = checkpoint.payload.linkSnapshots[0].evidenceItemId; },
+    },
+    {
+      name: "supportLinkIds are incoherent",
+      mutate(checkpoint) { checkpoint.payload.nextHypothesisSnapshot.supportLinkIds.pop(); },
+    },
+    {
+      name: "counted groups are incoherent",
+      mutate(checkpoint) { checkpoint.payload.countedSupportGroups[1] = checkpoint.payload.countedSupportGroups[0]; },
+    },
+    {
+      name: "supersededHypothesisId is not null",
+      mutate(checkpoint) { checkpoint.payload.supersededHypothesisId = "SH-OLD"; },
+    },
+    {
+      name: "ignoredContaminatedLinkIds is not empty",
+      mutate(checkpoint) { checkpoint.payload.ignoredContaminatedLinkIds = ["EL-IGNORED"]; },
+    },
+    {
+      name: "no_change contains a link snapshot",
+      kinds: ["ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty", "respond_with_available_information_under_uncertainty"],
+      mutate(checkpoint) {
+        checkpoint.payload.linkSnapshots = [{
+          id: "EL-FORGED-NO-CHANGE",
+          kinseedId: checkpoint.kinseedId,
+          evidenceItemId: checkpoint.payload.inputEvidenceItemIds[0],
+          targetType: "self_hypothesis",
+          targetId: "SH-FORGED-NO-CHANGE",
+          relation: "supports",
+          sourceAuthority: "high",
+          independenceGroup: "g0a2:S1",
+          causalContamination: "none",
+          weightClass: "high",
+          createdAt: "2026-08-13T10:00:01.000Z",
+        }];
+      },
+    },
+  ];
+
+  for (const [index, fixture] of cases.entries()) {
+    await t.test(fixture.name, async () => {
+      const setup = await checkpointedScenario(`K-CONS-BAD-${index}`, fixture.kinds);
+      const malformed = clone(setup.checkpoint);
+      fixture.mutate(malformed);
+      await assert.rejects(
+        () => consolidateInitialG0A2SelfHypothesis(
+          setup.request,
+          persistenceWithCheckpoint(setup.store, malformed),
+        ),
+        DomainInvariantError,
+      );
+    });
+  }
 });
 
 test("G0-A2 store rejects forged initial active-hypothesis structures", async (t) => {

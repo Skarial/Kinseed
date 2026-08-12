@@ -151,6 +151,94 @@ function mutations(overrides = {}) {
   };
 }
 
+async function activeHypothesisFoundation(label) {
+  const store = await createStore();
+  const targetId = `SH-${label}`;
+  const evidenceItems = [];
+  const evidenceLinks = [];
+  for (let index = 0; index < 4; index += 1) {
+    const situationId = `S${index + 1}`;
+    const supports = index < 3;
+    const source = await appendIntention(store, {
+      id: `E-${label}-${situationId}`,
+      sequence: index + 2,
+      occurredAt: `2026-08-12T09:00:0${index + 1}.000Z`,
+      payload: {
+        intentionId: `I-${label}-${situationId}`,
+        kind: supports ? "ask_clarification" : "respond_with_available_information_under_uncertainty",
+        motivation: "controlled_historical_fixture",
+        situationId,
+        triggerSelfHypothesisIds: [],
+      },
+    });
+    const evidence = observation(source, {
+      id: `EV-${label}-${situationId}`,
+      value: supports ? "seek_clarification" : "use_available_information",
+    });
+    const relation = supports ? "supports" : "contradicts";
+    const link = {
+      id: `EL-${label}-${situationId}`,
+      kinseedId,
+      evidenceItemId: evidence.id,
+      targetType: "self_hypothesis",
+      targetId,
+      relation,
+      sourceAuthority: "high",
+      independenceGroup: `g0a2:${situationId}`,
+      causalContamination: "none",
+      weightClass: "high",
+      createdAt: source.occurredAt,
+    };
+    evidenceItems.push(evidence);
+    evidenceLinks.push(link);
+  }
+  const target = hypothesis(targetId, selfProposition(), {
+    supportLinkIds: evidenceLinks.filter((link) => link.relation === "supports").map((link) => link.id),
+    againstLinkIds: evidenceLinks.filter((link) => link.relation === "contradicts").map((link) => link.id),
+    createdAt: "2026-08-12T09:00:04.000Z",
+    updatedAt: "2026-08-12T09:00:04.000Z",
+  });
+  await store.atomicCommit(
+    kinseedId,
+    0,
+    mutations({ evidenceItems, evidenceLinks, selfHypotheses: [target] }),
+    `SH:${label}:foundation`,
+  );
+  return { store, target };
+}
+
+async function triggeredObservation(store, label, triggerSelfHypothesisIds, situationId = "R1") {
+  const source = await appendIntention(store, {
+    id: `E-${label}-${situationId}`,
+    sequence: 6,
+    occurredAt: "2026-08-12T09:00:05.000Z",
+    payload: {
+      intentionId: `I-${label}-${situationId}`,
+      kind: "ask_clarification",
+      motivation: "hypothesis_influenced_decision",
+      situationId,
+      triggerSelfHypothesisIds,
+    },
+  });
+  return { source, evidence: observation(source, { id: `EV-${label}-${situationId}` }) };
+}
+
+function triggeredLink(label, source, evidence, target, overrides = {}) {
+  return {
+    id: `EL-${label}-${source.payload.situationId}`,
+    kinseedId,
+    evidenceItemId: evidence.id,
+    targetType: "self_hypothesis",
+    targetId: target.id,
+    relation: evidence.proposition.value === target.proposition.value ? "supports" : "contradicts",
+    sourceAuthority: "high",
+    independenceGroup: `g0a2:${source.payload.situationId}`,
+    causalContamination: overrides.causalContamination ?? "influenced_by_target",
+    weightClass: overrides.weightClass ?? "low",
+    createdAt: source.occurredAt,
+  };
+}
+
 test("G0-A2: logical keys exclude value and order context", () => {
   const left = {
     subjectRef: kinseedId,
@@ -399,6 +487,100 @@ test("G0-A2: EvidenceLink and SelfHypothesis provenance invariants are enforced"
     await assert.rejects(() => store.atomicCommit(
       kinseedId, 0, mutations({ evidenceItems: [evidence], evidenceLinks: [link], selfHypotheses: [value] }), "SH:wrong-against",
     ), DomainInvariantError);
+  });
+});
+
+test("G0-A2: EvidenceLink contamination is derived from intention provenance", async (t) => {
+  await t.test("same-key trigger rejects contamination none", async () => {
+    const { store, target } = await activeHypothesisFoundation("CONTAM-NONE");
+    const { source, evidence } = await triggeredObservation(store, "CONTAM-NONE", [target.id]);
+    const link = triggeredLink("CONTAM-NONE", source, evidence, target, {
+      causalContamination: "none",
+      weightClass: "high",
+    });
+    await assert.rejects(
+      () => store.atomicCommit(
+        kinseedId,
+        1,
+        mutations({ evidenceItems: [evidence], evidenceLinks: [link] }),
+        "SH:contamination:none",
+      ),
+      DomainInvariantError,
+    );
+  });
+
+  await t.test("same-key trigger rejects high contaminated weight", async () => {
+    const { store, target } = await activeHypothesisFoundation("CONTAM-HIGH");
+    const { source, evidence } = await triggeredObservation(store, "CONTAM-HIGH", [target.id]);
+    const link = triggeredLink("CONTAM-HIGH", source, evidence, target, { weightClass: "high" });
+    await assert.rejects(
+      () => store.atomicCommit(
+        kinseedId,
+        1,
+        mutations({ evidenceItems: [evidence], evidenceLinks: [link] }),
+        "SH:contamination:high",
+      ),
+      DomainInvariantError,
+    );
+  });
+
+  await t.test("same-key trigger accepts influenced low-weight audit link", async () => {
+    const { store, target } = await activeHypothesisFoundation("CONTAM-LOW");
+    const { source, evidence } = await triggeredObservation(store, "CONTAM-LOW", [target.id]);
+    const link = triggeredLink("CONTAM-LOW", source, evidence, target);
+    await assert.doesNotReject(() => store.atomicCommit(
+      kinseedId,
+      1,
+      mutations({ evidenceItems: [evidence], evidenceLinks: [link] }),
+      "SH:contamination:low",
+    ));
+  });
+
+  await t.test("different-key trigger requires contamination none", async () => {
+    const { store, target: trigger } = await activeHypothesisFoundation("CONTAM-OTHER");
+    const otherProposition = {
+      ...selfProposition(),
+      context: { protocol: "G0-A2", dimension: "other" },
+    };
+    const target = hypothesis("SH-CONTAM-OTHER-TARGET", otherProposition, {
+      status: "disputed",
+      confidence: "low",
+    });
+    await store.atomicCommit(
+      kinseedId,
+      1,
+      mutations({ selfHypotheses: [target] }),
+      "SH:contamination:other-target",
+    );
+    const { source, evidence } = await triggeredObservation(store, "CONTAM-OTHER", [trigger.id]);
+    const link = triggeredLink("CONTAM-OTHER", source, evidence, target, {
+      causalContamination: "none",
+      weightClass: "high",
+    });
+    await assert.doesNotReject(() => store.atomicCommit(
+      kinseedId,
+      2,
+      mutations({ evidenceItems: [evidence], evidenceLinks: [link] }),
+      "SH:contamination:other-key",
+    ));
+  });
+
+  await t.test("unknown trigger hypothesis is rejected", async () => {
+    const { store, target } = await activeHypothesisFoundation("CONTAM-UNKNOWN");
+    const { source, evidence } = await triggeredObservation(store, "CONTAM-UNKNOWN", ["SH-UNKNOWN"]);
+    const link = triggeredLink("CONTAM-UNKNOWN", source, evidence, target, {
+      causalContamination: "none",
+      weightClass: "high",
+    });
+    await assert.rejects(
+      () => store.atomicCommit(
+        kinseedId,
+        1,
+        mutations({ evidenceItems: [evidence], evidenceLinks: [link] }),
+        "SH:contamination:unknown",
+      ),
+      DomainInvariantError,
+    );
   });
 });
 
