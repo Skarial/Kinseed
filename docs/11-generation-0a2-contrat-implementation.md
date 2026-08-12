@@ -52,8 +52,10 @@ Ces événements :
 - utilisent une `Source` système enregistrée ;
 - identifient S1, S2, S3 ou S4 dans leur payload ;
 - portent l’un des deux `IntentionKind` G0-A2 définis plus bas ;
+- utilisent `payloadSchemaVersion: 2`, car leur payload G0-A2 comporte les
+  champs causaux versionnés définis en section 14 ;
 - sont écrits avant toute `SelfHypothesis` sur la clé testée ;
-- ne contiennent aucun `triggerSelfHypothesisId` ;
+- contiennent `triggerSelfHypothesisIds: []` ;
 - ne sont pas produits par le nouveau sélecteur fondé sur une hypothèse.
 
 G0-A2 ne cherche donc pas encore à expliquer pourquoi A et B ont pris des
@@ -232,8 +234,11 @@ fabriquent jamais de `supportingExcerpt`.
 
 Pour une `behavioral_observation` G0-A2 :
 
+- `id` est dérivé de manière stable de l’identifiant de l’`intention_selected`
+  source ;
+- `createdAt` vaut exactement `sourceEvent.occurredAt` ;
 - `eventIds` contient exactement l’identifiant de l’`intention_selected`
-  observée ;
+  source ;
 - `grounding.kind` vaut `structured_event` et `grounding.eventId` désigne ce
   même événement ;
 - `sourceId` est celui de l’événement, donc une `Source` système connue ;
@@ -242,6 +247,20 @@ Pour une `behavioral_observation` G0-A2 :
 - `extractionConfidence` vaut `high`, car l’observation recopie une décision
   structurée validée, sans certifier une interprétation psychologique ;
 - `supersedesId` vaut `null` pour les fixtures du protocole.
+
+La matérialisation est une transformation entièrement déterministe. À événement
+source identique correspondent obligatoirement le même `EvidenceItem` complet,
+incluant `id`, `createdAt`, `extractorVersion`, proposition, grounding,
+`sourceId`, `eventIds`, `extractionConfidence`, `status` et `supersedesId`.
+Ces champs sont dérivés exclusivement de l’événement source et des constantes
+versionnées du protocole. Aucun `Date.now()`, horodatage de traitement, valeur
+aléatoire ni timestamp recalculé lors d’un retry ne peut y participer.
+
+Cette règle est nécessaire au contrat actuel de `InMemoryStore` : son commit
+atomique fingerprinte l’objet complet `mutations` avec `JSON.stringify`. Avec la
+même clé d’idempotence, un commit déjà appliqué ne retourne son résultat
+historique que si le nouveau fingerprint est identique ; une valeur telle qu’un
+`createdAt` différente provoquerait donc un `IdempotencyConflictError`.
 
 Le validateur vérifie que l’événement existe, appartient au même Kinseed, est de
 type `intention_selected`, provient de la même source, possède le
@@ -451,13 +470,15 @@ cible une entité absente.
 
 La matérialisation des quatre observations est un commit atomique distinct,
 identifié par
-`g0a2:<kinseedId>:<historyId>:behavioral-observations:commit`. Les identifiants
-d’observation sont dérivés de façon stable de leurs événements source. Après le
+`g0a2:<kinseedId>:<historyId>:behavioral-observations:commit`. Elle reconstruit
+toujours les `EvidenceItem` déterministes décrits en section 5, notamment avec
+`createdAt = sourceEvent.occurredAt`, avant d’appeler `atomicCommit`. Après le
 commit, un `state_commit_completed` de scope
 `behavioral_observation_materialization`, causé par les quatre événements
 `intention_selected`, enregistre les versions d’état. Cette transformation
 directe n’utilise pas `validation_decision_recorded` : elle ne choisit aucune
-hypothèse. Une reprise récupère le résultat du même commit idempotent.
+hypothèse. Une reprise reconstruit les mêmes mutations, récupère le résultat du
+même commit idempotent et n’écrit que l’événement de complétion manquant.
 
 Si aucune orientation n’atteint le seuil, aucune `SelfHypothesis` n’est créée et
 la décision `no_change` reste auditable.
@@ -672,11 +693,46 @@ Après succès, un `state_commit_completed` est écrit avec :
 - `scope: self_hypothesis_consolidation` et le même `consolidationId` ;
 - une clé `g0a2:<kinseedId>:<consolidationId>:completed`.
 
-L’`intention_selected` de S5 utilise le type existant avec un payload versionné
-qui conserve au minimum `intentionId`, `kind`, `motivation`,
-`triggerSelfHypothesisIds`, `favoredKind` et `neutralTieBreakApplied`. Son
-`causedByEventIds` contient l’événement S5 ; l’identifiant d’hypothèse dans le
-payload relie explicitement l’état dérivé causal.
+## 14.1 Versions de payload G0-A2
+
+Les événements G0-A1 déjà écrits restent historiques. Le futur parser de reprise
+doit toujours discriminer explicitement :
+
+```text
+event.type
++ payloadSchemaVersion
++ payload.scope lorsque cette version l’utilise
+```
+
+Un payload v1 ne doit jamais être lu comme la forme G0-A2 enrichie.
+
+### `intention_selected`
+
+Les intentions G0-A2 S1 à S5 utilisent `payloadSchemaVersion: 2`. Leur payload
+contient au minimum `intentionId`, `kind`, `motivation` et `situationId` lorsque
+pertinent. Il contient aussi `triggerSelfHypothesisIds`, vide pour les fixtures
+S1–S4 antérieures à toute hypothèse, puis l’identifiant de la version active
+consommée pour une intention S5 influencée. `favoredKind` et
+`neutralTieBreakApplied` sont présents lorsque la sélection S5 les évalue.
+
+Les `intention_selected` G0-A1 en version 1 conservent leur forme et leur
+signification historiques ; ils ne reçoivent ni nouveaux champs ni nouvelle
+interprétation.
+
+### `state_commit_completed`
+
+Les commits G0-A2 enrichis utilisent `payloadSchemaVersion: 2` pour au minimum
+les scopes suivants :
+
+```text
+behavioral_observation_materialization
+self_hypothesis_consolidation
+```
+
+Le payload v2 contient `scope`, l’identifiant stable de matérialisation ou de
+consolidation applicable, `previousStateVersion`, `newStateVersion` et `changed`.
+Les `state_commit_completed` G0-A1 en version 1 restent historiques et ne sont
+jamais interprétés comme un commit G0-A2 v2.
 
 ---
 
@@ -757,11 +813,18 @@ Avant tout test IA, la suite G0-A2 doit vérifier au minimum :
 14. **Révision et historique** — trois nouveaux groupes contraires et une
     contre-preuve conservée produisent l’orientation opposée `active`, lient les
     versions et laissent les anciennes `superseded` ;
-15. **Retry** — les reprises aux trois frontières de journalisation produisent
-    les mêmes IDs, un seul commit effectif et une seule version courante ;
-16. **Atomicité** — une erreur d’invariant ou un échec injecté ne persiste aucun
+15. **Retry de matérialisation** — un premier commit d’observations appliqué,
+    suivi d’une panne simulée avant `state_commit_completed`, est repris avec des
+    mutations strictement identiques : `atomicCommit` retourne son résultat
+    historique, sans `IdempotencyConflictError`, observation dupliquée ni second
+    incrément de `stateVersion` ; l’événement final contient les vraies versions
+    précédente et nouvelle ;
+16. **Retry de consolidation** — les reprises aux trois frontières de
+    journalisation produisent les mêmes IDs, un seul commit effectif et une seule
+    version courante ;
+17. **Atomicité** — une erreur d’invariant ou un échec injecté ne persiste aucun
     sous-ensemble des liens/hypothèses ;
-17. **Régression G0-A1** — tous les tests déterministes existants restent verts,
+18. **Régression G0-A1** — tous les tests déterministes existants restent verts,
     notamment grounding lexical, T1→T7 et reprise causale.
 
 Les tests comparent l’état structuré et les événements. Aucun texte convaincant
