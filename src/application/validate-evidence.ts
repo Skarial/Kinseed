@@ -43,6 +43,11 @@ export async function validateEvidenceItem(
   }
 
   if (candidate.kind === "behavioral_observation") {
+    if (source.kind !== "system") {
+      throw new DomainInvariantError(
+        `Behavioral observation ${candidate.id} must use a system source`,
+      );
+    }
     if (candidate.grounding === null) {
       throw new DomainInvariantError(`Behavioral observation ${candidate.id} must have grounding`);
     }

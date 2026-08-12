@@ -405,6 +405,12 @@ export class InMemoryStore implements PersistencePort {
       }
 
       if (evidenceItem.kind === "behavioral_observation") {
+        const source = this.sources.get(evidenceItem.sourceId);
+        if (source?.kind !== "system") {
+          throw new DomainInvariantError(
+            `Behavioral observation ${evidenceItem.id} must use a system source`,
+          );
+        }
         if (evidenceItem.grounding === null) {
           throw new DomainInvariantError(`Behavioral observation ${evidenceItem.id} must have grounding`);
         }
@@ -510,7 +516,7 @@ export class InMemoryStore implements PersistencePort {
       }
     }
 
-    const currentSelfHypothesisByKey = new Map<string, EntityId>();
+    const selfHypothesesByKey = new Map<string, SelfHypothesis[]>();
     for (const hypothesis of selfHypotheses.values()) {
       if (hypothesis.hypothesisKey !== buildSelfHypothesisKey(hypothesis.proposition)) {
         throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has inconsistent hypothesisKey`);
@@ -578,14 +584,62 @@ export class InMemoryStore implements PersistencePort {
           throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has invalid contradicting EvidenceLink ${linkId}`);
         }
       }
-      if (hypothesis.status === "active" || hypothesis.status === "disputed") {
-        const existing = currentSelfHypothesisByKey.get(hypothesis.hypothesisKey);
-        if (existing !== undefined) {
+      const history = selfHypothesesByKey.get(hypothesis.hypothesisKey) ?? [];
+      history.push(hypothesis);
+      selfHypothesesByKey.set(hypothesis.hypothesisKey, history);
+    }
+
+    for (const [hypothesisKey, history] of selfHypothesesByKey) {
+      const byVersion = new Map<number, SelfHypothesis>();
+      let current: SelfHypothesis | null = null;
+      let highestVersion = 0;
+
+      for (const hypothesis of history) {
+        if (byVersion.has(hypothesis.version)) {
           throw new DomainInvariantError(
-            `SelfHypotheses ${existing} and ${hypothesis.id} are both current for ${hypothesis.hypothesisKey}`,
+            `SelfHypotheses for ${hypothesisKey} duplicate version ${hypothesis.version}`,
           );
         }
-        currentSelfHypothesisByKey.set(hypothesis.hypothesisKey, hypothesis.id);
+        byVersion.set(hypothesis.version, hypothesis);
+        highestVersion = Math.max(highestVersion, hypothesis.version);
+
+        if (hypothesis.status === "active" || hypothesis.status === "disputed") {
+          if (current !== null) {
+            throw new DomainInvariantError(
+              `SelfHypotheses ${current.id} and ${hypothesis.id} are both current for ${hypothesisKey}`,
+            );
+          }
+          current = hypothesis;
+        }
+      }
+
+      for (let version = 2; version <= highestVersion; version += 1) {
+        const hypothesis = byVersion.get(version);
+        const previous = byVersion.get(version - 1);
+        if (
+          hypothesis === undefined ||
+          previous === undefined ||
+          hypothesis.previousVersionId !== previous.id
+        ) {
+          throw new DomainInvariantError(
+            `SelfHypotheses for ${hypothesisKey} must form a continuous linear history`,
+          );
+        }
+      }
+
+      if (current !== null) {
+        if (current.version !== highestVersion) {
+          throw new DomainInvariantError(
+            `Current SelfHypothesis ${current.id} must be the highest version for ${hypothesisKey}`,
+          );
+        }
+        for (const hypothesis of history) {
+          if (hypothesis.version < current.version && hypothesis.status !== "superseded") {
+            throw new DomainInvariantError(
+              `Earlier SelfHypothesis ${hypothesis.id} must be superseded`,
+            );
+          }
+        }
       }
     }
   }

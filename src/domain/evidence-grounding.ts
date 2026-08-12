@@ -103,6 +103,7 @@ export function validateBehavioralObservationGrounding(
     );
   }
   if (
+    evidenceItem.proposition.subjectRef !== evidenceItem.kinseedId ||
     evidenceItem.proposition.predicate !== "selected_decision_style_under_uncertainty" ||
     evidenceItem.proposition.context.protocol !== "G0-A2" ||
     evidenceItem.proposition.context.situationId !== situationId ||

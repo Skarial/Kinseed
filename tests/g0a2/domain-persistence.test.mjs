@@ -49,13 +49,7 @@ function event(overrides) {
 
 async function createStore() {
   const store = new InMemoryStore();
-  await store.registerSource({
-    id: systemSourceId,
-    kind: "system",
-    actorRef: null,
-    channel: "internal",
-    createdAt: occurredAt,
-  });
+  await registerSource(store, systemSourceId, "system");
   await store.appendEvent(event({
     id: "E-CREATED",
     sequence: 1,
@@ -65,11 +59,22 @@ async function createStore() {
   return store;
 }
 
+async function registerSource(store, id, kind) {
+  await store.registerSource({
+    id,
+    kind,
+    actorRef: kind === "human" ? "H-G0A2-001" : null,
+    channel: "internal",
+    createdAt: occurredAt,
+  });
+}
+
 async function appendIntention(store, overrides = {}) {
   const source = event({
     id: overrides.id ?? "E-S1",
     sequence: overrides.sequence ?? 2,
     type: overrides.type ?? "intention_selected",
+    sourceId: overrides.sourceId ?? systemSourceId,
     occurredAt: overrides.occurredAt ?? occurredAt,
     payloadSchemaVersion: overrides.payloadSchemaVersion ?? 2,
     payload: overrides.payload ?? {
@@ -210,6 +215,44 @@ test("G0-A2: behavioral observation rejects invalid source, payload, mapping and
     const source = await appendIntention(store);
     await assert.rejects(
       () => validateEvidenceItem(observation(source, { createdAt: "2026-08-12T09:01:00.000Z" }), store),
+      DomainInvariantError,
+    );
+  });
+  await t.test("proposition subjectRef differs from Kinseed", async () => {
+    const store = await createStore();
+    const source = await appendIntention(store);
+    await assert.rejects(
+      () => validateEvidenceItem(observation(source, {
+        proposition: {
+          ...observationProposition(),
+          subjectRef: "K-G0A2-OTHER",
+        },
+      }), store),
+      DomainInvariantError,
+    );
+  });
+});
+
+test("G0-A2: behavioral observations require a system source", async (t) => {
+  await t.test("human source is rejected by validation and the store", async () => {
+    const store = await createStore();
+    const sourceId = "SRC-G0A2-HUMAN";
+    await registerSource(store, sourceId, "human");
+    const source = await appendIntention(store, { id: "E-HUMAN-S1", sourceId });
+    const candidate = observation(source, { sourceId });
+    await assert.rejects(() => validateEvidenceItem(candidate, store), DomainInvariantError);
+    await assert.rejects(
+      () => store.atomicCommit(kinseedId, 0, mutations({ evidenceItems: [candidate] }), "OBS:human"),
+      DomainInvariantError,
+    );
+  });
+  await t.test("llm source is rejected", async () => {
+    const store = await createStore();
+    const sourceId = "SRC-G0A2-LLM";
+    await registerSource(store, sourceId, "llm");
+    const source = await appendIntention(store, { id: "E-LLM-S1", sourceId });
+    await assert.rejects(
+      () => validateEvidenceItem(observation(source, { sourceId }), store),
       DomainInvariantError,
     );
   });
@@ -370,6 +413,74 @@ test("G0-A2: duplicate current hypotheses and invalid atomic mutations are rejec
   );
   assert.equal(await store.getStateVersion(kinseedId), 0);
   assert.equal(await store.readSelfHypothesis(kinseedId, first.id), null);
+});
+
+test("G0-A2: SelfHypothesis histories are linear and current only at the latest version", async (t) => {
+  await t.test("duplicate version is rejected", async () => {
+    const store = await createStore();
+    const first = hypothesis("SH-1", selfProposition(), { status: "superseded" });
+    const secondA = hypothesis("SH-2A", selfProposition("use_available_information"), {
+      version: 2, previousVersionId: first.id, status: "active",
+    });
+    const secondB = hypothesis("SH-2B", selfProposition(), {
+      version: 2, previousVersionId: first.id, status: "superseded",
+    });
+    await assert.rejects(
+      () => store.atomicCommit(
+        kinseedId, 0, mutations({ selfHypotheses: [first, secondA, secondB] }), "SH:duplicate-version",
+      ),
+      DomainInvariantError,
+    );
+  });
+  await t.test("a current version below the highest version is rejected", async () => {
+    const store = await createStore();
+    const first = hypothesis("SH-1", selfProposition(), { status: "active" });
+    const second = hypothesis("SH-2", selfProposition("use_available_information"), {
+      version: 2, previousVersionId: first.id, status: "superseded",
+    });
+    await assert.rejects(
+      () => store.atomicCommit(
+        kinseedId, 0, mutations({ selfHypotheses: [first, second] }), "SH:old-current",
+      ),
+      DomainInvariantError,
+    );
+  });
+  await t.test("an older active version beside a newer current version is rejected", async () => {
+    const store = await createStore();
+    const first = hypothesis("SH-1", selfProposition(), { status: "active" });
+    const second = hypothesis("SH-2", selfProposition("use_available_information"), {
+      version: 2, previousVersionId: first.id, status: "disputed",
+    });
+    await assert.rejects(
+      () => store.atomicCommit(
+        kinseedId, 0, mutations({ selfHypotheses: [first, second] }), "SH:two-current",
+      ),
+      DomainInvariantError,
+    );
+  });
+  await t.test("v1 superseded to v2 active is accepted", async () => {
+    const store = await createStore();
+    const first = hypothesis("SH-1", selfProposition(), { status: "superseded" });
+    const second = hypothesis("SH-2", selfProposition("use_available_information"), {
+      version: 2, previousVersionId: first.id, status: "active",
+    });
+    await assert.doesNotReject(() => store.atomicCommit(
+      kinseedId, 0, mutations({ selfHypotheses: [first, second] }), "SH:valid-active",
+    ));
+  });
+  await t.test("v1 superseded to v2 superseded to v3 disputed is accepted", async () => {
+    const store = await createStore();
+    const first = hypothesis("SH-1", selfProposition(), { status: "superseded" });
+    const second = hypothesis("SH-2", selfProposition("use_available_information"), {
+      version: 2, previousVersionId: first.id, status: "superseded",
+    });
+    const third = hypothesis("SH-3", selfProposition(), {
+      version: 3, previousVersionId: second.id, status: "disputed",
+    });
+    await assert.doesNotReject(() => store.atomicCommit(
+      kinseedId, 0, mutations({ selfHypotheses: [first, second, third] }), "SH:valid-disputed",
+    ));
+  });
 });
 
 test("G0-A2: SelfHypothesis commits are idempotent and reject a different fingerprint", async () => {
