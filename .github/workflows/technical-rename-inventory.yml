@@ -1,4 +1,4 @@
-name: Technical rename inventory
+name: Technical rename migration
 
 on:
   push:
@@ -6,21 +6,111 @@ on:
       - chore/lenoseed-technical-rename
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  inventory:
+  migrate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Inventory remaining project identifiers
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Rename technical identifiers
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== OCCURRENCES ==='
-          grep -RInE 'Kinseed|kinseed|KINSEED' src tests package.json package-lock.json docs || true
-          echo '=== COUNTS ==='
-          printf 'src: '; grep -RIEo 'Kinseed|kinseed|KINSEED' src | wc -l || true
-          printf 'tests: '; grep -RIEo 'Kinseed|kinseed|KINSEED' tests | wc -l || true
-          printf 'package files: '; grep -Eo 'Kinseed|kinseed|KINSEED' package.json package-lock.json | wc -l || true
-          printf 'docs: '; grep -RIEo 'Kinseed|kinseed|KINSEED' docs | wc -l || true
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          code_files = [*Path('src').rglob('*.ts'), *Path('tests').rglob('*.mjs')]
+          for path in code_files:
+              text = path.read_text(encoding='utf-8')
+              text = text.replace('Kinseed', 'LenoSeed')
+              text = text.replace('kinseedId', 'lenoSeedId')
+              text = text.replace('kinseeds', 'lenoSeeds')
+              text = text.replace('kinseed_', 'lenoseed_')
+              text = text.replace('kinseed-', 'lenoseed-')
+              text = re.sub(r'\bkinseed\b', 'lenoSeed', text)
+              path.write_text(text, encoding='utf-8')
+
+          for path in [Path('package.json'), Path('package-lock.json')]:
+              text = path.read_text(encoding='utf-8').replace('"kinseed"', '"lenoseed"')
+              path.write_text(text, encoding='utf-8')
+
+          current_contract_docs = [
+              Path('docs/03-generation-0-architecture-conceptuelle.md'),
+              Path('docs/05-generation-0a-structures-et-cycle-vie.md'),
+              Path('docs/06-generation-0a-contrat-tour-et-evenements.md'),
+              Path('docs/07-generation-0a1-protocole-croyance-provenance.md'),
+              Path('docs/08-generation-0a1-contrat-implementation.md'),
+              Path('docs/11-generation-0a2-contrat-implementation.md'),
+          ]
+          for path in current_contract_docs:
+              text = path.read_text(encoding='utf-8')
+              text = text.replace('Kinseed', 'LenoSeed')
+              text = text.replace('kinseedId', 'lenoSeedId')
+              text = text.replace('kinseed_id', 'lenoseed_id')
+              text = text.replace('kinseed_', 'lenoseed_')
+              text = text.replace('kinseed-', 'lenoseed-')
+              path.write_text(text, encoding='utf-8')
+
+          results_path = Path('docs/09-generation-0a1-resultats-validation.md')
+          results = results_path.read_text(encoding='utf-8')
+          marker = '# 3. Sources de résultats disponibles\n\n'
+          note = (
+              '> **Note de renommage technique :** les noms de rapports et identifiants `kinseed-*` / '
+              '`kinseed_*` mentionnés dans ce document sont conservés lorsqu’ils décrivent une campagne '
+              'déjà exécutée avant le renommage en LenoSeed. Ils constituent des libellés historiques et ne '
+              'définissent pas les identifiants techniques courants du projet.\n\n'
+          )
+          if note not in results:
+              if marker not in results:
+                  raise SystemExit('Unable to place historical rename note in G0-A1 results')
+              results = results.replace(marker, marker + note, 1)
+              results_path.write_text(results, encoding='utf-8')
+          PY
+      - name: Install dependencies
+        run: npm ci
+      - name: Run deterministic test suite
+        run: npm test
+      - name: Verify rename boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE 'Kinseed|kinseed|KINSEED' src tests package.json package-lock.json; then
+            echo 'Old project identifier remains in executable/test/package files.'
+            exit 1
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          allowed = Path('docs/09-generation-0a1-resultats-validation.md')
+          unexpected = []
+          for path in Path('docs').rglob('*.md'):
+              for lineno, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
+                  if re.search(r'Kinseed|kinseed|KINSEED', line) and path != allowed:
+                      unexpected.append(f'{path}:{lineno}:{line}')
+          if unexpected:
+              print('\n'.join(unexpected))
+              raise SystemExit('Unexpected old project identifiers remain outside the historical G0-A1 results document')
+          print('Remaining old identifiers are limited to historical G0-A1 result labels:')
+          for lineno, line in enumerate(allowed.read_text(encoding='utf-8').splitlines(), 1):
+              if re.search(r'Kinseed|kinseed|KINSEED', line):
+                  print(f'{allowed}:{lineno}:{line}')
+          PY
+          git diff --check
+          git diff --stat
+      - name: Commit migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/technical-rename-inventory.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src tests package.json package-lock.json docs .github/workflows/technical-rename-inventory.yml
+          git commit -m 'refactor: renomme les identifiants techniques en LenoSeed'
+          git push origin HEAD:chore/lenoseed-technical-rename
