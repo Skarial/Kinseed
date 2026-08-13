@@ -108,6 +108,56 @@ test("G0-A2 S5 replays the historical intention without reading the current acti
   assert.equal(await store.getStateVersion(request.kinseedId), 2);
 });
 
+test("G0-A2 S5 replay preserves its historical state version after a later state", async () => {
+  const { store } = await setupHistory(
+    "K-S5-REPLAY-STATE-VERSION",
+    [
+      "ask_clarification",
+      "ask_clarification",
+      "ask_clarification",
+      "respond_with_available_information_under_uncertainty",
+    ],
+    "seek_clarification",
+  );
+  const request = input("K-S5-REPLAY-STATE-VERSION");
+  const first = await selectG0A2S5Intention(request, store);
+  const eventCount = (await store.readEventsInSequence(request.kinseedId)).length;
+  let readActiveSelfHypothesisByKeyCalled = false;
+
+  assert.equal(first.stateVersion, 2);
+  assert.equal(first.stateVersion, first.intention.observedStateVersion);
+
+  const replayPort = new Proxy(store, {
+    get(target, property, receiver) {
+      if (property === "readActiveSelfHypothesisByKey") {
+        return async () => {
+          readActiveSelfHypothesisByKeyCalled = true;
+          throw new Error("replay must not read the current active hypothesis");
+        };
+      }
+      if (property === "getStateVersion") {
+        return async () => 7;
+      }
+
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+
+  const replay = await selectG0A2S5Intention(request, replayPort);
+
+  assert.equal(replay.replayed, true);
+  assert.deepEqual(replay.intention, first.intention);
+  assert.deepEqual(replay.selection, first.selection);
+  assert.equal(replay.stateVersion, 2);
+  assert.equal(replay.stateVersion, replay.intention.observedStateVersion);
+  assert.equal(readActiveSelfHypothesisByKeyCalled, false);
+  assert.equal(
+    (await store.readEventsInSequence(request.kinseedId)).length,
+    eventCount,
+  );
+});
+
 test("G0-A2 S5 rejects replay and historical incoherence", async (t) => {
   await t.test("same turn with different text", async () => {
     const { store } = await setupHistory("K-S5-TEXT", ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"], "seek_clarification");

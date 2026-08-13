@@ -62,7 +62,7 @@ export async function selectG0A2S5Intention(
     return {
       situationEvent,
       ...reconstructed,
-      stateVersion: await persistence.getStateVersion(input.kinseedId),
+      stateVersion: situationEvent.observedStateVersion,
       replayed: true,
     };
   }
