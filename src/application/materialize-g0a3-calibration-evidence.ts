@@ -21,6 +21,13 @@ const E5_SUPPORTING_EXCERPT = "L’échec venait du câble C, qui était débran
 const OBSERVATION_EXTRACTOR_VERSION = "lenoseed-g0a3-behavioral-observation-v1";
 const TESTIMONY_EXTRACTOR_VERSION = "lenoseed-g0a3-testimony-v1";
 
+export type G0A3CalibrationFixtureSuffix =
+  | "calibration-01-request"
+  | "calibration-01-intention"
+  | "calibration-01-failure"
+  | "calibration-01-initial-explanation"
+  | "calibration-01-correction";
+
 export interface MaterializeG0A3InitialCalibrationEvidenceInput {
   readonly lenoseedId: EntityId;
   readonly configurationRequestEventId: EntityId;
@@ -72,6 +79,11 @@ export async function materializeG0A3CorrectionEvidence(
     input.initialExplanationEventId,
     persistence,
   );
+  assertCanonicalG0A3FixtureIdentity(
+    initialExplanation,
+    input.lenoseedId,
+    "calibration-01-initial-explanation",
+  );
   await validateHumanFixture(
     initialExplanation,
     "initial_failure_explanation",
@@ -90,6 +102,11 @@ export async function materializeG0A3CorrectionEvidence(
   }
 
   const correction = await readEvent(input.lenoseedId, input.correctionEventId, persistence);
+  assertCanonicalG0A3FixtureIdentity(
+    correction,
+    input.lenoseedId,
+    "calibration-01-correction",
+  );
   await validateHumanFixture(
     correction,
     "failure_explanation_correction",
@@ -187,6 +204,20 @@ export function correctionCommitIdempotencyKey(lenoseedId: EntityId): string {
   return `g0a3:${lenoseedId}:${G0A3_CALIBRATION_EPISODE_KEY}:evidence:correction:commit`;
 }
 
+export function buildG0A3CalibrationFixtureEventId(
+  lenoseedId: EntityId,
+  suffix: G0A3CalibrationFixtureSuffix,
+): EntityId {
+  return `E-G0A3-${lenoseedId}-${suffix}`;
+}
+
+export function buildG0A3CalibrationFixtureEventIdempotencyKey(
+  lenoseedId: EntityId,
+  suffix: G0A3CalibrationFixtureSuffix,
+): string {
+  return `g0a3:${lenoseedId}:${G0A3_CALIBRATION_EPISODE_KEY}:fixture:${suffix}`;
+}
+
 function buildTestimony(
   sourceEvent: Event,
   role: "outcome" | "cause" | "compatibility",
@@ -219,12 +250,14 @@ async function readAndValidateInitialFixtures(
   persistence: PersistencePort,
 ): Promise<{ readonly intention: Event; readonly failure: Event; readonly initialExplanation: Event }> {
   const request = await readEvent(input.lenoseedId, input.configurationRequestEventId, persistence);
+  assertCanonicalG0A3FixtureIdentity(request, input.lenoseedId, "calibration-01-request");
   await validateHumanFixture(request, "configuration_request", CONFIGURATION_REQUEST_TEXT, persistence);
 
   const intention = await readEvent(input.lenoseedId, input.intentionEventId, persistence);
   await validateInitialIntention(intention, request, persistence);
 
   const failure = await readEvent(input.lenoseedId, input.failureEventId, persistence);
+  assertCanonicalG0A3FixtureIdentity(failure, input.lenoseedId, "calibration-01-failure");
   await validateHumanFixture(failure, "calibration_failure_report", CALIBRATION_FAILURE_TEXT, persistence);
   if (failure.sequence <= intention.sequence) {
     throw new DomainInvariantError("G0-A3 failure report must be strictly after the calibration intention");
@@ -234,6 +267,11 @@ async function readAndValidateInitialFixtures(
     input.lenoseedId,
     input.initialExplanationEventId,
     persistence,
+  );
+  assertCanonicalG0A3FixtureIdentity(
+    initialExplanation,
+    input.lenoseedId,
+    "calibration-01-initial-explanation",
   );
   await validateHumanFixture(
     initialExplanation,
@@ -253,6 +291,7 @@ async function validateInitialIntention(
   request: Event,
   persistence: PersistencePort,
 ): Promise<void> {
+  assertCanonicalG0A3FixtureIdentity(event, request.lenoseedId, "calibration-01-intention");
   const source = await persistence.readSource(event.sourceId);
   if (event.sourceId !== G0A3_SYSTEM_SOURCE_ID || source?.kind !== "system") {
     throw new DomainInvariantError(`G0-A3 calibration intention ${event.id} must use the system source`);
@@ -277,6 +316,19 @@ async function validateInitialIntention(
     !hasExactly(event.causedByEventIds, [request.id])
   ) {
     throw new DomainInvariantError(`G0-A3 calibration intention ${event.id} has invalid payload or causes`);
+  }
+}
+
+function assertCanonicalG0A3FixtureIdentity(
+  event: Event,
+  lenoseedId: EntityId,
+  suffix: G0A3CalibrationFixtureSuffix,
+): void {
+  if (event.id !== buildG0A3CalibrationFixtureEventId(lenoseedId, suffix)) {
+    throw new DomainInvariantError(`G0-A3 fixture ${event.id} has non-canonical id`);
+  }
+  if (event.idempotencyKey !== buildG0A3CalibrationFixtureEventIdempotencyKey(lenoseedId, suffix)) {
+    throw new DomainInvariantError(`G0-A3 fixture ${event.id} has non-canonical idempotencyKey`);
   }
 }
 

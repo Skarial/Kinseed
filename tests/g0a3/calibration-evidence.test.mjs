@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 import { InMemoryStore } from "../../dist/adapters/in-memory-store.js";
 import {
+  buildG0A3CalibrationFixtureEventId,
+  buildG0A3CalibrationFixtureEventIdempotencyKey,
   buildG0A3CalibrationFailureTestimony,
   buildG0A3CalibrationObservation,
   buildG0A3ConfigurationCompatibilityTestimony,
@@ -72,13 +74,21 @@ function event(overrides) {
     payload: overrides.payload,
     payloadSchemaVersion: overrides.payloadSchemaVersion,
     engineVersion: "g0a3-calibration-evidence-test",
-    idempotencyKey: overrides.id,
+    idempotencyKey: overrides.idempotencyKey ?? overrides.id,
+  };
+}
+
+function fixtureIdentity(suffix) {
+  return {
+    id: buildG0A3CalibrationFixtureEventId(lenoseedId, suffix),
+    idempotencyKey: buildG0A3CalibrationFixtureEventIdempotencyKey(lenoseedId, suffix),
   };
 }
 
 function requestEvent(overrides = {}) {
   return event({
-    id: overrides.id ?? "E-G0A3-request",
+    ...fixtureIdentity("calibration-01-request"),
+    ...overrides,
     sequence: overrides.sequence ?? 2,
     type: "human_message_received",
     sourceId: overrides.sourceId ?? operatorSourceId,
@@ -95,7 +105,8 @@ function requestEvent(overrides = {}) {
 
 function intentionEvent(request, overrides = {}) {
   return event({
-    id: overrides.id ?? "E-G0A3-intention",
+    ...fixtureIdentity("calibration-01-intention"),
+    ...overrides,
     sequence: overrides.sequence ?? 3,
     type: overrides.type ?? "intention_selected",
     sourceId: overrides.sourceId ?? systemSourceId,
@@ -115,7 +126,8 @@ function intentionEvent(request, overrides = {}) {
 
 function failureEvent(overrides = {}) {
   return event({
-    id: overrides.id ?? "E-G0A3-failure",
+    ...fixtureIdentity("calibration-01-failure"),
+    ...overrides,
     sequence: overrides.sequence ?? 4,
     type: "human_message_received",
     sourceId: overrides.sourceId ?? operatorSourceId,
@@ -132,7 +144,8 @@ function failureEvent(overrides = {}) {
 
 function initialExplanationEvent(overrides = {}) {
   return event({
-    id: overrides.id ?? "E-G0A3-initial-explanation",
+    ...fixtureIdentity("calibration-01-initial-explanation"),
+    ...overrides,
     sequence: overrides.sequence ?? 5,
     type: "human_message_received",
     sourceId: overrides.sourceId ?? operatorSourceId,
@@ -149,7 +162,8 @@ function initialExplanationEvent(overrides = {}) {
 
 function correctionEvent(overrides = {}) {
   return event({
-    id: overrides.id ?? "E-G0A3-correction",
+    ...fixtureIdentity("calibration-01-correction"),
+    ...overrides,
     sequence: overrides.sequence ?? 6,
     type: "human_message_received",
     sourceId: overrides.sourceId ?? operatorSourceId,
@@ -194,6 +208,14 @@ function correctionInput(history, correction) {
 test("G0-A3 E1 builder and grounding are exact", async () => {
   const store = await createStore();
   const history = await appendInitialHistory(store);
+  assert.equal(
+    history.intention.id,
+    `E-G0A3-${lenoseedId}-calibration-01-intention`,
+  );
+  assert.equal(
+    history.intention.idempotencyKey,
+    `g0a3:${lenoseedId}:${episodeKey}:fixture:calibration-01-intention`,
+  );
   const actual = buildG0A3CalibrationObservation(history.intention);
   assert.deepEqual(actual, {
     id: `EV-G0A3-OBS-${history.intention.id}`,
@@ -384,6 +406,35 @@ test("G0-A3 initial evidence rejects invalid human testimony fixtures", async (t
   });
 });
 
+test("G0-A3 initial materialization rejects non-canonical fixture identities", async (t) => {
+  const cases = [
+    ["request id", "request", { id: "E-FORGED-request" }],
+    ["request idempotencyKey", "request", { idempotencyKey: "g0a3:forged:request" }],
+    ["intention id", "intention", { id: "E-FORGED-intention" }],
+    ["intention idempotencyKey", "intention", { idempotencyKey: "g0a3:forged:intention" }],
+    ["failure id", "failure", { id: "E-FORGED-failure" }],
+    ["failure idempotencyKey", "failure", { idempotencyKey: "g0a3:forged:failure" }],
+    ["initial explanation id", "initialExplanation", { id: "E-FORGED-initial-explanation" }],
+    ["initial explanation idempotencyKey", "initialExplanation", { idempotencyKey: "g0a3:forged:initial-explanation" }],
+  ];
+  for (const [name, fixture, override] of cases) {
+    await t.test(name, async () => {
+      const store = await createStore();
+      const history = await appendInitialHistory(store, { [fixture]: override });
+      await assert.rejects(
+        () => materializeG0A3InitialCalibrationEvidence(initialInput(history), store),
+        DomainInvariantError,
+      );
+      assert.equal(await store.getStateVersion(lenoseedId), 0);
+      for (const evidence of [
+        buildG0A3CalibrationObservation(history.intention),
+        buildG0A3CalibrationFailureTestimony(history.failure),
+        buildG0A3InitialFailureCauseTestimony(history.initialExplanation),
+      ]) assert.equal(await store.readEvidenceItem(lenoseedId, evidence.id), null);
+    });
+  }
+});
+
 test("G0-A3 initial materialization commits exactly E1, E2 and E3 atomically", async () => {
   const store = await createStore();
   const history = await appendInitialHistory(store);
@@ -391,6 +442,12 @@ test("G0-A3 initial materialization commits exactly E1, E2 and E3 atomically", a
   const e1 = buildG0A3CalibrationObservation(history.intention);
   const e2 = buildG0A3CalibrationFailureTestimony(history.failure);
   const e3 = buildG0A3InitialFailureCauseTestimony(history.initialExplanation);
+  assert.equal(e1.id, `EV-G0A3-OBS-E-G0A3-${lenoseedId}-calibration-01-intention`);
+  assert.equal(e2.id, `EV-G0A3-TESTIMONY-E-G0A3-${lenoseedId}-calibration-01-failure-outcome`);
+  assert.equal(
+    e3.id,
+    `EV-G0A3-TESTIMONY-E-G0A3-${lenoseedId}-calibration-01-initial-explanation-cause`,
+  );
   assert.deepEqual(result, {
     evidenceItemIds: [e1.id, e2.id, e3.id],
     previousStateVersion: 0,
@@ -464,6 +521,14 @@ test("G0-A3 correction materialization commits exact E4 and E5 without mutating 
   const result = await materializeG0A3CorrectionEvidence(correctionInput(history, correction), store);
   const e4 = buildG0A3ConfigurationCompatibilityTestimony(correction);
   const e5 = buildG0A3CorrectedFailureCauseTestimony(correction, e3.id);
+  assert.equal(
+    e4.id,
+    `EV-G0A3-TESTIMONY-E-G0A3-${lenoseedId}-calibration-01-correction-compatibility`,
+  );
+  assert.equal(
+    e5.id,
+    `EV-G0A3-TESTIMONY-E-G0A3-${lenoseedId}-calibration-01-correction-cause`,
+  );
   assert.deepEqual(result, {
     evidenceItemIds: [e4.id, e5.id],
     previousStateVersion: 1,
@@ -511,6 +576,34 @@ test("G0-A3 correction materialization commits exact E4 and E5 without mutating 
     correctionCommitIdempotencyKey(lenoseedId),
     `g0a3:${lenoseedId}:${episodeKey}:evidence:correction:commit`,
   );
+});
+
+test("G0-A3 correction materialization rejects a non-canonical correction identity", async (t) => {
+  for (const [name, override] of [
+    ["id", { id: "E-FORGED-correction" }],
+    ["idempotencyKey", { idempotencyKey: "g0a3:forged:correction" }],
+  ]) {
+    await t.test(name, async () => {
+      const store = await createStore();
+      const history = await appendInitialHistory(store);
+      await materializeG0A3InitialCalibrationEvidence(initialInput(history), store);
+      const correction = correctionEvent(override);
+      await store.appendEvent(correction);
+      await assert.rejects(
+        () => materializeG0A3CorrectionEvidence(correctionInput(history, correction), store),
+        DomainInvariantError,
+      );
+      assert.equal(await store.getStateVersion(lenoseedId), 1);
+      assert.equal(
+        await store.readEvidenceItem(lenoseedId, `EV-G0A3-TESTIMONY-${correction.id}-compatibility`),
+        null,
+      );
+      assert.equal(
+        await store.readEvidenceItem(lenoseedId, `EV-G0A3-TESTIMONY-${correction.id}-cause`),
+        null,
+      );
+    });
+  }
 });
 
 test("G0-A3 correction materialization replays without another state increment", async () => {
