@@ -23,7 +23,7 @@ export async function validateEvidenceItem(
 
   let groundingEvent: Event | null = null;
   for (const eventId of candidate.eventIds) {
-    const event = await persistence.readEventById(candidate.kinseedId, eventId);
+    const event = await persistence.readEventById(candidate.lenoSeedId, eventId);
     if (event === null) {
       throw new DomainInvariantError(`EvidenceItem ${candidate.id} references unknown event ${eventId}`);
     }
@@ -51,7 +51,7 @@ export async function validateEvidenceItem(
     if (candidate.grounding === null) {
       throw new DomainInvariantError(`Behavioral observation ${candidate.id} must have grounding`);
     }
-    const event = await persistence.readEventById(candidate.kinseedId, candidate.grounding.eventId);
+    const event = await persistence.readEventById(candidate.lenoSeedId, candidate.grounding.eventId);
     if (event === null) {
       throw new DomainInvariantError(`Behavioral observation ${candidate.id} grounding event is unavailable`);
     }

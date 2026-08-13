@@ -7,7 +7,7 @@ export type Confidence = "low" | "moderate" | "moderate_high" | "high";
 
 export interface Belief {
   readonly id: EntityId;
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly beliefKey: string;
   readonly version: number;
   readonly proposition: Proposition;
@@ -22,7 +22,7 @@ export interface Belief {
 
 export interface CreateInitialBeliefInput {
   readonly id: EntityId;
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly proposition: Proposition;
   readonly evidenceForLinkId: EntityId;
   readonly confidence: Confidence;
@@ -32,7 +32,7 @@ export interface CreateInitialBeliefInput {
 export function createInitialBelief(input: CreateInitialBeliefInput): Belief {
   return {
     id: input.id,
-    kinseedId: input.kinseedId,
+    lenoSeedId: input.lenoSeedId,
     beliefKey: buildBeliefKey(input.proposition),
     version: 1,
     proposition: input.proposition,
@@ -89,7 +89,7 @@ export function reviseBelief(input: ReviseBeliefInput): BeliefRevision {
 
   const next: Belief = {
     id: input.nextId,
-    kinseedId: input.current.kinseedId,
+    lenoSeedId: input.current.lenoSeedId,
     beliefKey: input.current.beliefKey,
     version: input.current.version + 1,
     proposition: input.nextProposition,

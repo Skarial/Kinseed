@@ -22,7 +22,7 @@ const SNAPSHOT_SITUATIONS = ["S1", "S2", "S3", "S4", "R1", "R2", "S5"] as const;
 const INITIAL_SITUATIONS = ["S1", "S2", "S3", "S4"] as const;
 
 export interface ConsolidateG0A2SelfHypothesisDisputeInput {
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly consolidationId: string;
   readonly systemSourceId: EntityId;
   readonly evidenceItemIds: readonly EntityId[];
@@ -52,14 +52,14 @@ export interface ValidatedG0A2DisputeBoundary {
  * a causal predecessor.
  */
 export async function readValidatedG0A2DisputeBoundary(
-  kinseedId: EntityId,
+  lenoSeedId: EntityId,
   v2: SelfHypothesis,
   persistence: PersistencePort,
 ): Promise<ValidatedG0A2DisputeBoundary> {
-  if (v2.kinseedId !== kinseedId) {
-    throw new DomainInvariantError("G0-A2 dispute boundary v2 belongs to another Kinseed");
+  if (v2.lenoSeedId !== lenoSeedId) {
+    throw new DomainInvariantError("G0-A2 dispute boundary v2 belongs to another LenoSeed");
   }
-  const events = await persistence.readEventsInSequence(kinseedId);
+  const events = await persistence.readEventsInSequence(lenoSeedId);
   const checkpoints = events.filter((event) =>
     event.type === "validation_decision_recorded" &&
     event.payloadSchemaVersion === 3 &&
@@ -76,7 +76,7 @@ export async function readValidatedG0A2DisputeBoundary(
   }
   const payload = record(checkpoint.payload, "historical checkpoint");
   const input: ConsolidateG0A2SelfHypothesisDisputeInput = {
-    kinseedId,
+    lenoSeedId,
     consolidationId: string(payload.consolidationId, "historical consolidationId"),
     systemSourceId: checkpoint.sourceId,
     evidenceItemIds: strings(payload.inputEvidenceItemIds, "historical inputEvidenceItemIds"),
@@ -107,7 +107,7 @@ export async function consolidateG0A2SelfHypothesisDispute(
   if ((await persistence.readSource(input.systemSourceId))?.kind !== "system") {
     throw new DomainInvariantError("G0-A2 dispute requires a system source");
   }
-  const events = await persistence.readEventsInSequence(input.kinseedId);
+  const events = await persistence.readEventsInSequence(input.lenoSeedId);
   let checkpoint = findCheckpoint(events, input);
   let plan: G0A2DisputePlan;
   let prior: SelfHypothesis;
@@ -115,12 +115,12 @@ export async function consolidateG0A2SelfHypothesisDispute(
   if (checkpoint !== null) {
     ({ plan, prior } = await parseCheckpoint(checkpoint, input, persistence));
   } else {
-    prior = await readCurrentV1(input.kinseedId, persistence);
-    const formation = await readFormationBoundary(input.kinseedId, prior, persistence);
+    prior = await readCurrentV1(input.lenoSeedId, persistence);
+    const formation = await readFormationBoundary(input.lenoSeedId, prior, persistence);
     const observations = await readObservations(input, persistence);
     await validateBoundedSnapshot(observations, prior, formation.completed, persistence);
     plan = planG0A2SelfHypothesisDispute({
-      kinseedId: input.kinseedId,
+      lenoSeedId: input.lenoSeedId,
       consolidationId: input.consolidationId,
       currentHypothesis: prior,
       observations,
@@ -128,7 +128,7 @@ export async function consolidateG0A2SelfHypothesisDispute(
     checkpoint = await appendCheckpoint(input, plan, prior, observations, formation.checkpoint, persistence);
   }
 
-  const completion = findCompletion(await persistence.readEventsInSequence(input.kinseedId), input);
+  const completion = findCompletion(await persistence.readEventsInSequence(input.lenoSeedId), input);
   if (completion !== null) {
     const result = validateCompletion(completion, checkpoint, plan, input);
     await validateDurable(plan, prior, input, persistence);
@@ -143,7 +143,7 @@ export async function consolidateG0A2SelfHypothesisDispute(
   const superseded = plan.outcome === "dispute"
     ? { ...prior, status: "superseded" as const, updatedAt: plan.timestamp }
     : null;
-  const commit = await persistence.atomicCommit(input.kinseedId, checkpoint.observedStateVersion, {
+  const commit = await persistence.atomicCommit(input.lenoSeedId, checkpoint.observedStateVersion, {
     evidenceItems: [],
     evidenceLinks: plan.linkSnapshots,
     beliefs: [],
@@ -162,9 +162,9 @@ export async function consolidateG0A2SelfHypothesisDispute(
   };
 }
 
-async function readCurrentV1(kinseedId: EntityId, persistence: PersistencePort): Promise<SelfHypothesis> {
-  const key = expectedHypothesisKey(kinseedId);
-  const history = await persistence.readSelfHypothesisHistoryByKey(kinseedId, key);
+async function readCurrentV1(lenoSeedId: EntityId, persistence: PersistencePort): Promise<SelfHypothesis> {
+  const key = expectedHypothesisKey(lenoSeedId);
+  const history = await persistence.readSelfHypothesisHistoryByKey(lenoSeedId, key);
   if (history.length !== 1) throw new DomainInvariantError("G0-A2 dispute requires exactly one v1 history");
   const current = history[0];
   if (current === undefined || !isCoherentV1(current, key) || current.status !== "active") {
@@ -174,11 +174,11 @@ async function readCurrentV1(kinseedId: EntityId, persistence: PersistencePort):
 }
 
 async function readFormationBoundary(
-  kinseedId: EntityId,
+  lenoSeedId: EntityId,
   v1: SelfHypothesis,
   persistence: PersistencePort,
 ): Promise<{ checkpoint: Event; completed: Event }> {
-  const events = await persistence.readEventsInSequence(kinseedId);
+  const events = await persistence.readEventsInSequence(lenoSeedId);
   const checkpoints = events.filter((event) =>
     event.type === "validation_decision_recorded" &&
     event.payloadSchemaVersion === 3 &&
@@ -222,16 +222,16 @@ async function readObservations(
 
   const observations: G0A2DisputeObservation[] = [];
   for (const evidenceId of input.evidenceItemIds) {
-    const evidenceItem = await persistence.readEvidenceItem(input.kinseedId, evidenceId);
+    const evidenceItem = await persistence.readEvidenceItem(input.lenoSeedId, evidenceId);
     if (
-      evidenceItem === null || evidenceItem.kinseedId !== input.kinseedId ||
+      evidenceItem === null || evidenceItem.lenoSeedId !== input.lenoSeedId ||
       evidenceItem.kind !== "behavioral_observation" || evidenceItem.status !== "active" ||
       evidenceItem.grounding?.kind !== "structured_event"
     ) throw new DomainInvariantError(`G0-A2 dispute observation ${evidenceId} is invalid`);
     if (await validateEvidenceItem(evidenceItem, persistence) !== null) {
       throw new DomainInvariantError(`G0-A2 dispute observation ${evidenceId} failed grounding`);
     }
-    const sourceEvent = await persistence.readEventById(input.kinseedId, evidenceItem.grounding.eventId);
+    const sourceEvent = await persistence.readEventById(input.lenoSeedId, evidenceItem.grounding.eventId);
     if (
       sourceEvent === null || sourceEvent.type !== "intention_selected" ||
       sourceEvent.payloadSchemaVersion !== 2 ||
@@ -240,7 +240,7 @@ async function readObservations(
     ) throw new DomainInvariantError(`G0-A2 dispute observation ${evidenceId} source is invalid`);
     const triggerHypothesisKeys: string[] = [];
     for (const triggerId of sourceEvent.payload.triggerSelfHypothesisIds) {
-      const trigger = await persistence.readSelfHypothesis(input.kinseedId, triggerId);
+      const trigger = await persistence.readSelfHypothesis(input.lenoSeedId, triggerId);
       if (trigger === null) throw new DomainInvariantError(`G0-A2 dispute observation ${evidenceId} has unknown trigger`);
       triggerHypothesisKeys.push(trigger.hypothesisKey);
     }
@@ -277,7 +277,7 @@ async function validateBoundedSnapshot(
   }
   const v1EvidenceIds = new Set<EntityId>();
   for (const linkId of [...v1.supportLinkIds, ...v1.againstLinkIds]) {
-    const link = await persistence.readEvidenceLink(v1.kinseedId, linkId);
+    const link = await persistence.readEvidenceLink(v1.lenoSeedId, linkId);
     if (link === null || link.targetType !== "self_hypothesis" || link.targetId !== v1.id) {
       throw new DomainInvariantError("G0-A2 dispute v1 links are incoherent");
     }
@@ -300,18 +300,18 @@ async function appendCheckpoint(
   formation: Event,
   persistence: PersistencePort,
 ): Promise<Event> {
-  const events = await persistence.readEventsInSequence(input.kinseedId);
+  const events = await persistence.readEventsInSequence(input.lenoSeedId);
   const causedByEventIds = observations.map((observation) => observation.sourceEvent.id);
   if (causedByEventIds.includes(formation.id)) {
     throw new DomainInvariantError("G0-A2 dispute checkpoint causes must be distinct");
   }
   causedByEventIds.push(formation.id);
   const event: Event = {
-    id: checkpointId(input), kinseedId: input.kinseedId,
+    id: checkpointId(input), lenoSeedId: input.lenoSeedId,
     sequence: (events.at(-1)?.sequence ?? 0) + 1,
     type: "validation_decision_recorded", occurredAt: plan.timestamp, turnId: null,
     sourceId: input.systemSourceId, actorRef: null, causedByEventIds,
-    observedStateVersion: await persistence.getStateVersion(input.kinseedId),
+    observedStateVersion: await persistence.getStateVersion(input.lenoSeedId),
     payload: serializePlan(input, plan, current), payloadSchemaVersion: 3,
     engineVersion: input.engineVersion, idempotencyKey: decisionKey(input),
   };
@@ -326,9 +326,9 @@ async function appendCompletion(
   commit: AtomicCommitResult,
   persistence: PersistencePort,
 ): Promise<void> {
-  const events = await persistence.readEventsInSequence(input.kinseedId);
+  const events = await persistence.readEventsInSequence(input.lenoSeedId);
   await persistence.appendEvent({
-    id: completionId(input), kinseedId: input.kinseedId,
+    id: completionId(input), lenoSeedId: input.lenoSeedId,
     sequence: (events.at(-1)?.sequence ?? 0) + 1,
     type: "state_commit_completed", occurredAt: plan.timestamp, turnId: null,
     sourceId: input.systemSourceId, actorRef: null, causedByEventIds: [checkpoint.id],
@@ -382,7 +382,7 @@ async function parseCheckpoint(
   persistence: PersistencePort,
 ): Promise<{ plan: G0A2DisputePlan; prior: SelfHypothesis }> {
   if (
-    event.id !== checkpointId(input) || event.kinseedId !== input.kinseedId ||
+    event.id !== checkpointId(input) || event.lenoSeedId !== input.lenoSeedId ||
     event.type !== "validation_decision_recorded" || event.payloadSchemaVersion !== 3 ||
     event.idempotencyKey !== decisionKey(input) || event.turnId !== null ||
     event.sourceId !== input.systemSourceId || event.actorRef !== null ||
@@ -405,13 +405,13 @@ async function parseCheckpoint(
     throw new DomainInvariantError("G0-A2 dispute checkpoint outcome is invalid");
   }
 
-  const prior = await readHistoricalV1(input.kinseedId, candidate, payload.supersededHypothesisId, outcome, persistence);
+  const prior = await readHistoricalV1(input.lenoSeedId, candidate, payload.supersededHypothesisId, outcome, persistence);
   if (
     !propositionEquals(candidate, prior.proposition) ||
     buildSelfHypothesisKey(candidate) !== hypothesisKey ||
     hypothesisKey !== prior.hypothesisKey
   ) throw new DomainInvariantError("G0-A2 dispute checkpoint candidate is incoherent");
-  const formation = await readFormationBoundary(input.kinseedId, prior, persistence);
+  const formation = await readFormationBoundary(input.lenoSeedId, prior, persistence);
   const observations = await readObservations(input, persistence);
   await validateBoundedSnapshot(observations, prior, formation.completed, persistence);
   const canonicalEvidenceIds = observations.map((observation) => observation.evidenceItem.id);
@@ -444,7 +444,7 @@ async function parseCheckpoint(
     observations,
     prior.hypothesisKey,
     candidate,
-    buildDisputedG0A2SelfHypothesisId(input.kinseedId, input.consolidationId),
+    buildDisputedG0A2SelfHypothesisId(input.lenoSeedId, input.consolidationId),
   );
   const counted = countGroups(outcome === "dispute" ? structuralLinks : structuralLinks);
   if (
@@ -467,7 +467,7 @@ async function parseCheckpoint(
     };
   }
 
-  const expectedV2Id = buildDisputedG0A2SelfHypothesisId(input.kinseedId, input.consolidationId);
+  const expectedV2Id = buildDisputedG0A2SelfHypothesisId(input.lenoSeedId, input.consolidationId);
   if (supersededId !== prior.id || next === null || !sameLinks(parsedLinks, structuralLinks)) {
     throw new DomainInvariantError("G0-A2 dispute checkpoint links are incoherent");
   }
@@ -494,7 +494,7 @@ async function parseCheckpoint(
 }
 
 async function readHistoricalV1(
-  kinseedId: EntityId,
+  lenoSeedId: EntityId,
   candidate: Proposition,
   supersededValue: SerializableValue | undefined,
   outcome: "dispute" | "no_change",
@@ -504,10 +504,10 @@ async function readHistoricalV1(
   let v1: SelfHypothesis | null = null;
   if (outcome === "dispute") {
     const id = string(supersededValue, "supersededHypothesisId");
-    v1 = await persistence.readSelfHypothesis(kinseedId, id);
+    v1 = await persistence.readSelfHypothesis(lenoSeedId, id);
   } else {
     if (supersededValue !== null) throw new DomainInvariantError("G0-A2 no_change checkpoint supersedes v1");
-    const history = await persistence.readSelfHypothesisHistoryByKey(kinseedId, key);
+    const history = await persistence.readSelfHypothesisHistoryByKey(lenoSeedId, key);
     v1 = history.find((hypothesis) => hypothesis.version === 1) ?? null;
   }
   if (v1 === null || !isCoherentV1(v1, key) || !propositionEquals(v1.proposition, candidate)) {
@@ -529,7 +529,7 @@ function buildStructuralLinks(
     const contaminated = observation.triggerHypothesisKeys.includes(hypothesisKey);
     return {
       id: buildG0A2SelfHypothesisLinkId(input.consolidationId, observation.evidenceItem.id, targetId, relation),
-      kinseedId: input.kinseedId, evidenceItemId: observation.evidenceItem.id,
+      lenoSeedId: input.lenoSeedId, evidenceItemId: observation.evidenceItem.id,
       targetType: "self_hypothesis" as const, targetId, relation,
       sourceAuthority: "high" as const, independenceGroup: `g0a2:${situation}`,
       causalContamination: contaminated ? "influenced_by_target" as const : "none" as const,
@@ -547,7 +547,7 @@ function buildExpectedV2(
   timestamp: string,
 ): SelfHypothesis {
   return {
-    id, kinseedId: v1.kinseedId, hypothesisKey: v1.hypothesisKey, version: 2,
+    id, lenoSeedId: v1.lenoSeedId, hypothesisKey: v1.hypothesisKey, version: 2,
     proposition: candidate, stage: "hypothesis",
     supportLinkIds: links.filter((link) => link.relation === "supports").map((link) => link.id),
     againstLinkIds: links.filter((link) => link.relation === "contradicts").map((link) => link.id),
@@ -600,7 +600,7 @@ function validateCompletion(
   const next = number(payload.newStateVersion, "completion newStateVersion");
   const changed = payload.changed;
   if (
-    event.id !== completionId(input) || event.kinseedId !== input.kinseedId ||
+    event.id !== completionId(input) || event.lenoSeedId !== input.lenoSeedId ||
     event.type !== "state_commit_completed" || event.payloadSchemaVersion !== 2 ||
     event.turnId !== null || event.sourceId !== input.systemSourceId || event.actorRef !== null ||
     event.engineVersion !== input.engineVersion || event.idempotencyKey !== completedKey(input) ||
@@ -623,8 +623,8 @@ async function validateDurable(
 ): Promise<void> {
   if (plan.outcome === "no_change") {
     const v2 = await persistence.readSelfHypothesis(
-      input.kinseedId,
-      buildDisputedG0A2SelfHypothesisId(input.kinseedId, input.consolidationId),
+      input.lenoSeedId,
+      buildDisputedG0A2SelfHypothesisId(input.lenoSeedId, input.consolidationId),
     );
     if (v2 !== null) throw new DomainInvariantError("G0-A2 no_change has a deterministic v2");
     return;
@@ -634,13 +634,13 @@ async function validateDurable(
   }
   const snapshot = plan.nextHypothesisSnapshot;
   if (snapshot === null) throw new DomainInvariantError("G0-A2 dispute has no durable v2 snapshot");
-  const actual = await persistence.readSelfHypothesis(input.kinseedId, snapshot.id);
+  const actual = await persistence.readSelfHypothesis(input.lenoSeedId, snapshot.id);
   if (
     actual === null || !sameHypothesisImmutable(actual, snapshot) ||
     !((actual.status === "disputed" && actual.updatedAt === snapshot.updatedAt) || actual.status === "superseded")
   ) throw new DomainInvariantError("G0-A2 dispute durable v2 is incoherent");
   for (const link of plan.linkSnapshots) {
-    if (!sameLink(await persistence.readEvidenceLink(input.kinseedId, link.id), link)) {
+    if (!sameLink(await persistence.readEvidenceLink(input.lenoSeedId, link.id), link)) {
       throw new DomainInvariantError("G0-A2 dispute durable links are incoherent");
     }
   }
@@ -658,7 +658,7 @@ function parseLinks(value: SerializableValue | undefined): readonly EvidenceLink
       (contamination !== "none" && contamination !== "influenced_by_target")
     ) throw new DomainInvariantError("G0-A2 dispute linkSnapshot is invalid");
     return {
-      id: string(link.id, "link id"), kinseedId: string(link.kinseedId, "link kinseedId"),
+      id: string(link.id, "link id"), lenoSeedId: string(link.lenoSeedId, "link lenoSeedId"),
       evidenceItemId: string(link.evidenceItemId, "link evidenceItemId"), targetType,
       targetId: string(link.targetId, "link targetId"), relation,
       sourceAuthority: weight(link.sourceAuthority), independenceGroup: string(link.independenceGroup, "link independenceGroup"),
@@ -684,7 +684,7 @@ function parseHypothesis(value: SerializableValue | undefined, label: string): S
     throw new DomainInvariantError(`G0-A2 dispute ${label} previousVersionId is invalid`);
   }
   return {
-    id: string(hypothesis.id, `${label} id`), kinseedId: string(hypothesis.kinseedId, `${label} kinseedId`),
+    id: string(hypothesis.id, `${label} id`), lenoSeedId: string(hypothesis.lenoSeedId, `${label} lenoSeedId`),
     hypothesisKey: string(hypothesis.hypothesisKey, `${label} hypothesisKey`), version,
     proposition: parseProposition(hypothesis.proposition, `${label} proposition`), stage,
     supportLinkIds: strings(hypothesis.supportLinkIds, `${label} supportLinkIds`),
@@ -717,7 +717,7 @@ function isCoherentV1(value: SelfHypothesis, key: string): boolean {
   return value.version === 1 && value.stage === "hypothesis" && value.confidence === "moderate" &&
     (value.status === "active" || value.status === "superseded") &&
     value.hypothesisKey === key && value.previousVersionId === null &&
-    value.proposition.subjectRef === value.kinseedId && value.proposition.predicate === AXIS &&
+    value.proposition.subjectRef === value.lenoSeedId && value.proposition.predicate === AXIS &&
     value.proposition.context.protocol === "G0-A2" &&
     (value.proposition.value === "seek_clarification" || value.proposition.value === "use_available_information");
 }
@@ -735,7 +735,7 @@ function sameHypothesis(left: SelfHypothesis, right: SelfHypothesis): boolean {
 }
 
 function sameHypothesisImmutable(left: SelfHypothesis, right: SelfHypothesis): boolean {
-  return left.id === right.id && left.kinseedId === right.kinseedId &&
+  return left.id === right.id && left.lenoSeedId === right.lenoSeedId &&
     left.hypothesisKey === right.hypothesisKey && left.version === right.version &&
     propositionEquals(left.proposition, right.proposition) && left.stage === right.stage &&
     sameList(left.supportLinkIds, right.supportLinkIds) && sameList(left.againstLinkIds, right.againstLinkIds) &&
@@ -751,7 +751,7 @@ function sameLinks(left: readonly EvidenceLink[], right: readonly EvidenceLink[]
 }
 
 function sameLink(left: EvidenceLink | null, right: EvidenceLink): boolean {
-  return left !== null && left.id === right.id && left.kinseedId === right.kinseedId &&
+  return left !== null && left.id === right.id && left.lenoSeedId === right.lenoSeedId &&
     left.evidenceItemId === right.evidenceItemId && left.targetType === right.targetType &&
     left.targetId === right.targetId && left.relation === right.relation &&
     left.sourceAuthority === right.sourceAuthority && left.independenceGroup === right.independenceGroup &&
@@ -800,11 +800,11 @@ function sameList(left: readonly string[], right: readonly string[]): boolean {
 function snapshotId(value: SerializableValue | undefined): string | null {
   return value !== null && typeof value === "object" && !Array.isArray(value) && typeof (value as { id?: unknown }).id === "string" ? (value as { id: string }).id : null;
 }
-function expectedHypothesisKey(kinseedId: EntityId): string {
-  return buildSelfHypothesisKey({ subjectRef: kinseedId, predicate: AXIS, value: "seek_clarification", context: { protocol: "G0-A2" } });
+function expectedHypothesisKey(lenoSeedId: EntityId): string {
+  return buildSelfHypothesisKey({ subjectRef: lenoSeedId, predicate: AXIS, value: "seek_clarification", context: { protocol: "G0-A2" } });
 }
-function checkpointId(input: ConsolidateG0A2SelfHypothesisDisputeInput): EntityId { return `E-G0A2-${input.kinseedId}-${input.consolidationId}-decision`; }
-function completionId(input: ConsolidateG0A2SelfHypothesisDisputeInput): EntityId { return `E-G0A2-${input.kinseedId}-${input.consolidationId}-completed`; }
-function decisionKey(input: ConsolidateG0A2SelfHypothesisDisputeInput): string { return `${KEY_PREFIX}:${input.kinseedId}:${input.consolidationId}:decision`; }
-function commitKey(input: ConsolidateG0A2SelfHypothesisDisputeInput): string { return `${KEY_PREFIX}:${input.kinseedId}:${input.consolidationId}:commit`; }
-function completedKey(input: ConsolidateG0A2SelfHypothesisDisputeInput): string { return `${KEY_PREFIX}:${input.kinseedId}:${input.consolidationId}:completed`; }
+function checkpointId(input: ConsolidateG0A2SelfHypothesisDisputeInput): EntityId { return `E-G0A2-${input.lenoSeedId}-${input.consolidationId}-decision`; }
+function completionId(input: ConsolidateG0A2SelfHypothesisDisputeInput): EntityId { return `E-G0A2-${input.lenoSeedId}-${input.consolidationId}-completed`; }
+function decisionKey(input: ConsolidateG0A2SelfHypothesisDisputeInput): string { return `${KEY_PREFIX}:${input.lenoSeedId}:${input.consolidationId}:decision`; }
+function commitKey(input: ConsolidateG0A2SelfHypothesisDisputeInput): string { return `${KEY_PREFIX}:${input.lenoSeedId}:${input.consolidationId}:commit`; }
+function completedKey(input: ConsolidateG0A2SelfHypothesisDisputeInput): string { return `${KEY_PREFIX}:${input.lenoSeedId}:${input.consolidationId}:completed`; }

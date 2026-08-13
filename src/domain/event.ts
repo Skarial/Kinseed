@@ -8,17 +8,17 @@ import type {
 } from "./primitives.js";
 
 export type EventType =
-  | "kinseed_created"
+  | "lenoseed_created"
   | "human_message_received"
   | "intention_selected"
-  | "kinseed_message_emitted"
+  | "lenoseed_message_emitted"
   | "validation_decision_recorded"
   | "state_commit_completed"
   | "processing_failure_recorded";
 
 export interface Event {
   readonly id: EntityId;
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly sequence: Sequence;
   readonly type: EventType;
   readonly occurredAt: Timestamp;

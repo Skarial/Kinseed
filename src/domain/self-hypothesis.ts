@@ -7,7 +7,7 @@ export type SelfHypothesisStatus = "active" | "disputed" | "superseded";
 
 export interface SelfHypothesis {
   readonly id: EntityId;
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly hypothesisKey: string;
   readonly version: number;
   readonly proposition: Proposition;

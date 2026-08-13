@@ -43,7 +43,7 @@ Chaque interaction possède au minimum :
 
 ```text
 turn_id
-kinseed_id
+lenoseed_id
 input_event_id
 observed_state_version
 created_at
@@ -72,10 +72,10 @@ Le journal primaire reste volontairement petit.
 Les types fondamentaux sont :
 
 ```text
-kinseed_created
+lenoseed_created
 human_message_received
 intention_selected
-kinseed_message_emitted
+lenoseed_message_emitted
 validation_decision_recorded
 state_commit_completed
 processing_failure_recorded
@@ -87,7 +87,7 @@ Cette règle évite de confondre le fait brut « un message a été reçu » ave
 
 ---
 
-# 4. `kinseed_created`
+# 4. `lenoseed_created`
 
 Premier événement autobiographique et technique du LenoSeed.
 
@@ -96,12 +96,12 @@ Exemple :
 ```text
 E-000001
 
-type: kinseed_created
+type: lenoseed_created
 sequence: 1
 turn_id: null
 observed_state_version: 0
 payload:
-  kinseed_id: K-001
+  lenoseed_id: K-001
   generation: 0
   created_at: ...
 ```
@@ -271,14 +271,14 @@ Les tentatives internes de génération peuvent rester dans des logs techniques 
 
 ---
 
-# 10. `kinseed_message_emitted`
+# 10. `lenoseed_message_emitted`
 
 Seul le texte effectivement présenté à l’humain devient un événement historique de sortie.
 
 ```text
 E-000154
 
-type: kinseed_message_emitted
+type: lenoseed_message_emitted
 turn_id: T-041
 caused_by_event_ids: [E-000152, E-000153]
 observed_state_version: 31
@@ -500,7 +500,7 @@ réponse envoyée à l'humain
 crash avant post-traitement
 ```
 
-L’événement `kinseed_message_emitted` existe déjà : la conversation a réellement eu lieu.
+L’événement `lenoseed_message_emitted` existe déjà : la conversation a réellement eu lieu.
 
 Mais l’état durable reste encore `N`.
 
@@ -719,7 +719,7 @@ LLM formule
         ↓
 validation linguistique
         ↓
-E3 kinseed_message_emitted
+E3 lenoseed_message_emitted
         ↓
 post-validation
         ↓

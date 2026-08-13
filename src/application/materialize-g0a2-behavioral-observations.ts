@@ -7,11 +7,11 @@ import type { AtomicCommitResult, PersistencePort } from "../ports/persistence.j
 import { validateEvidenceItem } from "./validate-evidence.js";
 
 const MATERIALIZATION_SCOPE = "behavioral_observation_materialization";
-const EXTRACTOR_VERSION = "kinseed-g0a2-behavioral-observation-v1";
+const EXTRACTOR_VERSION = "lenoseed-g0a2-behavioral-observation-v1";
 const REQUIRED_SITUATIONS = ["S1", "S2", "S3", "S4"] as const;
 
 export interface MaterializeG0A2BehavioralObservationsInput {
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly historyId: string;
   readonly systemSourceId: EntityId;
   readonly intentionEventIds: readonly EntityId[];
@@ -46,17 +46,17 @@ export async function materializeG0A2BehavioralObservations(
     }
   }
 
-  const events = await persistence.readEventsInSequence(input.kinseedId);
+  const events = await persistence.readEventsInSequence(input.lenoSeedId);
   const completion = findCompletionEvent(events, input.historyId);
   if (completion !== null) {
     const result = validateHistoricalCompletion(completion, input.systemSourceId, fixtures);
-    await validateHistoricalObservations(input.kinseedId, observations, persistence);
+    await validateHistoricalObservations(input.lenoSeedId, observations, persistence);
     return { evidenceItemIds: observations.map((observation) => observation.id), ...result, replayed: true };
   }
 
   const commit = await persistence.atomicCommit(
-    input.kinseedId,
-    await persistence.getStateVersion(input.kinseedId),
+    input.lenoSeedId,
+    await persistence.getStateVersion(input.lenoSeedId),
     { evidenceItems: observations, evidenceLinks: [], beliefs: [], selfHypotheses: [] },
     commitIdempotencyKey(input),
   );
@@ -86,10 +86,10 @@ export function buildG0A2BehavioralObservationFromIntention(sourceEvent: Event):
   }
   return {
     id: buildG0A2BehavioralObservationId(sourceEvent.id),
-    kinseedId: sourceEvent.kinseedId,
+    lenoSeedId: sourceEvent.lenoSeedId,
     kind: "behavioral_observation",
     proposition: {
-      subjectRef: sourceEvent.kinseedId,
+      subjectRef: sourceEvent.lenoSeedId,
       predicate: "selected_decision_style_under_uncertainty",
       value,
       context: { protocol: "G0-A2", situationId },
@@ -115,9 +115,9 @@ async function readAndValidateFixtures(
 
   const fixtures: Event[] = [];
   for (const eventId of input.intentionEventIds) {
-    const event = await persistence.readEventById(input.kinseedId, eventId);
-    if (event === null || event.kinseedId !== input.kinseedId) {
-      throw new DomainInvariantError(`G0-A2 fixture ${eventId} does not belong to ${input.kinseedId}`);
+    const event = await persistence.readEventById(input.lenoSeedId, eventId);
+    if (event === null || event.lenoSeedId !== input.lenoSeedId) {
+      throw new DomainInvariantError(`G0-A2 fixture ${eventId} does not belong to ${input.lenoSeedId}`);
     }
     const source = await persistence.readSource(event.sourceId);
     if (source?.kind !== "system") {
@@ -194,22 +194,22 @@ function validateHistoricalCompletion(
   if (completion.occurredAt !== fixtures.at(-1)?.occurredAt) {
     throw new DomainInvariantError(`G0-A2 completion ${completion.id} has incoherent occurredAt`);
   }
-  if (completion.id !== completionEventId(completion.kinseedId, completion.payload.materializationId as string)) {
+  if (completion.id !== completionEventId(completion.lenoSeedId, completion.payload.materializationId as string)) {
     throw new DomainInvariantError(`G0-A2 completion ${completion.id} has incoherent id`);
   }
-  if (completion.idempotencyKey !== completionIdempotencyKey(completion.kinseedId, completion.payload.materializationId as string)) {
+  if (completion.idempotencyKey !== completionIdempotencyKey(completion.lenoSeedId, completion.payload.materializationId as string)) {
     throw new DomainInvariantError(`G0-A2 completion ${completion.id} has incoherent idempotencyKey`);
   }
   return { previousStateVersion, newStateVersion, changed };
 }
 
 async function validateHistoricalObservations(
-  kinseedId: EntityId,
+  lenoSeedId: EntityId,
   observations: readonly EvidenceItem[],
   persistence: PersistencePort,
 ): Promise<void> {
   for (const expected of observations) {
-    const actual = await persistence.readEvidenceItem(kinseedId, expected.id);
+    const actual = await persistence.readEvidenceItem(lenoSeedId, expected.id);
     if (actual === null || JSON.stringify(actual) !== JSON.stringify(expected)) {
       throw new DomainInvariantError(`G0-A2 historical observation ${expected.id} is incoherent`);
     }
@@ -222,14 +222,14 @@ async function appendCompletionEvent(
   commit: AtomicCommitResult,
   persistence: PersistencePort,
 ): Promise<void> {
-  const events = await persistence.readEventsInSequence(input.kinseedId);
+  const events = await persistence.readEventsInSequence(input.lenoSeedId);
   const lastFixture = fixtures.at(-1);
   if (lastFixture === undefined) {
     throw new DomainInvariantError("G0-A2 materialization has no final fixture");
   }
   await persistence.appendEvent({
-    id: completionEventId(input.kinseedId, input.historyId),
-    kinseedId: input.kinseedId,
+    id: completionEventId(input.lenoSeedId, input.historyId),
+    lenoSeedId: input.lenoSeedId,
     sequence: (events.at(-1)?.sequence ?? 0) + 1,
     type: "state_commit_completed",
     occurredAt: lastFixture.occurredAt,
@@ -247,18 +247,18 @@ async function appendCompletionEvent(
     },
     payloadSchemaVersion: 2,
     engineVersion: input.engineVersion,
-    idempotencyKey: completionIdempotencyKey(input.kinseedId, input.historyId),
+    idempotencyKey: completionIdempotencyKey(input.lenoSeedId, input.historyId),
   });
 }
 
 function commitIdempotencyKey(input: MaterializeG0A2BehavioralObservationsInput): string {
-  return `g0a2:${input.kinseedId}:${input.historyId}:behavioral-observations:commit`;
+  return `g0a2:${input.lenoSeedId}:${input.historyId}:behavioral-observations:commit`;
 }
 
-function completionEventId(kinseedId: EntityId, historyId: string): EntityId {
-  return `E-G0A2-${kinseedId}-${historyId}-behavioral-observations-completed`;
+function completionEventId(lenoSeedId: EntityId, historyId: string): EntityId {
+  return `E-G0A2-${lenoSeedId}-${historyId}-behavioral-observations-completed`;
 }
 
-function completionIdempotencyKey(kinseedId: EntityId, historyId: string): string {
-  return `g0a2:${kinseedId}:${historyId}:behavioral-observations:completed`;
+function completionIdempotencyKey(lenoSeedId: EntityId, historyId: string): string {
+  return `g0a2:${lenoSeedId}:${historyId}:behavioral-observations:completed`;
 }

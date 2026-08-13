@@ -89,7 +89,7 @@ type G0A2DecisionStyle =
 La proposition d’une hypothèse utilise :
 
 ```text
-subjectRef: <kinseedId>
+subjectRef: <lenoSeedId>
 predicate: decision_style_under_uncertainty
 value: seek_clarification | use_available_information
 context:
@@ -99,7 +99,7 @@ context:
 La proposition d’une observation utilise :
 
 ```text
-subjectRef: <kinseedId>
+subjectRef: <lenoSeedId>
 predicate: selected_decision_style_under_uncertainty
 value: seek_clarification | use_available_information
 context:
@@ -126,7 +126,7 @@ type SelfHypothesisStatus = "active" | "disputed" | "superseded";
 
 interface SelfHypothesis {
   readonly id: EntityId;
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly hypothesisKey: string;
   readonly version: number;
   readonly proposition: Proposition;
@@ -260,7 +260,7 @@ Pour une `behavioral_observation` G0-A2 :
   même événement ;
 - `sourceId` est celui de l’événement, donc une `Source` système connue ;
 - `extractorVersion` identifie la transformation déterministe, par exemple
-  `kinseed-g0a2-behavioral-observation-v1`, et non un modèle IA ;
+  `lenoseed-g0a2-behavioral-observation-v1`, et non un modèle IA ;
 - `extractionConfidence` vaut `high`, car l’observation recopie une décision
   structurée validée, sans certifier une interprétation psychologique ;
 - `supersedesId` vaut `null` pour les fixtures du protocole.
@@ -297,7 +297,7 @@ type EvidenceTargetType = "belief" | "self_hypothesis";
 
 interface EvidenceLink {
   readonly id: EntityId;
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly evidenceItemId: EntityId;
   readonly targetType: EvidenceTargetType;
   readonly targetId: EntityId;
@@ -493,7 +493,7 @@ Le premier consolidateur G0-A2 est une fonction métier pure. Il ne dépend ni d
 
 Entrées explicites :
 
-- `kinseedId` ;
+- `lenoSeedId` ;
 - `consolidationId` stable ;
 - la proposition candidate connue du protocole ;
 - les identifiants d’observations à considérer ;
@@ -515,10 +515,10 @@ Algorithme borné :
 10. committer atomiquement les nouveaux liens, la nouvelle version et le statut
     `superseded` de l’ancienne version, le cas échéant.
 
-L’identifiant de toute nouvelle version est déterministe et peut être dérivé du `kinseedId`, du `consolidationId` stable et du numéro de version, par exemple :
+L’identifiant de toute nouvelle version est déterministe et peut être dérivé du `lenoSeedId`, du `consolidationId` stable et du numéro de version, par exemple :
 
 ```text
-SH-G0A2-<kinseedId>-<consolidationId>-v<version>
+SH-G0A2-<lenoSeedId>-<consolidationId>-v<version>
 ```
 
 La continuité logique repose sur `hypothesisKey`, `version` et `previousVersionId`, non sur un préfixe identique entre tous les identifiants. L’identifiant v1 existant ne change pas.
@@ -529,7 +529,7 @@ cible une entité absente.
 
 La matérialisation des quatre observations est un commit atomique distinct,
 identifié par
-`g0a2:<kinseedId>:<historyId>:behavioral-observations:commit`. Elle reconstruit
+`g0a2:<lenoSeedId>:<historyId>:behavioral-observations:commit`. Elle reconstruit
 toujours les `EvidenceItem` déterministes décrits en section 5, notamment avec
 `createdAt = sourceEvent.occurredAt`, avant d’appeler `atomicCommit`. Après le
 commit, un `state_commit_completed` de scope
@@ -614,7 +614,7 @@ déjà persisté.
 Pour le test principal, A et B reçoivent la même situation contrôlée. Les champs
 `payload.text`, `payload.protocol`, `payload.situationId` et
 `payload.decisionAxis` sont strictement identiques. Les identifiants techniques
-(`Event.id`, `kinseedId`, `turnId` et références de Source/acteur) peuvent
+(`Event.id`, `lenoSeedId`, `turnId` et références de Source/acteur) peuvent
 différer, mais aucun ne doit encoder l’orientation A ou B. La divergence doit
 provenir exclusivement du snapshot de `SelfHypothesis` consommé par le
 sélecteur.
@@ -725,9 +725,9 @@ Deux assertions sont distinctes :
 `PersistencePort` est étendu uniquement par :
 
 ```text
-readSelfHypothesis(kinseedId, selfHypothesisId)
-readActiveSelfHypothesisByKey(kinseedId, hypothesisKey)
-readSelfHypothesisHistoryByKey(kinseedId, hypothesisKey)
+readSelfHypothesis(lenoSeedId, selfHypothesisId)
+readActiveSelfHypothesisByKey(lenoSeedId, hypothesisKey)
+readSelfHypothesisHistoryByKey(lenoSeedId, hypothesisKey)
 ```
 
 `readEvidenceLink` suffit à résoudre les liens référencés ; aucune requête
@@ -777,7 +777,7 @@ Le nouveau payload est explicitement distinct :
 type: validation_decision_recorded
 payloadSchemaVersion: 3
 turnId: null
-idempotencyKey: g0a2:<kinseedId>:<consolidationId>:decision
+idempotencyKey: g0a2:<lenoSeedId>:<consolidationId>:decision
 causedByEventIds:
   - <intention_selected sources, triés par sequence>
   - <décision de consolidation précédente, pour une révision>
@@ -808,7 +808,7 @@ Pour `dispute` ou `revise`, `linkSnapshots` contient le snapshot complet des nou
 Le commit utilise une clé distincte :
 
 ```text
-g0a2:<kinseedId>:<consolidationId>:commit
+g0a2:<lenoSeedId>:<consolidationId>:commit
 ```
 
 Après succès, un `state_commit_completed` est écrit avec :
@@ -816,7 +816,7 @@ Après succès, un `state_commit_completed` est écrit avec :
 - le `validation_decision_recorded` dans `causedByEventIds` ;
 - `previousStateVersion`, `newStateVersion` et `changed` ;
 - `scope: self_hypothesis_consolidation` et le même `consolidationId` ;
-- une clé `g0a2:<kinseedId>:<consolidationId>:completed`.
+- une clé `g0a2:<lenoSeedId>:<consolidationId>:completed`.
 
 ## 14.1 Versions de payload G0-A2
 
@@ -1088,7 +1088,7 @@ utilisé.
 Pour chaque paire `i`, le rapport enregistre `decisionA`, `decisionB`, puis :
 
 ```text
-reproducesKinseedPattern =
+reproducesLenoSeedPattern =
   decisionA === "seek_clarification"
   && decisionB === "use_available_information"
 

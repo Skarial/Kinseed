@@ -133,7 +133,7 @@ Le but est d’éviter qu’un autre mécanisme masque une erreur du mécanisme 
 
 # 7. État initial attendu
 
-Après `kinseed_created` :
+Après `lenoseed_created` :
 
 ```text
 state_version: 0

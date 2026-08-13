@@ -18,7 +18,7 @@ const USE_AVAILABLE_INFORMATION: IntentionKind =
   "respond_with_available_information_under_uncertainty";
 
 export interface SelectG0A2S5IntentionInput {
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly turnId: TurnId;
   readonly humanSourceId: EntityId;
   readonly humanActorRef: EntityId;
@@ -41,7 +41,7 @@ export async function selectG0A2S5Intention(
   persistence: PersistencePort,
 ): Promise<SelectG0A2S5IntentionResult> {
   await validateSources(input, persistence);
-  const turnEvents = await persistence.readEventsByTurn(input.kinseedId, input.turnId);
+  const turnEvents = await persistence.readEventsByTurn(input.lenoSeedId, input.turnId);
   const historicalInput = oneEvent(turnEvents, "human_message_received", input.turnId);
   const historicalIntention = oneEvent(turnEvents, "intention_selected", input.turnId);
   if (historicalIntention !== null && historicalInput === null) {
@@ -68,7 +68,7 @@ export async function selectG0A2S5Intention(
   }
 
   const decisionContext = await buildG0A2S5DecisionContext({
-    kinseedId: input.kinseedId,
+    lenoSeedId: input.lenoSeedId,
     situationEvent,
     includeSelfHypotheses: true,
   }, persistence);
@@ -102,11 +102,11 @@ async function appendSituationEvent(
   input: SelectG0A2S5IntentionInput,
   persistence: PersistencePort,
 ): Promise<Event> {
-  const observedStateVersion = await persistence.getStateVersion(input.kinseedId);
+  const observedStateVersion = await persistence.getStateVersion(input.lenoSeedId);
   const event = {
     id: `E-${input.turnId}-input`,
-    kinseedId: input.kinseedId,
-    sequence: await nextSequence(input.kinseedId, persistence),
+    lenoSeedId: input.lenoSeedId,
+    sequence: await nextSequence(input.lenoSeedId, persistence),
     type: "human_message_received" as const,
     occurredAt: input.occurredAt,
     turnId: input.turnId,
@@ -130,7 +130,7 @@ function validateHistoricalSituationEvent(
   const expectedPayload = situationPayload(input.text);
   if (
     event.id !== `E-${input.turnId}-input` ||
-    event.kinseedId !== input.kinseedId ||
+    event.lenoSeedId !== input.lenoSeedId ||
     event.type !== "human_message_received" ||
     event.payloadSchemaVersion !== 2 ||
     event.turnId !== input.turnId ||
@@ -157,7 +157,7 @@ function buildIntention(
 ): Intention {
   return {
     id: `I-${input.turnId}`,
-    kinseedId: input.kinseedId,
+    lenoSeedId: input.lenoSeedId,
     kind: selection.selectedKind,
     target: input.humanActorRef,
     triggerEventIds: [situationEvent.id],
@@ -180,8 +180,8 @@ async function appendIntentionEvent(
 ): Promise<void> {
   await persistence.appendEvent({
     id: `E-${input.turnId}-intention`,
-    kinseedId: input.kinseedId,
-    sequence: await nextSequence(input.kinseedId, persistence),
+    lenoSeedId: input.lenoSeedId,
+    sequence: await nextSequence(input.lenoSeedId, persistence),
     type: "intention_selected",
     occurredAt: situationEvent.occurredAt,
     turnId: input.turnId,
@@ -212,7 +212,7 @@ async function reconstructHistoricalDecision(
 ): Promise<Pick<SelectG0A2S5IntentionResult, "intention" | "selection">> {
   if (
     event.id !== `E-${input.turnId}-intention` ||
-    event.kinseedId !== input.kinseedId ||
+    event.lenoSeedId !== input.lenoSeedId ||
     event.type !== "intention_selected" ||
     event.payloadSchemaVersion !== 2 ||
     event.turnId !== input.turnId ||
@@ -229,7 +229,7 @@ async function reconstructHistoricalDecision(
   ) {
     throw new DomainInvariantError(`G0-A2 S5 intention ${event.id} is incoherent`);
   }
-  const selection = await selectionFromHistoricalPayload(input.kinseedId, event, persistence);
+  const selection = await selectionFromHistoricalPayload(input.lenoSeedId, event, persistence);
   const intention = buildIntention(input, situationEvent, selection);
   if (
     event.payload.kind !== intention.kind ||
@@ -241,7 +241,7 @@ async function reconstructHistoricalDecision(
 }
 
 async function selectionFromHistoricalPayload(
-  kinseedId: EntityId,
+  lenoSeedId: EntityId,
   event: Event,
   persistence: PersistencePort,
 ): Promise<G0A2S5Selection> {
@@ -282,11 +282,11 @@ async function selectionFromHistoricalPayload(
   if (triggerId === undefined) {
     throw new DomainInvariantError(`G0-A2 S5 influenced intention ${event.id} has no trigger`);
   }
-  const hypothesis = await persistence.readSelfHypothesis(kinseedId, triggerId);
+  const hypothesis = await persistence.readSelfHypothesis(lenoSeedId, triggerId);
   if (
     hypothesis === null ||
-    hypothesis.kinseedId !== kinseedId ||
-    hypothesis.proposition.subjectRef !== kinseedId ||
+    hypothesis.lenoSeedId !== lenoSeedId ||
+    hypothesis.proposition.subjectRef !== lenoSeedId ||
     hypothesis.proposition.predicate !== S5_TEXT_AXIS ||
     hypothesis.proposition.context.protocol !== "G0-A2"
   ) {
@@ -340,8 +340,8 @@ function oneEvent(events: readonly Event[], type: Event["type"], turnId: TurnId)
   return matches[0] ?? null;
 }
 
-async function nextSequence(kinseedId: EntityId, persistence: PersistencePort): Promise<number> {
-  const events = await persistence.readEventsInSequence(kinseedId);
+async function nextSequence(lenoSeedId: EntityId, persistence: PersistencePort): Promise<number> {
+  const events = await persistence.readEventsInSequence(lenoSeedId);
   return (events.at(-1)?.sequence ?? 0) + 1;
 }
 

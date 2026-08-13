@@ -22,34 +22,34 @@ export interface PersistencePort {
   registerSource(source: Source): Promise<void>;
   readSource(sourceId: EntityId): Promise<Source | null>;
 
-  getStateVersion(kinseedId: EntityId): Promise<StateVersion>;
+  getStateVersion(lenoSeedId: EntityId): Promise<StateVersion>;
 
   appendEvent(event: Event): Promise<void>;
-  readEventById(kinseedId: EntityId, eventId: EntityId): Promise<Event | null>;
-  readEventsInSequence(kinseedId: EntityId): Promise<readonly Event[]>;
-  readEventsByTurn(kinseedId: EntityId, turnId: TurnId): Promise<readonly Event[]>;
+  readEventById(lenoSeedId: EntityId, eventId: EntityId): Promise<Event | null>;
+  readEventsInSequence(lenoSeedId: EntityId): Promise<readonly Event[]>;
+  readEventsByTurn(lenoSeedId: EntityId, turnId: TurnId): Promise<readonly Event[]>;
 
-  readEvidenceItem(kinseedId: EntityId, evidenceItemId: EntityId): Promise<EvidenceItem | null>;
-  readEvidenceLink(kinseedId: EntityId, evidenceLinkId: EntityId): Promise<EvidenceLink | null>;
+  readEvidenceItem(lenoSeedId: EntityId, evidenceItemId: EntityId): Promise<EvidenceItem | null>;
+  readEvidenceLink(lenoSeedId: EntityId, evidenceLinkId: EntityId): Promise<EvidenceLink | null>;
 
-  readActiveBeliefByKey(kinseedId: EntityId, beliefKey: string): Promise<Belief | null>;
-  readBeliefHistoryByKey(kinseedId: EntityId, beliefKey: string): Promise<readonly Belief[]>;
-  readSelfHypothesis(kinseedId: EntityId, selfHypothesisId: EntityId): Promise<SelfHypothesis | null>;
+  readActiveBeliefByKey(lenoSeedId: EntityId, beliefKey: string): Promise<Belief | null>;
+  readBeliefHistoryByKey(lenoSeedId: EntityId, beliefKey: string): Promise<readonly Belief[]>;
+  readSelfHypothesis(lenoSeedId: EntityId, selfHypothesisId: EntityId): Promise<SelfHypothesis | null>;
   readActiveSelfHypothesisByKey(
-    kinseedId: EntityId,
+    lenoSeedId: EntityId,
     hypothesisKey: string,
   ): Promise<SelfHypothesis | null>;
   readSelfHypothesisHistoryByKey(
-    kinseedId: EntityId,
+    lenoSeedId: EntityId,
     hypothesisKey: string,
   ): Promise<readonly SelfHypothesis[]>;
 
   atomicCommit(
-    kinseedId: EntityId,
+    lenoSeedId: EntityId,
     expectedStateVersion: StateVersion,
     mutations: CommitMutations,
     idempotencyKey: string,
   ): Promise<AtomicCommitResult>;
 
-  checkIdempotencyKey(kinseedId: EntityId, idempotencyKey: string): Promise<boolean>;
+  checkIdempotencyKey(lenoSeedId: EntityId, idempotencyKey: string): Promise<boolean>;
 }
