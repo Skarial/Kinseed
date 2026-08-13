@@ -1,0 +1,26 @@
+name: Technical rename inventory
+
+on:
+  push:
+    branches:
+      - chore/lenoseed-technical-rename
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inventory remaining project identifiers
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== OCCURRENCES ==='
+          grep -RInE 'Kinseed|kinseed|KINSEED' src tests package.json package-lock.json docs || true
+          echo '=== COUNTS ==='
+          printf 'src: '; grep -RIEo 'Kinseed|kinseed|KINSEED' src | wc -l || true
+          printf 'tests: '; grep -RIEo 'Kinseed|kinseed|KINSEED' tests | wc -l || true
+          printf 'package files: '; grep -Eo 'Kinseed|kinseed|KINSEED' package.json package-lock.json | wc -l || true
+          printf 'docs: '; grep -RIEo 'Kinseed|kinseed|KINSEED' docs | wc -l || true
