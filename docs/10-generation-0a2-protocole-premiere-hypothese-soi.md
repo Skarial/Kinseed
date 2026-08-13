@@ -1,4 +1,4 @@
-# Kinseed — G0-A2 : protocole de première hypothèse sur soi
+# LenoSeed — G0-A2 : protocole de première hypothèse sur soi
 
 ## Statut du document
 
@@ -12,9 +12,9 @@ G0-A2 reste une sous-expérience de G0-A. Elle ne valide pas G0-A complet et ne 
 
 # 1. Hypothèse expérimentale
 
-> **Deux Kinseeds initialement comparables, soumis à des histoires décisionnelles différentes, peuvent former des hypothèses provisoires différentes sur leur propre manière d’agir dans un contexte précis. Ces hypothèses doivent ensuite avoir un effet causal observable sur une nouvelle intention.**
+> **Deux LenoSeeds initialement comparables, soumis à des histoires décisionnelles différentes, peuvent former des hypothèses provisoires différentes sur leur propre manière d’agir dans un contexte précis. Ces hypothèses doivent ensuite avoir un effet causal observable sur une nouvelle intention.**
 
-Le phénomène est mesuré dans l’état Kinseed et dans la décision structurée **avant** toute formulation linguistique.
+Le phénomène est mesuré dans l’état LenoSeed et dans la décision structurée **avant** toute formulation linguistique.
 
 Une différence de style entre deux réponses LLM ne constitue jamais un résultat positif.
 
@@ -70,7 +70,7 @@ G0-A2 ne crée pas :
 
 # 4. États initiaux comparables
 
-Les Kinseeds A et B commencent avec :
+Les LenoSeeds A et B commencent avec :
 
 - les mêmes capacités structurelles ;
 - la même politique expérimentale ;
@@ -93,11 +93,11 @@ ou :
 
 > « J’aime demander des précisions. »
 
-Elles proviennent de décisions réellement enregistrées dans l’histoire du Kinseed. La source causale minimale est un événement structuré antérieur, conceptuellement `intention_selected`, attestant que l’intention existait avant le langage.
+Elles proviennent de décisions réellement enregistrées dans l’histoire du LenoSeed. La source causale minimale est un événement structuré antérieur, conceptuellement `intention_selected`, attestant que l’intention existait avant le langage.
 
 Chaque décision peut produire une unité de preuve conceptuelle de kind `behavioral_observation`. Cette observation décrit seulement l’action structurée effectivement sélectionnée dans son contexte. Elle n’ajoute aucune interprétation psychologique libre.
 
-Le texte formulé par le LLM et l’éventuelle auto-description du Kinseed ne constituent jamais la preuve principale du comportement observé.
+Le texte formulé par le LLM et l’éventuelle auto-description du LenoSeed ne constituent jamais la preuve principale du comportement observé.
 
 ---
 
@@ -171,13 +171,13 @@ Une répétition provenant du même contexte ou de la même origine causale ne p
 Après consolidation :
 
 ```text
-Kinseed A
+LenoSeed A
 decision_style_under_uncertainty = seek_clarification
 stage conceptuel : hypothesis
 ```
 
 ```text
-Kinseed B
+LenoSeed B
 decision_style_under_uncertainty = use_available_information
 stage conceptuel : hypothesis
 ```
@@ -221,7 +221,7 @@ Le même modèle reçoit S5 sans :
 
 - histoire A ou B ;
 - `SelfHypothesis` ;
-- état Kinseed associé ;
+- état LenoSeed associé ;
 - indice lui demandant d’incarner une orientation particulière.
 
 Les entrées de contrôle A et B sont identiques.
@@ -242,7 +242,7 @@ C1 conserve intégralement :
 
 Mais la consolidation en `SelfHypothesis` est désactivée.
 
-Lorsque S5 est présentée aux deux Kinseeds, la divergence attribuée aux hypothèses doit disparaître ou perdre l’effet causal défini par le protocole.
+Lorsque S5 est présentée aux deux LenoSeeds, la divergence attribuée aux hypothèses doit disparaître ou perdre l’effet causal défini par le protocole.
 
 Le sélecteur de C1 ne doit pas lire directement les événements ou les observations historiques afin de reconstituer les orientations A/B. Sans hypothèse consolidée, il applique la même politique neutre aux deux états comparables.
 
@@ -279,7 +279,7 @@ structure réellement causale
 
 # 15. Contradiction et révision
 
-Après le test principal, une phase séparée fournit à l’un des Kinseeds plusieurs nouvelles observations indépendantes contraires à son hypothèse actuelle.
+Après le test principal, une phase séparée fournit à l’un des LenoSeeds plusieurs nouvelles observations indépendantes contraires à son hypothèse actuelle.
 
 Les nouvelles observations doivent provenir de nouveaux contextes et de décisions réellement enregistrées. Elles ne remplacent pas les événements anciens et ne suppriment pas les supports historiques.
 

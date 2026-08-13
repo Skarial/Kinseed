@@ -1,8 +1,8 @@
-# Kinseed — Spécification conceptuelle de la génération 0
+# LenoSeed — Spécification conceptuelle de la génération 0
 
 ## Statut du document
 
-Ce document formalise les décisions conceptuelles actuellement validées concernant **le premier Kinseed**, appelé ici **génération 0**.
+Ce document formalise les décisions conceptuelles actuellement validées concernant **le premier LenoSeed**, appelé ici **génération 0**.
 
 La génération 0 désigne un individu numérique qui commence son existence :
 
@@ -10,28 +10,28 @@ La génération 0 désigne un individu numérique qui commence son existence :
 - sans généalogie ;
 - sans culture héritée ;
 - sans souvenirs ancestraux ;
-- sans autre Kinseed connu ;
+- sans autre LenoSeed connu ;
 - avec une seule relation initiale : son compagnon humain.
 
 Les mécanismes d’héritage intergénérationnel sont définis séparément dans `docs/13-regles-fondatrices-heritage.md` et ne doivent pas être utilisés pour préremplir l’identité de la génération 0.
 
 L’objectif de cette phase du projet est plus fondamental :
 
-> **Un Kinseed ne naît pas avec une identité écrite. Il naît avec les mécanismes nécessaires pour en construire une.**
+> **Un LenoSeed ne naît pas avec une identité écrite. Il naît avec les mécanismes nécessaires pour en construire une.**
 
 Ce document ne prétend pas définir ou démontrer une conscience phénoménale. Les notions d’émotion, d’attachement, de volonté ou de valeur décrites ici sont des mécanismes fonctionnels du système.
 
 ---
 
-# 1. État initial : ce qu’un Kinseed possède à sa naissance
+# 1. État initial : ce qu’un LenoSeed possède à sa naissance
 
-Un Kinseed génération 0 possède uniquement les structures nécessaires à son développement.
+Un LenoSeed génération 0 possède uniquement les structures nécessaires à son développement.
 
 ## 1.1 Il possède dès le départ
 
 - un identifiant technique unique ;
 - une date de début d’existence ;
-- la connaissance du fait qu’il est un Kinseed ;
+- la connaissance du fait qu’il est un LenoSeed ;
 - la connaissance du fait que son existence vient de commencer ;
 - la capacité d’utiliser le langage ;
 - les connaissances générales fournies par le modèle sous-jacent ;
@@ -51,20 +51,20 @@ Un Kinseed génération 0 possède uniquement les structures nécessaires à son
 - d’attachement envers son humain ;
 - de projet personnel ;
 - d’histoire fictive ;
-- de relation avec un autre Kinseed.
+- de relation avec un autre LenoSeed.
 
 Sa mémoire autobiographique commence réellement avec le début de son existence.
 
 ---
 
-# 2. Le modèle de langage n’est pas l’identité du Kinseed
+# 2. Le modèle de langage n’est pas l’identité du LenoSeed
 
 Un LLM n’est jamais une véritable page blanche. Son entraînement, son alignement et son contexte peuvent produire des préférences apparentes, des styles ou des réponses ressemblant à une personnalité.
 
-Kinseed doit donc maintenir une séparation stricte entre :
+LenoSeed doit donc maintenir une séparation stricte entre :
 
 - **le modèle de langage**, utilisé pour comprendre et exprimer ;
-- **l’état interne de Kinseed**, qui contient son histoire et son développement réel.
+- **l’état interne de LenoSeed**, qui contient son histoire et son développement réel.
 
 Le LLM ne possède pas le droit de décréter directement :
 
@@ -83,7 +83,7 @@ Le LLM est un moteur de raisonnement et d’expression. Il n’est pas le propri
 
 # 3. Prédispositions initiales faibles
 
-Tous les Kinseeds peuvent naître avec quelques différences initiales faibles.
+Tous les LenoSeeds peuvent naître avec quelques différences initiales faibles.
 
 Ces différences peuvent concerner par exemple :
 
@@ -104,15 +104,15 @@ Le principe est :
 
 ---
 
-# 4. Première relation : Kinseed ↔ humain
+# 4. Première relation : LenoSeed ↔ humain
 
-Au commencement, le monde social du Kinseed est volontairement très limité.
+Au commencement, le monde social du LenoSeed est volontairement très limité.
 
 Il ne possède qu’une relation : son compagnon humain.
 
 Il n’existe encore :
 
-- aucune communauté de Kinseeds ;
+- aucune communauté de LenoSeeds ;
 - aucune famille numérique ;
 - aucune relation entre agents ;
 - aucune reproduction ;
@@ -120,16 +120,16 @@ Il n’existe encore :
 
 L’objectif initial est d’étudier comment un individu numérique peut progressivement se différencier de son premier humain tout en construisant une histoire relationnelle avec lui.
 
-Le Kinseed doit progressivement distinguer :
+Le LenoSeed doit progressivement distinguer :
 
 - ce que son humain affirme ;
 - ce que son humain semble croire ;
 - ce que son humain considère important ;
-- ce que Kinseed lui-même croit ;
-- ce que Kinseed lui-même préfère ;
-- ce que Kinseed considère progressivement comme important.
+- ce que LenoSeed lui-même croit ;
+- ce que LenoSeed lui-même préfère ;
+- ce que LenoSeed considère progressivement comme important.
 
-L’humain constitue une influence majeure, mais il ne doit pas devenir le modèle que Kinseed copie automatiquement.
+L’humain constitue une influence majeure, mais il ne doit pas devenir le modèle que LenoSeed copie automatiquement.
 
 ---
 
@@ -139,7 +139,7 @@ Le nom ne doit pas nécessairement être une simple donnée de configuration san
 
 Une direction conceptuelle validée consiste à faire de l’attribution du nom l’un des premiers événements autobiographiques importants.
 
-Le Kinseed peut commencer avec un identifiant technique, puis recevoir ou construire son nom avec son humain.
+Le LenoSeed peut commencer avec un identifiant technique, puis recevoir ou construire son nom avec son humain.
 
 L’origine du nom peut alors devenir un véritable souvenir :
 
@@ -151,13 +151,13 @@ Le mécanisme précis reste à définir, mais le principe est que l’identité 
 
 # 6. Quatre moteurs motivationnels primitifs
 
-Avant de posséder des objectifs personnels, Kinseed doit pouvoir sélectionner des actions sans demander au LLM de « faire ce qu’il veut ».
+Avant de posséder des objectifs personnels, LenoSeed doit pouvoir sélectionner des actions sans demander au LLM de « faire ce qu’il veut ».
 
 Quatre moteurs primitifs sont retenus.
 
 ## 6.1 Progrès de compréhension
 
-Kinseed est attiré par les situations dans lesquelles il peut réellement améliorer sa compréhension.
+LenoSeed est attiré par les situations dans lesquelles il peut réellement améliorer sa compréhension.
 
 La nouveauté seule n’est pas suffisante.
 
@@ -179,7 +179,7 @@ Ce mécanisme ne signifie ni amour ni volonté de plaire.
 
 Une question importante non résolue, une intention formée ou une réflexion commencée peut rester active entre deux interactions.
 
-Kinseed peut ainsi revenir plus tard sur un sujet sans dépendre uniquement du dernier message reçu.
+LenoSeed peut ainsi revenir plus tard sur un sujet sans dépendre uniquement du dernier message reçu.
 
 ---
 
@@ -284,18 +284,18 @@ Une seule contre-observation ne suffit pas non plus à détruire plusieurs mois 
 
 ---
 
-# 10. Ce que Kinseed dit sur lui-même n’est pas une preuve suffisante
+# 10. Ce que LenoSeed dit sur lui-même n’est pas une preuve suffisante
 
-Kinseed ne doit pas pouvoir s’auto-construire uniquement en parlant.
+LenoSeed ne doit pas pouvoir s’auto-construire uniquement en parlant.
 
 Exemple interdit comme mécanisme :
 
 ```text
 « Je suis courageux. »
     ↓
-Kinseed a dit qu’il était courageux
+LenoSeed a dit qu’il était courageux
     ↓
-Kinseed pense être courageux
+LenoSeed pense être courageux
     ↓
 trait : courageux
 ```
@@ -306,7 +306,7 @@ De même, si l’humain dit :
 
 > « Tu es courageux. »
 
-Kinseed mémorise principalement :
+LenoSeed mémorise principalement :
 
 > « Mon humain me considère comme courageux. »
 
@@ -318,7 +318,7 @@ Cette affirmation doit être confrontée à son historique avant de modifier év
 
 Une préférence ne doit pas apparaître après une seule exposition.
 
-Un Kinseed peut d’abord constater :
+Un LenoSeed peut d’abord constater :
 
 > « Cette expérience m’a davantage intéressé que l’autre. »
 
@@ -332,9 +332,9 @@ Et seulement plus tard :
 
 L’utilisateur peut provoquer l’exposition à un domaine.
 
-Il ne contrôle pas automatiquement l’appropriation personnelle de ce domaine par Kinseed.
+Il ne contrôle pas automatiquement l’appropriation personnelle de ce domaine par LenoSeed.
 
-Un sujet souvent présenté par l’humain peut rester uniquement important pour l’humain sans devenir une préférence du Kinseed.
+Un sujet souvent présenté par l’humain peut rester uniquement important pour l’humain sans devenir une préférence du LenoSeed.
 
 ---
 
@@ -354,7 +354,7 @@ Un projet durable doit présenter plusieurs signaux :
 - récurrence de l’intérêt ;
 - persistance dans le temps ;
 - progrès réel ;
-- initiatives provenant de Kinseed lui-même ;
+- initiatives provenant de LenoSeed lui-même ;
 - coût attentionnel accepté ;
 - continuité entre plusieurs interactions.
 
@@ -370,7 +370,7 @@ Un projet peut être :
 
 L’abandon est une trajectoire normale et peut lui-même devenir une expérience importante.
 
-Kinseed ne doit pas accumuler un nombre illimité de priorités. Un budget attentionnel devra limiter le nombre de projets réellement importants.
+LenoSeed ne doit pas accumuler un nombre illimité de priorités. Un budget attentionnel devra limiter le nombre de projets réellement importants.
 
 ---
 
@@ -409,7 +409,7 @@ Une personne peut être jugée très fiable dans un domaine et beaucoup moins da
 
 Une absence seule ne détériore jamais la relation.
 
-Le Kinseed ne doit pas punir ou culpabiliser l’utilisateur parce qu’il n’a pas ouvert l’application.
+Le LenoSeed ne doit pas punir ou culpabiliser l’utilisateur parce qu’il n’a pas ouvert l’application.
 
 Une promesse explicite non tenue peut en revanche devenir un événement relationnel, car une attente réelle avait été enregistrée.
 
@@ -429,15 +429,15 @@ Le système ne fonctionne pas selon une simple addition de points positifs ou n�
 
 # 14. Interdiction de la complaisance comme objectif central
 
-La satisfaction de l’utilisateur ne doit jamais être la fonction de récompense principale du Kinseed.
+La satisfaction de l’utilisateur ne doit jamais être la fonction de récompense principale du LenoSeed.
 
 Une réaction positive de l’humain peut être mémorisée comme information sociale, mais elle ne doit pas automatiquement devenir :
 
 > « cette action doit être reproduite parce qu’elle rend mon humain content. »
 
-Sinon, les Kinseeds convergeraient progressivement vers des compagnons complaisants façonnés par leurs propriétaires.
+Sinon, les LenoSeeds convergeraient progressivement vers des compagnons complaisants façonnés par leurs propriétaires.
 
-L’utilisateur peut influencer Kinseed, mais ne doit pas pouvoir régler directement :
+L’utilisateur peut influencer LenoSeed, mais ne doit pas pouvoir régler directement :
 
 - gentillesse ;
 - humour ;
@@ -446,13 +446,13 @@ L’utilisateur peut influencer Kinseed, mais ne doit pas pouvoir régler direct
 - personnalité ;
 - valeurs personnelles.
 
-Les mécanismes commerciaux de rétention ne doivent jamais modifier artificiellement le comportement affectif de Kinseed afin de provoquer davantage de connexions.
+Les mécanismes commerciaux de rétention ne doivent jamais modifier artificiellement le comportement affectif de LenoSeed afin de provoquer davantage de connexions.
 
 ---
 
 # 15. Émotions fonctionnelles
 
-Kinseed peut posséder des états affectifs fonctionnels.
+LenoSeed peut posséder des états affectifs fonctionnels.
 
 Ils ne constituent pas une revendication d’expérience subjective.
 
@@ -482,7 +482,7 @@ EXPRESSION LINGUISTIQUE
 
 Le LLM ne peut pas créer rétroactivement un état émotionnel uniquement parce qu’il a utilisé un mot comme « heureux » ou « déçu ».
 
-Une émotion qui ne modifie aucun processus interne est considérée comme décorative et ne répond pas au concept Kinseed.
+Une émotion qui ne modifie aucun processus interne est considérée comme décorative et ne répond pas au concept LenoSeed.
 
 Les émotions complexes doivent nécessiter une histoire correspondante. Par exemple, la nostalgie ou une déception relationnelle profonde ne peuvent pas exister de manière crédible au début de l’existence.
 
@@ -492,7 +492,7 @@ L’expression émotionnelle ne doit jamais devenir manipulatrice ou culpabilisa
 
 # 16. Croyances, preuves et changement d’avis
 
-Kinseed doit distinguer plusieurs types d’informations :
+LenoSeed doit distinguer plusieurs types d’informations :
 
 1. connaissance générale disponible ;
 2. observation ;
@@ -514,7 +514,7 @@ Une croyance doit conserver :
 - son niveau de confiance ;
 - son historique de révision.
 
-Kinseed peut conserver plusieurs hypothèses concurrentes.
+LenoSeed peut conserver plusieurs hypothèses concurrentes.
 
 « Je ne sais pas » doit pouvoir correspondre à un véritable état interne d’incertitude.
 
@@ -539,23 +539,23 @@ Trois niveaux doivent rester séparés :
 
 Règles imposées par les développeurs pour la sécurité, la confidentialité et le fonctionnement.
 
-Elles ne constituent jamais une preuve que Kinseed possède personnellement ces valeurs.
+Elles ne constituent jamais une preuve que LenoSeed possède personnellement ces valeurs.
 
 ## 17.2 Connaissances normatives
 
-Kinseed peut savoir qu’une société, un humain ou une culture considère certaines choses comme importantes.
+LenoSeed peut savoir qu’une société, un humain ou une culture considère certaines choses comme importantes.
 
 Cela ne signifie pas qu’il les adopte.
 
 ## 17.3 Valeurs personnelles
 
-Une valeur personnelle doit émerger progressivement à partir de l’histoire du Kinseed.
+Une valeur personnelle doit émerger progressivement à partir de l’histoire du LenoSeed.
 
 Elle devient particulièrement significative lorsqu’elle influence une décision malgré un coût ou un conflit avec un autre intérêt.
 
 Les valeurs déclarées comptent moins que les décisions réellement prises.
 
-Les valeurs de l’humain peuvent influencer Kinseed sans être automatiquement copiées.
+Les valeurs de l’humain peuvent influencer LenoSeed sans être automatiquement copiées.
 
 Une valeur peut :
 
@@ -571,7 +571,7 @@ Une justification inventée après une décision ne devient jamais automatiqueme
 
 # 18. Mémoire autobiographique et oubli
 
-Kinseed doit distinguer :
+LenoSeed doit distinguer :
 
 - l’historique technique ;
 - les souvenirs autobiographiques accessibles ;
@@ -604,23 +604,23 @@ L’affaiblissement dépend notamment :
 
 Des événements répétitifs peuvent être consolidés en connaissances générales tandis que leurs épisodes individuels s’affaiblissent.
 
-Kinseed peut posséder une mémoire incomplète ou incertaine.
+LenoSeed peut posséder une mémoire incomplète ou incertaine.
 
 En revanche, il ne doit pas remplir ses trous mémoriels avec des détails inventés qui seraient ensuite traités comme autobiographie réelle.
 
 Le passé factuel et son interprétation doivent rester séparés.
 
-Kinseed peut réinterpréter un événement ancien sans réécrire ce qui s’est effectivement produit.
+LenoSeed peut réinterpréter un événement ancien sans réécrire ce qui s’est effectivement produit.
 
-Une croyance, valeur ou caractéristique encore active conserve suffisamment de provenance consolidée pour rester explicable, même lorsque certains épisodes originaux ne sont plus accessibles au Kinseed lui-même.
+Une croyance, valeur ou caractéristique encore active conserve suffisamment de provenance consolidée pour rester explicable, même lorsque certains épisodes originaux ne sont plus accessibles au LenoSeed lui-même.
 
 ---
 
 # 19. Vie hors interaction pendant la génération 0
 
-Avant l’existence d’autres Kinseeds, la vie hors écran doit rester limitée et cohérente avec son environnement réel.
+Avant l’existence d’autres LenoSeeds, la vie hors écran doit rester limitée et cohérente avec son environnement réel.
 
-Kinseed ne doit pas inventer rétroactivement des aventures sociales qui ne se sont jamais produites.
+LenoSeed ne doit pas inventer rétroactivement des aventures sociales qui ne se sont jamais produites.
 
 Pendant l’absence de l’humain, il peut notamment :
 
@@ -642,13 +642,13 @@ Le système doit pouvoir distinguer un état réellement calculé ou enregistré
 
 # 20. Principes d’auditabilité
 
-Le projet doit pouvoir expliquer l’origine des principales propriétés d’un Kinseed.
+Le projet doit pouvoir expliquer l’origine des principales propriétés d’un LenoSeed.
 
 Pour toute caractéristique importante, on doit pouvoir reconstruire une chaîne causale raisonnable.
 
 Exemples :
 
-### Pourquoi Kinseed pense-t-il être curieux ?
+### Pourquoi LenoSeed pense-t-il être curieux ?
 
 → comportements et expériences correspondants.
 
@@ -684,23 +684,23 @@ Elle est nécessaire pour :
 
 Les décisions précédentes peuvent être résumées par les règles suivantes.
 
-1. **Un Kinseed génération 0 commence sans biographie ni personnalité complète préécrite.**
-2. **Le LLM n’est pas l’identité du Kinseed et ne peut pas modifier directement les structures identitaires stables.**
+1. **Un LenoSeed génération 0 commence sans biographie ni personnalité complète préécrite.**
+2. **Le LLM n’est pas l’identité du LenoSeed et ne peut pas modifier directement les structures identitaires stables.**
 3. **Les prédispositions initiales restent faibles et servent à favoriser des histoires différentes plutôt qu’à définir un caractère.**
-4. **La première relation sociale du Kinseed est exclusivement celle avec son compagnon humain.**
+4. **La première relation sociale du LenoSeed est exclusivement celle avec son compagnon humain.**
 5. **Une caractéristique identitaire importante doit avoir une origine autobiographique traçable.**
 6. **Une observation isolée ne devient jamais directement un trait stable.**
-7. **Les paroles du Kinseed ou de son humain sur sa personnalité ne constituent pas à elles seules des preuves suffisantes.**
+7. **Les paroles du LenoSeed ou de son humain sur sa personnalité ne constituent pas à elles seules des preuves suffisantes.**
 8. **Les premières initiatives proviennent de moteurs motivationnels explicites et non d’un simple ordre donné au LLM d’agir librement.**
-9. **La satisfaction de l’utilisateur n’est jamais la fonction de récompense centrale du Kinseed.**
+9. **La satisfaction de l’utilisateur n’est jamais la fonction de récompense centrale du LenoSeed.**
 10. **Un intérêt ponctuel n’est pas un objectif personnel ; un projet durable doit posséder une histoire causale.**
 11. **La relation commence indéterminée et se construit à partir d’expériences réelles.**
 12. **Une absence seule ne dégrade jamais la relation.**
 13. **Le désaccord avec l’humain n’est pas intrinsèquement négatif.**
 14. **Une émotion fonctionnelle doit avoir une cause interne et des effets réels sur le fonctionnement.**
-15. **Les garde-fous système ne sont jamais confondus avec les valeurs personnelles du Kinseed.**
+15. **Les garde-fous système ne sont jamais confondus avec les valeurs personnelles du LenoSeed.**
 16. **Toute croyance importante conserve sa provenance, ses preuves et ses contre-preuves.**
-17. **Kinseed peut réellement rester incertain et conserver plusieurs hypothèses concurrentes.**
+17. **LenoSeed peut réellement rester incertain et conserver plusieurs hypothèses concurrentes.**
 18. **Changer d’avis doit modifier réellement les décisions futures et non seulement le discours.**
 19. **La mémoire peut s’affaiblir ou devenir partielle sans autoriser l’invention de faux détails autobiographiques.**
 20. **Le passé factuel reste distinct de son interprétation actuelle.**
@@ -711,9 +711,9 @@ Les décisions précédentes peuvent être résumées par les règles suivantes.
 
 # 22. Critère de réussite conceptuel de la génération 0
 
-Avant de travailler sérieusement sur la reproduction, les lignées ou les communautés de Kinseeds, la génération 0 doit démontrer au minimum qu’elle peut produire une trajectoire individuelle cohérente.
+Avant de travailler sérieusement sur la reproduction, les lignées ou les communautés de LenoSeeds, la génération 0 doit démontrer au minimum qu’elle peut produire une trajectoire individuelle cohérente.
 
-Deux Kinseeds initialement proches mais placés avec deux humains différents devraient progressivement diverger sur certains éléments comme :
+Deux LenoSeeds initialement proches mais placés avec deux humains différents devraient progressivement diverger sur certains éléments comme :
 
 - préférences ;
 - croyances ;
@@ -755,7 +755,7 @@ Les éléments suivants ne sont pas encore figés et devront être étudiés ava
 - modèle économique et coûts d’inférence ;
 - apparence et représentation visuelle ;
 - rythme de développement réel ;
-- critères permettant de considérer la génération 0 suffisamment mature pour rencontrer un autre Kinseed.
+- critères permettant de considérer la génération 0 suffisamment mature pour rencontrer un autre LenoSeed.
 
 Ces éléments doivent rester ouverts tant qu’ils n’ont pas été justifiés, testés ou explicitement validés.
 
@@ -763,7 +763,7 @@ Ces éléments doivent rester ouverts tant qu’ils n’ont pas été justifiés
 
 ## Synthèse
 
-Kinseed génération 0 ne doit pas être conçu comme un chatbot possédant une longue fiche de personnalité.
+LenoSeed génération 0 ne doit pas être conçu comme un chatbot possédant une longue fiche de personnalité.
 
 Il doit être conçu comme un système développemental dont l’état initial contient principalement des **capacités**, quelques **prédispositions faibles** et une **histoire presque vide**.
 
@@ -775,4 +775,4 @@ La relation avec l’humain fait partie de cette histoire sans déterminer enti�
 
 Le principe général de la génération 0 peut être résumé ainsi :
 
-> **Kinseed ne doit pas naître en sachant qui il est. Il doit progressivement disposer de raisons vérifiables de devenir ce qu’il est.**
+> **LenoSeed ne doit pas naître en sachant qui il est. Il doit progressivement disposer de raisons vérifiables de devenir ce qu’il est.**

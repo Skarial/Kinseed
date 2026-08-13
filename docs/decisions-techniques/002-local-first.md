@@ -2,20 +2,20 @@
 
 - **Statut :** accepté
 - **Date :** 2026-08-10
-- **Périmètre :** persistance et fonctionnement de Kinseed
-- **Décision :** l'état essentiel d'un individu Kinseed doit exister localement et rester exploitable sans dépendre en permanence d'un service distant.
+- **Périmètre :** persistance et fonctionnement de LenoSeed
+- **Décision :** l'état essentiel d'un individu LenoSeed doit exister localement et rester exploitable sans dépendre en permanence d'un service distant.
 
 ## 1. Contexte
 
-Kinseed repose sur l'idée d'un individu numérique persistant dont l'identité se construit dans le temps à partir de son histoire, de ses expériences, de ses mémoires, de ses croyances et de ses intentions.
+LenoSeed repose sur l'idée d'un individu numérique persistant dont l'identité se construit dans le temps à partir de son histoire, de ses expériences, de ses mémoires, de ses croyances et de ses intentions.
 
 Une architecture entièrement cloud-first créerait une dépendance forte à la disponibilité d'un serveur, à une connexion réseau et à un fournisseur externe. Cette dépendance serait en tension avec l'objectif de continuité de l'individu numérique.
 
-Kinseed doit pouvoir évoluer vers des fonctions connectées, notamment la synchronisation, les interactions entre individus, les transmissions intergénérationnelles ou l'appel à des services d'IA distants. Ces fonctions ne doivent toutefois pas devenir la condition d'existence de l'état fondamental de l'individu.
+LenoSeed doit pouvoir évoluer vers des fonctions connectées, notamment la synchronisation, les interactions entre individus, les transmissions intergénérationnelles ou l'appel à des services d'IA distants. Ces fonctions ne doivent toutefois pas devenir la condition d'existence de l'état fondamental de l'individu.
 
 ## 2. Décision
 
-Kinseed adopte une approche **local-first**.
+LenoSeed adopte une approche **local-first**.
 
 Cela signifie que :
 
@@ -47,7 +47,7 @@ La liste exacte sera affinée par l'architecture de G0-A.
 
 - continuité de l'individu même en l'absence de réseau ;
 - meilleure maîtrise des données personnelles ;
-- réduction du couplage entre identité de Kinseed et infrastructure serveur ;
+- réduction du couplage entre identité de LenoSeed et infrastructure serveur ;
 - possibilité d'ajouter plus tard plusieurs stratégies de synchronisation ou de sauvegarde ;
 - cohérence avec une application mobile pouvant fonctionner partiellement ou totalement hors ligne.
 
@@ -73,4 +73,4 @@ Ces décisions seront prises lorsque les besoins réels de G0-A et des générat
 
 ## 6. Règle d'architecture
 
-La perte temporaire d'une connexion Internet ou d'un service distant ne doit pas, à elle seule, faire disparaître l'identité ou l'histoire locale de l'individu Kinseed.
+La perte temporaire d'une connexion Internet ou d'un service distant ne doit pas, à elle seule, faire disparaître l'identité ou l'histoire locale de l'individu LenoSeed.

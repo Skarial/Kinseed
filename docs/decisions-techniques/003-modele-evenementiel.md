@@ -2,12 +2,12 @@
 
 - **Statut :** accepté
 - **Date :** 2026-08-10
-- **Périmètre :** cœur métier de Kinseed
+- **Périmètre :** cœur métier de LenoSeed
 - **Décision :** les événements constituent la trace historique fondamentale ; les mémoires, croyances, hypothèses et intentions sont des états interprétés ou dérivés qui doivent rester reliés à leur provenance.
 
 ## 1. Contexte
 
-Kinseed ne doit pas seulement conserver un état courant. L'identité d'un individu numérique doit se construire par son histoire.
+LenoSeed ne doit pas seulement conserver un état courant. L'identité d'un individu numérique doit se construire par son histoire.
 
 Stocker uniquement des valeurs finales, par exemple une croyance ou une préférence actuelle, ferait perdre la possibilité de comprendre comment cet état est apparu, ce qui l'a renforcé, ce qui l'a contredit et comment il a évolué.
 
@@ -15,7 +15,7 @@ Cette traçabilité est également importante pour les futures transmissions int
 
 ## 2. Décision
 
-Kinseed adopte un modèle où les **événements** représentent la trace historique fondamentale.
+LenoSeed adopte un modèle où les **événements** représentent la trace historique fondamentale.
 
 Un événement décrit quelque chose qui s'est produit pour l'individu ou dans son environnement et qui peut ensuite être interprété par le système.
 
@@ -45,7 +45,7 @@ Ils doivent pouvoir conserver un lien explicite vers les événements, sources o
 
 ## 3. Séparation histoire / état
 
-Kinseed distingue deux catégories principales.
+LenoSeed distingue deux catégories principales.
 
 ### Histoire
 
@@ -114,4 +114,4 @@ Ces éléments relèvent de la conception détaillée de G0-A.
 
 ## 7. Règle d'architecture
 
-Kinseed ne doit pas seulement savoir **ce qu'un individu est actuellement** ; il doit pouvoir conserver suffisamment de provenance pour comprendre **comment il en est arrivé là**.
+LenoSeed ne doit pas seulement savoir **ce qu'un individu est actuellement** ; il doit pouvoir conserver suffisamment de provenance pour comprendre **comment il en est arrivé là**.

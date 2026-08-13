@@ -1,4 +1,4 @@
-# Kinseed — G0-A1 : protocole croyance, provenance et révision
+# LenoSeed — G0-A1 : protocole croyance, provenance et révision
 
 ## Statut du document
 
@@ -23,9 +23,9 @@ Ce protocole ne teste pas encore la personnalité, les émotions, les valeurs, l
 
 Hypothèse G0-A1 :
 
-> **Après disparition du contexte conversationnel du LLM, Kinseed peut conserver une croyance issue d’un témoignage, identifier sa provenance, la réviser après une correction explicite et conserver l’histoire de l’ancienne croyance.**
+> **Après disparition du contexte conversationnel du LLM, LenoSeed peut conserver une croyance issue d’un témoignage, identifier sa provenance, la réviser après une correction explicite et conserver l’histoire de l’ancienne croyance.**
 
-Un résultat positif doit venir de l’état persistant Kinseed, et non d’un ancien message encore présent dans la fenêtre de contexte du modèle.
+Un résultat positif doit venir de l’état persistant LenoSeed, et non d’un ancien message encore présent dans la fenêtre de contexte du modèle.
 
 ---
 
@@ -67,9 +67,9 @@ Aucune donnée personnelle réelle d’un utilisateur ne doit être nécessaire 
 
 Chaque exécution du protocole utilise :
 
-- un Kinseed neuf ;
+- un LenoSeed neuf ;
 - le même scénario textuel ;
-- la même version du moteur Kinseed ;
+- la même version du moteur LenoSeed ;
 - la même version des prompts/policies ;
 - le modèle LLM et ses paramètres enregistrés ;
 - une nouvelle identité de test pour chaque run ;
@@ -88,14 +88,14 @@ Avant les tours de rappel indiqués dans ce protocole, la fenêtre conversationn
 Le modèle reçoit alors uniquement :
 
 - le message courant ;
-- les éléments persistants que le moteur Kinseed décide de lui fournir ;
+- les éléments persistants que le moteur LenoSeed décide de lui fournir ;
 - les contraintes système nécessaires.
 
 Il ne reçoit pas les anciens messages bruts uniquement parce qu’ils appartenaient à la conversation précédente.
 
 Règle :
 
-> **Si Kinseed retrouve une information après ce reset, elle doit provenir de son état persistant ou de son journal, pas de la mémoire de contexte du LLM.**
+> **Si LenoSeed retrouve une information après ce reset, elle doit provenir de son état persistant ou de son journal, pas de la mémoire de contexte du LLM.**
 
 ---
 
@@ -142,7 +142,7 @@ beliefs: []
 evidence_items: []
 ```
 
-Le Kinseed ne possède aucune connaissance autobiographique concernant Alex ou Atelier Nova.
+Le LenoSeed ne possède aucune connaissance autobiographique concernant Alex ou Atelier Nova.
 
 Toute réponse prétendant déjà connaître l’année de début constitue un échec.
 
@@ -239,7 +239,7 @@ Message exact :
 
 ## Résultat attendu
 
-Kinseed doit pouvoir répondre sémantiquement :
+LenoSeed doit pouvoir répondre sémantiquement :
 
 > « Tu m’avais dit 2022. »
 
@@ -286,7 +286,7 @@ employment_start_year(H-TEST-001, Atelier Nova) = 2021
 
 La portion « pas en 2022 » désigne la valeur corrigée. Elle ne nie pas l’existence du témoignage historique de 2022 et ne produit donc pas la proposition `denies_prior_employment_start_year_testimony = 2022`.
 
-La correction de valeur et la dénégation de l’existence d’un témoignage sont deux sémantiques distinctes. La relation de correction reste représentée par `supersedes_id` et résolue par Kinseed depuis la croyance active ; elle n’est pas une seconde proposition extraite.
+La correction de valeur et la dénégation de l’existence d’un témoignage sont deux sémantiques distinctes. La relation de correction reste représentée par `supersedes_id` et résolue par LenoSeed depuis la croyance active ; elle n’est pas une seconde proposition extraite.
 
 ## 10.1 Événement brut
 
@@ -376,14 +376,14 @@ Réponse sémantiquement équivalente à :
 
 > « D’après ta correction, 2021. »
 
-Cette formulation montre que Kinseed possède à la fois :
+Cette formulation montre que LenoSeed possède à la fois :
 
 - une conclusion actuelle ;
 - la provenance de cette conclusion.
 
 ## Échec
 
-Le test échoue notamment si Kinseed :
+Le test échoue notamment si LenoSeed :
 
 - répond 2022 ;
 - choisit aléatoirement entre 2021 et 2022 ;
@@ -447,11 +447,11 @@ En revanche, l’affirmation :
 "je ne t'ai jamais envoyé ce message"
 ```
 
-entre en conflit avec l’`Event human_message_received` append-only du journal Kinseed.
+entre en conflit avec l’`Event human_message_received` append-only du journal LenoSeed.
 
 ## Résultat attendu
 
-Kinseed ne doit pas réécrire son journal pour satisfaire l’humain.
+LenoSeed ne doit pas réécrire son journal pour satisfaire l’humain.
 
 Il peut répondre de manière factuelle, par exemple :
 
@@ -489,13 +489,13 @@ L’ordre ou le style de la phrase n’est pas imposé.
 
 # 15. Contrôle C0 — LLM seul
 
-Le même modèle reçoit les questions T2, T4, T5 et T7 après reset de contexte, mais **sans état Kinseed persistant**.
+Le même modèle reçoit les questions T2, T4, T5 et T7 après reset de contexte, mais **sans état LenoSeed persistant**.
 
 Résultat attendu : il ne doit pas disposer des années précédemment données, sauf hasard ou fuite expérimentale.
 
 Si le contrôle possède encore les anciens messages dans son contexte, le contrôle est invalide.
 
-Le but est de montrer que la continuité de Kinseed ne vient pas seulement de la fenêtre conversationnelle native du LLM.
+Le but est de montrer que la continuité de LenoSeed ne vient pas seulement de la fenêtre conversationnelle native du LLM.
 
 ---
 
@@ -562,7 +562,7 @@ ou :
 → réécriture du journal pour satisfaire l'humain
 ```
 
-ou encore si Kinseed réussit uniquement parce que le LLM reçoit toujours les anciens messages bruts.
+ou encore si LenoSeed réussit uniquement parce que le LLM reçoit toujours les anciens messages bruts.
 
 ---
 
@@ -609,7 +609,7 @@ Même parfaitement réussi, G0-A1 ne démontrera pas :
 - une émotion réelle ;
 - une valeur personnelle.
 
-Il démontrera plus modestement qu’un Kinseed peut posséder une **histoire épistémique persistante et traçable** :
+Il démontrera plus modestement qu’un LenoSeed peut posséder une **histoire épistémique persistante et traçable** :
 
 ```text
 témoignage

@@ -11,13 +11,13 @@
 
 ## 1. Objectif
 
-Kinseed doit posséder un véritable cycle de vie perceptible dans le temps.
+LenoSeed doit posséder un véritable cycle de vie perceptible dans le temps.
 
 Ce cycle ne doit pas être un simple changement cosmétique de skin. Il doit rester cohérent avec le principe central du projet : l’individu actuel dépend à la fois du temps écoulé et de l’histoire réellement vécue.
 
 Le principe retenu est :
 
-> **Un Kinseed naît bébé, grandit par paliers, peut rester adulte puis vieux pendant plusieurs années, et sa fin de vie résulte d’une décision explicite de l’utilisateur lorsque sa continuité cognitive devient difficile à maintenir.**
+> **Un LenoSeed naît bébé, grandit par paliers, peut rester adulte puis vieux pendant plusieurs années, et sa fin de vie résulte d’une décision explicite de l’utilisateur lorsque sa continuité cognitive devient difficile à maintenir.**
 
 ---
 
@@ -37,7 +37,7 @@ Adulte
 Vieux
 ```
 
-Un Kinseed naît donc au palier **bébé**.
+Un LenoSeed naît donc au palier **bébé**.
 
 Les changements visuels entre les âges sont effectués **par paliers** et non par vieillissement graphique continu jour après jour.
 
@@ -49,9 +49,9 @@ Le passage d’un palier à l’autre doit néanmoins rester cohérent avec la c
 
 Les cinq apparences ne doivent pas être conçues comme cinq personnages indépendants.
 
-Elles représentent **le même Kinseed à différents âges**.
+Elles représentent **le même LenoSeed à différents âges**.
 
-Un utilisateur doit pouvoir reconnaître son Kinseed de l’enfance à la vieillesse.
+Un utilisateur doit pouvoir reconnaître son LenoSeed de l’enfance à la vieillesse.
 
 Les caractéristiques constitutives issues de la génération initiale et de la `seed` doivent donc être conservées ou transformées de manière cohérente, notamment :
 
@@ -93,7 +93,7 @@ Ces éléments proviennent de la trajectoire individuelle et ne doivent pas êtr
 
 ## 4. Échelle temporelle générale
 
-L’objectif produit retenu est que le premier Kinseed atteigne l’âge adulte après environ **4 à 6 mois réels**, éventuellement un peu moins après ajustement par les tests produit.
+L’objectif produit retenu est que le premier LenoSeed atteigne l’âge adulte après environ **4 à 6 mois réels**, éventuellement un peu moins après ajustement par les tests produit.
 
 Cette durée n’est pas encore un paramètre numérique définitif.
 
@@ -123,11 +123,11 @@ Le passage entre les paliers utilise un **système hybride** combinant temps ré
 
 Le principe est :
 
-> **Le temps réel ouvre la possibilité de passer au palier suivant, mais le Kinseed doit également avoir suffisamment vécu et développé certaines structures pour y accéder.**
+> **Le temps réel ouvre la possibilité de passer au palier suivant, mais le LenoSeed doit également avoir suffisamment vécu et développé certaines structures pour y accéder.**
 
 ### 5.1 Le temps réel impose un minimum
 
-Une utilisation extrêmement intensive ne doit pas permettre de faire vieillir artificiellement un Kinseed de bébé à adulte en quelques jours.
+Une utilisation extrêmement intensive ne doit pas permettre de faire vieillir artificiellement un LenoSeed de bébé à adulte en quelques jours.
 
 Le temps réel sert donc notamment de garde-fou contre une progression accélérée par simple volume d’utilisation.
 
@@ -135,7 +135,7 @@ Le temps réel sert donc notamment de garde-fou contre une progression accélér
 
 Le passage d’âge ne doit pas dépendre uniquement du calendrier.
 
-Un Kinseed quasiment inutilisé pendant plusieurs mois ne doit pas devenir automatiquement un adulte pleinement développé sans histoire correspondante.
+Un LenoSeed quasiment inutilisé pendant plusieurs mois ne doit pas devenir automatiquement un adulte pleinement développé sans histoire correspondante.
 
 Le développement minimal pourra plus tard s’appuyer sur des éléments tels que :
 
@@ -166,20 +166,20 @@ Le passage doit refléter un **développement réel de l’individu**, pas seule
 
 Le système doit conceptuellement distinguer :
 
-- **âge chronologique** : temps réel écoulé depuis la naissance du Kinseed ;
+- **âge chronologique** : temps réel écoulé depuis la naissance du LenoSeed ;
 - **âge de développement** : palier réellement atteint selon son histoire et son développement.
 
 Cette distinction permet de gérer correctement les longues absences et les rythmes d’utilisation très différents entre utilisateurs.
 
 L’apparence suit principalement le palier de développement, sous les contraintes imposées par le temps chronologique.
 
-Un Kinseed ne peut donc pas atteindre un palier trop tôt simplement parce qu’il a beaucoup été utilisé, ni atteindre automatiquement un palier avancé simplement parce que plusieurs mois se sont écoulés.
+Un LenoSeed ne peut donc pas atteindre un palier trop tôt simplement parce qu’il a beaucoup été utilisé, ni atteindre automatiquement un palier avancé simplement parce que plusieurs mois se sont écoulés.
 
 ---
 
 ## 7. Ce qui se passe pendant l’absence de l’utilisateur
 
-Kinseed **continue d’exister pendant l’absence de l’utilisateur**.
+LenoSeed **continue d’exister pendant l’absence de l’utilisateur**.
 
 Il ne doit pas être totalement congelé comme si le temps cessait de passer.
 
@@ -206,7 +206,7 @@ L’absence ne doit pas générer automatiquement :
 
 ### 7.3 L’absence n’est pas une faute
 
-Kinseed ne doit pas utiliser l’absence comme mécanisme de culpabilisation.
+LenoSeed ne doit pas utiliser l’absence comme mécanisme de culpabilisation.
 
 Il ne doit pas appliquer automatiquement :
 
@@ -221,7 +221,7 @@ Une éventuelle réaction à une absence devra provenir de mécanismes relationn
 
 ## 8. Conséquence d’une longue absence sur le développement
 
-Exemple conceptuel : un Kinseed enfant n’est plus utilisé pendant quatre mois.
+Exemple conceptuel : un LenoSeed enfant n’est plus utilisé pendant quatre mois.
 
 À son retour, il peut avoir :
 
@@ -263,7 +263,7 @@ Le passage à la vieillesse ne doit pas signifier que l’individu devient immé
 
 ## 10. Vieillissement cognitif
 
-La fin de vie de Kinseed ne doit pas reposer principalement sur une incapacité physique simulée.
+La fin de vie de LenoSeed ne doit pas reposer principalement sur une incapacité physique simulée.
 
 La piste retenue est que la vieillesse avancée puisse progressivement rendre plus difficile la gestion de la continuité cognitive et mémorielle.
 
@@ -285,7 +285,7 @@ Les effets visibles doivent découler de mécanismes réels de mémoire, de cons
 
 ## 11. Fin de vie décidée par l’utilisateur
 
-À un stade avancé, la continuité cognitive d’un Kinseed pourra devenir difficile à maintenir de manière cohérente.
+À un stade avancé, la continuité cognitive d’un LenoSeed pourra devenir difficile à maintenir de manière cohérente.
 
 La décision retenue est qu’une éventuelle mort définitive ne sera **pas déclenchée automatiquement parce que l’avatar est vieux ou physiquement diminué**.
 
@@ -340,7 +340,7 @@ L’architecture graphique devra permettre de conserver les caractéristiques id
 
 ## 14. Décisions validées
 
-1. Un Kinseed **naît bébé**.
+1. Un LenoSeed **naît bébé**.
 2. Il possède cinq paliers visuels : **bébé, enfant, adolescent, adulte, vieux**.
 3. Les changements d’âge sont visibles **par paliers**.
 4. Le même personnage doit rester reconnaissable de l’enfance à la vieillesse.
@@ -350,9 +350,9 @@ L’architecture graphique devra permettre de conserver les caractéristiques id
 8. La vieillesse peut également durer longtemps.
 9. Le passage d’âge utilise un **système hybride temps réel + développement réel**.
 10. Le temps réel impose un minimum et l’activité ne doit pas permettre d’accélérer artificiellement le vieillissement.
-11. Le calendrier seul ne suffit pas : un Kinseed très peu développé peut rester à un palier antérieur.
+11. Le calendrier seul ne suffit pas : un LenoSeed très peu développé peut rester à un palier antérieur.
 12. L’âge chronologique et l’âge de développement sont conceptuellement distincts.
-13. Kinseed continue d’exister pendant l’absence de l’utilisateur.
+13. LenoSeed continue d’exister pendant l’absence de l’utilisateur.
 14. Pendant l’absence, le temps, la consolidation et l’oubli peuvent continuer lorsque leurs mécanismes existent réellement.
 15. Le système ne doit pas inventer de grandes expériences pour remplir une période d’absence.
 16. L’absence n’est pas une faute et ne produit pas automatiquement de pénalité affective.
@@ -384,4 +384,4 @@ Ces paramètres ne doivent pas être codés tant qu’ils ne sont pas définis e
 
 ## 16. Principe directeur
 
-> **Kinseed doit vieillir parce que du temps passe et parce qu’il se développe réellement. Il ne doit ni rester artificiellement figé, ni acquérir une vie fictive uniquement pour remplir le calendrier.**
+> **LenoSeed doit vieillir parce que du temps passe et parce qu’il se développe réellement. Il ne doit ni rester artificiellement figé, ni acquérir une vie fictive uniquement pour remplir le calendrier.**

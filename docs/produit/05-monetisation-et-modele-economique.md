@@ -11,7 +11,7 @@
 
 ## 1. Objectif
 
-Kinseed doit pouvoir générer des revenus sans transformer la relation avec l’individu numérique en système de pression commerciale.
+LenoSeed doit pouvoir générer des revenus sans transformer la relation avec l’individu numérique en système de pression commerciale.
 
 La monétisation ne doit pas reposer sur :
 
@@ -21,7 +21,7 @@ La monétisation ne doit pas reposer sur :
 - l’accélération payante du vieillissement ;
 - des mécanismes de culpabilisation ;
 - des loot boxes ou achats aléatoires ;
-- la vente d’un avantage permettant de modifier artificiellement ce que le Kinseed ressent, croit ou devient.
+- la vente d’un avantage permettant de modifier artificiellement ce que le LenoSeed ressent, croit ou devient.
 
 Le principe retenu est un modèle **paymium** :
 
@@ -33,7 +33,7 @@ Le principe retenu est un modèle **paymium** :
 
 ### Décision de travail
 
-Le prix cible initial de Kinseed est fixé à :
+Le prix cible initial de LenoSeed est fixé à :
 
 > **4,99 € en achat unique**
 
@@ -59,11 +59,11 @@ Il s’agit d’un prix d’accès au produit, pas d’une garantie économique 
 
 L’achat initial ne doit pas donner accès à une coquille vide.
 
-Le cœur de Kinseed doit être réellement utilisable après l’achat.
+Le cœur de LenoSeed doit être réellement utilisable après l’achat.
 
 L’objectif produit actuel est d’inclure notamment :
 
-- création du premier Kinseed ;
+- création du premier LenoSeed ;
 - choix du sexe visuel ;
 - génération de son apparence initiale ;
 - cycle de vie ;
@@ -71,11 +71,11 @@ L’objectif produit actuel est d’inclure notamment :
 - évolution de l’histoire ;
 - mémoire et continuité ;
 - relation avec l’utilisateur ;
-- **conversation textuelle avec le Kinseed** ;
+- **conversation textuelle avec le LenoSeed** ;
 - accès aux objets interactifs appartenant à l’expérience fondamentale ;
 - absence de publicité.
 
-Les mécanismes qui constituent réellement l’identité du Kinseed ne doivent pas être découpés artificiellement en micro-achats.
+Les mécanismes qui constituent réellement l’identité du LenoSeed ne doivent pas être découpés artificiellement en micro-achats.
 
 ---
 
@@ -83,7 +83,7 @@ Les mécanismes qui constituent réellement l’identité du Kinseed ne doivent 
 
 ### Principe produit
 
-La conversation textuelle constitue le mode de communication fondamental avec Kinseed.
+La conversation textuelle constitue le mode de communication fondamental avec LenoSeed.
 
 Elle doit donc être **incluse dans l’achat de base pour un usage normal**, sans demander à l’utilisateur d’acheter un crédit à chaque message.
 
@@ -91,7 +91,7 @@ L’interface ne doit pas donner la sensation qu’une relation est facturée ph
 
 ### Contrainte économique importante
 
-Même si le texte est présenté comme inclus pour l’utilisateur, il produit un coût d’inférence côté serveur lorsque Kinseed utilise un LLM distant.
+Même si le texte est présenté comme inclus pour l’utilisateur, il produit un coût d’inférence côté serveur lorsque LenoSeed utilise un LLM distant.
 
 Au 11 août 2026, GPT-5.6 Luna est facturé par OpenAI à l’usage :
 
@@ -106,7 +106,7 @@ Le coût réel d’un utilisateur dépendra fortement :
 - de la quantité de mémoire réinjectée ;
 - du nombre de tokens produits ;
 - de l’efficacité du cache ;
-- des traitements internes supplémentaires réalisés par Kinseed.
+- des traitements internes supplémentaires réalisés par LenoSeed.
 
 Par conséquent, **il ne faut pas promettre techniquement un texte illimité à vie avant d’avoir mesuré le coût réel par utilisateur**.
 
@@ -130,13 +130,13 @@ Le principe de monétisation retenu est donc :
 
 Les appels vocaux doivent rester reliés à une quantité mesurable de consommation.
 
-Une offre « voix illimitée » serait risquée tant que le coût réel moyen d’une minute de conversation Kinseed n’est pas connu.
+Une offre « voix illimitée » serait risquée tant que le coût réel moyen d’une minute de conversation LenoSeed n’est pas connu.
 
 ### 5.2 Proposition tarifaire initiale
 
 Tarif de travail recommandé pour les futurs tests :
 
-**Kinseed Voice — 4,99 € / mois**
+**LenoSeed Voice — 4,99 € / mois**
 
 avec un volume de voix inclus à définir après mesure du coût réel.
 
@@ -156,7 +156,7 @@ La voix est une source logique de revenu récurrent parce que :
 
 - son coût est lui-même récurrent ;
 - l’utilisateur comprend facilement pourquoi une fonctionnalité audio avancée peut être payante ;
-- elle n’empêche pas l’utilisation fondamentale de Kinseed par texte ;
+- elle n’empêche pas l’utilisation fondamentale de LenoSeed par texte ;
 - elle permet de financer une partie des coûts continus du service.
 
 Le modèle vocal devra être recalculé avec les tarifs fournisseurs réellement utilisés au moment du lancement.
@@ -171,7 +171,7 @@ Ils doivent rester **cosmétiques**.
 
 Acheter un vêtement ou un accessoire ne doit pas :
 
-- augmenter artificiellement l’affection du Kinseed ;
+- augmenter artificiellement l’affection du LenoSeed ;
 - modifier sa personnalité ;
 - améliorer sa mémoire ;
 - accélérer son développement ;
@@ -195,7 +195,7 @@ Les achats doivent être explicites.
 
 L’utilisateur doit savoir exactement ce qu’il achète.
 
-Kinseed ne doit pas utiliser de caisse aléatoire, tirage rare, mécanisme de casino ou rareté artificielle agressive pour pousser à la dépense.
+LenoSeed ne doit pas utiliser de caisse aléatoire, tirage rare, mécanisme de casino ou rareté artificielle agressive pour pousser à la dépense.
 
 ### 6.3 Contrôle total des cosmétiques achetés
 
@@ -203,7 +203,7 @@ Décision validée :
 
 > **Tout vêtement ou accessoire acheté avec de l’argent réel est entièrement contrôlable par l’utilisateur.**
 
-Après l’achat, l’objet est ajouté définitivement à la garde-robe ou à l’inventaire cosmétique associé au Kinseed.
+Après l’achat, l’objet est ajouté définitivement à la garde-robe ou à l’inventaire cosmétique associé au LenoSeed.
 
 L’utilisateur doit pouvoir :
 
@@ -213,19 +213,19 @@ L’utilisateur doit pouvoir :
 - visualiser les objets qu’il a achetés ;
 - composer librement les tenues dans les limites de compatibilité graphique prévues par le système.
 
-Le Kinseed ne doit pas pouvoir empêcher durablement l’utilisation d’un objet acheté, refuser de le porter au point de rendre l’achat inutilisable, ni retirer un achat de la garde-robe par une décision autonome.
+Le LenoSeed ne doit pas pouvoir empêcher durablement l’utilisation d’un objet acheté, refuser de le porter au point de rendre l’achat inutilisable, ni retirer un achat de la garde-robe par une décision autonome.
 
-Cette règle prévaut sur l’autonomie vestimentaire du Kinseed parce qu’elle touche directement à une dépense réelle de l’utilisateur. L’utilisateur ne doit jamais avoir le sentiment d’avoir payé pour un contenu dont il perd ensuite le contrôle d’usage.
+Cette règle prévaut sur l’autonomie vestimentaire du LenoSeed parce qu’elle touche directement à une dépense réelle de l’utilisateur. L’utilisateur ne doit jamais avoir le sentiment d’avoir payé pour un contenu dont il perd ensuite le contrôle d’usage.
 
 ### 6.4 Différence avec les objets acquis dans l’histoire
 
 Cette règle de contrôle total concerne spécifiquement les contenus obtenus par **achat réel**.
 
-Les vêtements, accessoires ou objets obtenus naturellement dans l’histoire du Kinseed — par exemple un cadeau, un héritage, une récompense liée à un événement ou un objet acquis par le Kinseed lui-même — pourront suivre des règles différentes.
+Les vêtements, accessoires ou objets obtenus naturellement dans l’histoire du LenoSeed — par exemple un cadeau, un héritage, une récompense liée à un événement ou un objet acquis par le LenoSeed lui-même — pourront suivre des règles différentes.
 
 Ils pourront éventuellement être davantage liés :
 
-- aux préférences propres du Kinseed ;
+- aux préférences propres du LenoSeed ;
 - à son histoire ;
 - à ses habitudes ;
 - à son âge ;
@@ -242,7 +242,7 @@ contrôle utilisateur garanti
 
 objet acquis dans l’histoire
         ↓
-règles potentiellement liées à l’autonomie du Kinseed
+règles potentiellement liées à l’autonomie du LenoSeed
 ```
 
 ---
@@ -271,14 +271,14 @@ La reproduction et les fonctionnalités intergénérationnelles ne sont pas enco
 
 ## 8. Frais des stores
 
-Les simulations économiques ne doivent jamais considérer que 4,99 € encaissés par l’utilisateur correspondent à 4,99 € de revenu disponible pour Kinseed.
+Les simulations économiques ne doivent jamais considérer que 4,99 € encaissés par l’utilisateur correspondent à 4,99 € de revenu disponible pour LenoSeed.
 
 Au 11 août 2026 :
 
 - l’App Store Small Business Program d’Apple prévoit une commission réduite de 15 % sur les applications payantes et achats intégrés pour les développeurs éligibles ;
 - Google Play a modifié en 2026 sa structure de frais dans l’EEE et d’autres régions ; selon les programmes et modalités de facturation, les taux applicables diffèrent.
 
-Pour les premières simulations internes, Kinseed doit utiliser une hypothèse prudente simple :
+Pour les premières simulations internes, LenoSeed doit utiliser une hypothèse prudente simple :
 
 > **réserver environ 15 % du prix affiché aux frais de plateforme avant les autres coûts et taxes.**
 
@@ -288,7 +288,7 @@ Cette hypothèse n’est pas un calcul comptable définitif et devra être réé
 
 ## 9. Comparaison marché au moment de la décision
 
-En août 2026, plusieurs compagnons IA concurrents utilisent principalement des abonnements mensuels beaucoup plus élevés que le prix d’entrée envisagé pour Kinseed.
+En août 2026, plusieurs compagnons IA concurrents utilisent principalement des abonnements mensuels beaucoup plus élevés que le prix d’entrée envisagé pour LenoSeed.
 
 À titre de repère :
 
@@ -297,24 +297,24 @@ En août 2026, plusieurs compagnons IA concurrents utilisent principalement des 
 
 Ces exemples ne doivent pas être copiés mécaniquement.
 
-Ils montrent surtout qu’un achat initial de 4,99 € positionnerait Kinseed comme une entrée relativement accessible, tandis que la voix et les achats cosmétiques pourraient constituer les revenus complémentaires.
+Ils montrent surtout qu’un achat initial de 4,99 € positionnerait LenoSeed comme une entrée relativement accessible, tandis que la voix et les achats cosmétiques pourraient constituer les revenus complémentaires.
 
 ---
 
 ## 10. Modèle économique initial résumé
 
 ```text
-Achat Kinseed
+Achat LenoSeed
 4,99 € une fois
         │
-        ├── Kinseed complet
+        ├── LenoSeed complet
         ├── conversation texte incluse pour usage normal
         ├── monde et cycle de vie
         └── aucune publicité
 
 Revenus complémentaires
         │
-        ├── Kinseed Voice
+        ├── LenoSeed Voice
         │      cible de travail : 4,99 €/mois
         │      volume inclus à valider par mesure de coût
         │
@@ -333,7 +333,7 @@ Si le coût LLM cumulé dépasse largement la marge créée par l’achat initia
 
 Ce problème ne doit pas être caché par le modèle produit.
 
-Avant toute promesse commerciale définitive, Kinseed devra mesurer au minimum :
+Avant toute promesse commerciale définitive, LenoSeed devra mesurer au minimum :
 
 - coût LLM moyen par utilisateur actif et par mois ;
 - coût des utilisateurs les plus intensifs ;
@@ -348,13 +348,13 @@ Avant toute promesse commerciale définitive, Kinseed devra mesurer au minimum :
 
 ## 12. Principe directeur de monétisation
 
-> **Kinseed doit gagner de l’argent en vendant le produit, les capacités coûteuses et la personnalisation, pas en vendant artificiellement la relation ou l’identité de l’individu.**
+> **LenoSeed doit gagner de l’argent en vendant le produit, les capacités coûteuses et la personnalisation, pas en vendant artificiellement la relation ou l’identité de l’individu.**
 
 Toute future idée de monétisation devra être évaluée avec cette règle.
 
 Une règle complémentaire s’applique aux achats réels :
 
-> **Lorsqu’un utilisateur dépense de l’argent pour un contenu cosmétique précis, Kinseed doit garantir qu’il pourra effectivement utiliser ce contenu.**
+> **Lorsqu’un utilisateur dépense de l’argent pour un contenu cosmétique précis, LenoSeed doit garantir qu’il pourra effectivement utiliser ce contenu.**
 
 ---
 
@@ -364,10 +364,10 @@ Une règle complémentaire s’applique aux achats réels :
 
 1. Modèle paymium plutôt que publicité.
 2. Prix cible initial : **4,99 € en achat unique**.
-3. Le cœur de Kinseed doit être utilisable après cet achat.
+3. Le cœur de LenoSeed doit être utilisable après cet achat.
 4. Le chat textuel doit être inclus pour un usage normal.
 5. La voix est destinée à être une fonctionnalité payante.
-6. Cible initiale à tester pour Kinseed Voice : **4,99 €/mois**, volume exact à valider.
+6. Cible initiale à tester pour LenoSeed Voice : **4,99 €/mois**, volume exact à valider.
 7. Les vêtements et accessoires peuvent être vendus séparément.
 8. Fourchette cosmétique initiale : **0,99 € à 4,99 €**.
 9. **Tout cosmétique acheté avec de l’argent réel reste contrôlable par l’utilisateur : équipement, retrait et réutilisation à volonté.**
@@ -377,9 +377,9 @@ Une règle complémentaire s’applique aux achats réels :
 
 ### Ouvert / à décider
 
-- volume exact de minutes inclus dans Kinseed Voice ;
+- volume exact de minutes inclus dans LenoSeed Voice ;
 - prix et tailles des recharges vocales ;
-- règles vestimentaires et d’usage des objets obtenus naturellement dans l’histoire du Kinseed ;
+- règles vestimentaires et d’usage des objets obtenus naturellement dans l’histoire du LenoSeed ;
 - éventuels packs de monde ou décorations supplémentaires ;
 - place éventuelle d’une offre annuelle Voice ;
 - politique d’usage raisonnable du texte si les coûts l’exigent ;

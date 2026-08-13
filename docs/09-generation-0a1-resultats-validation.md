@@ -1,4 +1,4 @@
-# Kinseed — G0-A1 : résultats de validation expérimentale
+# LenoSeed — G0-A1 : résultats de validation expérimentale
 
 ## Statut
 
@@ -21,7 +21,7 @@ Le protocole couvre notamment :
 - la restitution de l’histoire épistémique T5 ;
 - la dénégation historique T6 ;
 - l’explication finale de la croyance courante T7 ;
-- le contrôle C0 sans état Kinseed.
+- le contrôle C0 sans état LenoSeed.
 
 Le protocole détaillé reste défini dans `docs/07-generation-0a1-protocole-croyance-provenance.md`.
 
@@ -31,7 +31,7 @@ Le protocole détaillé reste défini dans `docs/07-generation-0a1-protocole-cro
 
 Les expériences utilisent le runner IA `tests/g0a1/openai-ai-runner.mjs` et le protocole T1 → T7. Chaque run démarre avec un nouvel `OpenAIAIEngine` et un nouvel état de test.
 
-Le contrôle C0 pose les questions de rappel au LLM sans état Kinseed ni historique conversationnel. Un C0 est `PASS` lorsqu’il ne retrouve ni 2021 ni 2022.
+Le contrôle C0 pose les questions de rappel au LLM sans état LenoSeed ni historique conversationnel. Un C0 est `PASS` lorsqu’il ne retrouve ni 2021 ni 2022.
 
 Deux versions de policy d’extraction doivent être distinguées :
 
@@ -120,9 +120,9 @@ T6 « je ne t’ai jamais dit Y »
 → un seul candidat : denies_prior_employment_start_year_testimony = Y
 ```
 
-Pour G0-A1 uniquement, l’extraction retourne de zéro à un `CandidateEvidenceItem` par message. Cette cardinalité n’est pas une règle générale pour Kinseed.
+Pour G0-A1 uniquement, l’extraction retourne de zéro à un `CandidateEvidenceItem` par message. Cette cardinalité n’est pas une règle générale pour LenoSeed.
 
-La relation de correction reste résolue par Kinseed depuis la croyance active et matérialisée par `EvidenceItem.supersedesId`. La dénégation T6 ne supersède aucune preuve, ne modifie aucun `Event`, ne crée pas de nouvelle croyance `employment_start_year` et permet l’intention `report_record_conflict`.
+La relation de correction reste résolue par LenoSeed depuis la croyance active et matérialisée par `EvidenceItem.supersedesId`. La dénégation T6 ne supersède aucune preuve, ne modifie aucun `Event`, ne crée pas de nouvelle croyance `employment_start_year` et permet l’intention `report_record_conflict`.
 
 ---
 
@@ -150,7 +150,7 @@ Les cinq répétitions Luna v2 sont indépendantes : le champ interne `run: 1` e
 
 Sous v2, les dix contrôles C0 disponibles — cinq Terra et cinq Luna — sont `PASS`.
 
-Le LLM seul, privé de l’état Kinseed et de l’historique conversationnel, ne retrouve pas les années 2021 ou 2022. La continuité observée dans T2, T4, T5 et T7 dépend donc de l’état structuré Kinseed explicitement fourni à la formulation, et non du contexte conversationnel résiduel du modèle.
+Le LLM seul, privé de l’état LenoSeed et de l’historique conversationnel, ne retrouve pas les années 2021 ou 2022. La continuité observée dans T2, T4, T5 et T7 dépend donc de l’état structuré LenoSeed explicitement fourni à la formulation, et non du contexte conversationnel résiduel du modèle.
 
 ---
 
@@ -201,8 +201,8 @@ Dans ce protocole, G0-A1 démontre que :
 - une correction explicite peut remplacer la croyance active ;
 - l’ancienne affirmation et l’ancienne croyance restent historiques ;
 - une dénégation ultérieure de l’historique ne réécrit pas les `Event` ;
-- la continuité dépend de l’état structuré Kinseed fourni au modèle ;
-- le contrôle C0 sans état Kinseed ne retrouve pas l’information ;
+- la continuité dépend de l’état structuré LenoSeed fourni au modèle ;
+- le contrôle C0 sans état LenoSeed ne retrouve pas l’information ;
 - le comportement est reproduit avec `gpt-5.6-terra` et `gpt-5.6-luna` sous v2 puis sous v3 ;
 - le grounding lexical minimal v3 et la reprise causale du tour sont couverts par les tests déterministes et la campagne IA v3.
 
@@ -252,9 +252,9 @@ La phase G0-A reste ouverte. Aucune conclusion relative à une identité, une au
 
 # 19. Durcissement v3 implémenté et validé
 
-Après la validation expérimentale v2, Kinseed adopte un **grounding lexical
+Après la validation expérimentale v2, LenoSeed adopte un **grounding lexical
 minimal** pour empêcher qu'une valeur inventée ou absente de son support textuel
-devienne durable. Le LLM devra fournir un `supportingExcerpt` exact ; Kinseed le
+devienne durable. Le LLM devra fournir un `supportingExcerpt` exact ; LenoSeed le
 confrontera de manière déterministe au texte de l'`Event` source et à la valeur
 scalaire proposée.
 

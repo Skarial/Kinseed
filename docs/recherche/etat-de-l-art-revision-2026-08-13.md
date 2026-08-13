@@ -1,10 +1,10 @@
-# Kinseed — Révision de l’état de l’art au 13 août 2026
+# LenoSeed — Révision de l’état de l’art au 13 août 2026
 
 ## Statut
 
 **Type :** révision de recherche complémentaire à [`etat-de-l-art.md`](etat-de-l-art.md).  
 **Date :** 13 août 2026.  
-**But :** intégrer les travaux identifiés après la première version et corriger le positionnement de Kinseed.
+**But :** intégrer les travaux identifiés après la première version et corriger le positionnement de LenoSeed.
 
 Documents internes liés :
 
@@ -35,7 +35,7 @@ Les éléments suivants ne sont pas originaux pris isolément :
 
 ## Probable
 
-Kinseed reste différenciable par la combinaison suivante :
+LenoSeed reste différenciable par la combinaison suivante :
 
 ```text
 identité initiale minimale
@@ -57,11 +57,11 @@ Cela signifie seulement **non identifié**, jamais « inexistant ».
 
 ---
 
-# 2. Travaux qui réduisent le plus la nouveauté supposée de Kinseed
+# 2. Travaux qui réduisent le plus la nouveauté supposée de LenoSeed
 
 ## 2.1 AutoPersonas — 2026
 
-**AutoPersonas est actuellement l’un des travaux les plus proches de Kinseed.**
+**AutoPersonas est actuellement l’un des travaux les plus proches de LenoSeed.**
 
 Le système vise des personas de long terme qui restent reconnaissables tout en changeant selon de nouveaux événements, relations, observations et preuves.
 
@@ -91,7 +91,7 @@ Référence :
 
 ### Différences encore plausibles
 
-Kinseed vise plus spécifiquement :
+LenoSeed vise plus spécifiquement :
 
 - une identité initiale presque vide plutôt qu’un canon de persona développé ;
 - une relation personnelle 1-à-1 comme premier environnement ;
@@ -130,7 +130,7 @@ Référence :
 
 ### Conséquence
 
-« Le LLM n’est pas l’individu » reste un principe Kinseed important, mais ne constitue pas une nouveauté suffisante.
+« Le LLM n’est pas l’individu » reste un principe LenoSeed important, mais ne constitue pas une nouveauté suffisante.
 
 ---
 
@@ -158,7 +158,7 @@ Référence :
 
 ### Conséquence
 
-Individuation par l’expérience et activité autonome ne sont pas propres à Kinseed.
+Individuation par l’expérience et activité autonome ne sont pas propres à LenoSeed.
 
 ---
 
@@ -200,7 +200,7 @@ DCPM représente notamment des trajectoires de croyances, leurs révisions histo
 
 ### Conséquence générale
 
-Kinseed devra démontrer ce qu’il apporte **au-delà d’une excellente mémoire structurée**.
+LenoSeed devra démontrer ce qu’il apporte **au-delà d’une excellente mémoire structurée**.
 
 Un chatbot sans mémoire ne sera pas un témoin expérimental suffisant.
 
@@ -233,7 +233,7 @@ Kindroid possède plusieurs couches de mémoire, une backstory configurable et u
 
 Mémoire + relation + proactivité existent déjà au niveau produit.
 
-Kinseed doit donc se distinguer par la causalité de l’individu et par son cycle de vie, pas seulement par ces fonctions.
+LenoSeed doit donc se distinguer par la causalité de l’individu et par son cycle de vie, pas seulement par ces fonctions.
 
 ---
 
@@ -257,7 +257,7 @@ Parents, crossover, mutation, sélection, succession et modèles descendants.
 
 - https://arxiv.org/abs/2503.01155
 
-La différence avec Kinseed est que le descendant est surtout ici un modèle optimisé. Kinseed veut transmettre l’état d’individus indépendamment du LLM utilisé.
+La différence avec LenoSeed est que le descendant est surtout ici un modèle optimisé. LenoSeed veut transmettre l’état d’individus indépendamment du LLM utilisé.
 
 ---
 
@@ -291,15 +291,15 @@ Ce travail théorique envisage notamment des lignées d’IA réplicatives et de
 
 - https://doi.org/10.5802/crbiol.198
 
-Il ne décrit pas un compagnon comparable à Kinseed, mais confirme que l’idée générale de lignée artificielle et d’héritage humain–IA est déjà discutée.
+Il ne décrit pas un compagnon comparable à LenoSeed, mais confirme que l’idée générale de lignée artificielle et d’héritage humain–IA est déjà discutée.
 
 ---
 
-# 6. Ce qui reste potentiellement distinctif dans Kinseed
+# 6. Ce qui reste potentiellement distinctif dans LenoSeed
 
 ## 6.1 Identité initiale minimale
 
-Kinseed cherche à ne pas fournir une personnalité adulte complète au départ.
+LenoSeed cherche à ne pas fournir une personnalité adulte complète au départ.
 
 Cette différence reste importante face aux architectures basées sur persona, canon ou backstory initiale.
 
@@ -318,7 +318,7 @@ La chaîne visée est :
 → comportement
 ```
 
-AutoPersonas réduit fortement la nouveauté de cette idée générale. La différence éventuelle de Kinseed doit donc se trouver dans la précision des états séparés, l’autorité du domaine et les tests causaux.
+AutoPersonas réduit fortement la nouveauté de cette idée générale. La différence éventuelle de LenoSeed doit donc se trouver dans la précision des états séparés, l’autorité du domaine et les tests causaux.
 
 ---
 
@@ -332,7 +332,7 @@ Le monde visuel est prévu comme une projection traçable de l’histoire, pas c
 
 ## 6.4 Relation réelle avec un humain comme environnement de développement
 
-Kinseed commence par une relation réelle 1-à-1, pas par une société simulée fermée.
+LenoSeed commence par une relation réelle 1-à-1, pas par une société simulée fermée.
 
 L’individu doit se construire dans cette histoire partagée sans devenir un simple miroir des préférences de l’utilisateur.
 
@@ -340,7 +340,7 @@ L’individu doit se construire dans cette histoire partagée sans devenir un si
 
 ## 6.5 Héritage multi-couche entre deux lignées personnelles
 
-Les règles Kinseed validées distinguent :
+Les règles LenoSeed validées distinguent :
 
 1. patrimoine constitutif ;
 2. caractéristiques acquises ;
@@ -369,7 +369,7 @@ Voir [`../13-regles-fondatrices-heritage.md`](../13-regles-fondatrices-heritage.
 7. Comment empêcher une information privée de traverser une autre lignée ?
 8. Comment empêcher la convergence des lignées vers des profils moyens ?
 9. Comment mesurer la continuité d’un individu lorsque le LLM est remplacé ?
-10. Quelle différence Kinseed est réellement perceptible et utile face à un très bon compagnon avec mémoire et proactivité ?
+10. Quelle différence LenoSeed est réellement perceptible et utile face à un très bon compagnon avec mémoire et proactivité ?
 
 ---
 
@@ -387,7 +387,7 @@ La génération 0 reste pertinente si elle permet de tester :
 
 Mais les futurs témoins expérimentaux devront être plus forts qu’un simple chatbot sans mémoire.
 
-À terme, il faudra comparer Kinseed à des variantes telles que :
+À terme, il faudra comparer LenoSeed à des variantes telles que :
 
 ```text
 mémoire structurée + persona résumée
@@ -396,37 +396,37 @@ vs
 vs
 boucle événement / observation / état
 vs
-architecture Kinseed complète
+architecture LenoSeed complète
 ```
 
 La reproduction et les lignées ne doivent pas être implémentées avant validation suffisante des bases de l’individu.
 
 Il faut séparer deux validations :
 
-- **mécanisme :** l’état de Kinseed dépend-il réellement de son histoire ?
+- **mécanisme :** l’état de LenoSeed dépend-il réellement de son histoire ?
 - **produit :** cette différence est-elle visible et désirable pour de vrais utilisateurs ?
 
 ---
 
 # 9. Positionnement révisé
 
-**Certain :** Kinseed n’est pas original parce qu’il possède de la mémoire, évolue avec les événements, prend des initiatives ou prévoit une descendance numérique.
+**Certain :** LenoSeed n’est pas original parce qu’il possède de la mémoire, évolue avec les événements, prend des initiatives ou prévoit une descendance numérique.
 
 **Certain :** AutoPersonas est une antériorité particulièrement proche du principe d’état évoluant à partir d’événements, d’observations et de preuves.
 
-**Probable :** la combinaison Kinseed reste inhabituelle : identité initiale minimale, causalité métier stricte, relation réelle, monde autobiographique et héritage multi-couche entre deux lignées personnelles.
+**Probable :** la combinaison LenoSeed reste inhabituelle : identité initiale minimale, causalité métier stricte, relation réelle, monde autobiographique et héritage multi-couche entre deux lignées personnelles.
 
 **Inconnu :** cette combinaison ne peut pas être déclarée inédite avec le corpus actuel.
 
 **Inconnu :** il reste à démontrer qu’elle apporte une valeur utilisateur suffisante pour justifier sa complexité.
 
-> **Kinseed ne cherche pas à inventer la mémoire, la persona évolutive ou la reproduction numérique. Il cherche à réunir ces mécanismes dans un individu personnel dont les transformations importantes restent liées à son histoire, puis à transmettre une partie transformée de cette histoire à des descendants qui restent des individus distincts. Cette valeur doit être démontrée, pas supposée.**
+> **LenoSeed ne cherche pas à inventer la mémoire, la persona évolutive ou la reproduction numérique. Il cherche à réunir ces mécanismes dans un individu personnel dont les transformations importantes restent liées à son histoire, puis à transmettre une partie transformée de cette histoire à des descendants qui restent des individus distincts. Cette valeur doit être démontrée, pas supposée.**
 
 ---
 
 # 10. Règle de maintenance
 
-Avant de considérer un mécanisme Kinseed comme potentiellement original :
+Avant de considérer un mécanisme LenoSeed comme potentiellement original :
 
 1. rechercher les travaux antérieurs ;
 2. ajouter les références pertinentes ;
@@ -435,4 +435,4 @@ Avant de considérer un mécanisme Kinseed comme potentiellement original :
 5. identifier un test permettant de mesurer la différence ;
 6. modifier le positionnement si une antériorité plus proche est découverte.
 
-Une ressemblance extérieure n’oblige pas automatiquement à changer Kinseed. Elle oblige d’abord à préciser **ce que le projet teste réellement** et pourquoi cette différence mérite d’être construite.
+Une ressemblance extérieure n’oblige pas automatiquement à changer LenoSeed. Elle oblige d’abord à préciser **ce que le projet teste réellement** et pourquoi cette différence mérite d’être construite.

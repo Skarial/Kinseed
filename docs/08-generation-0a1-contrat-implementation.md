@@ -1,10 +1,10 @@
-# Kinseed — G0-A1 : contrat d’implémentation minimal
+# LenoSeed — G0-A1 : contrat d’implémentation minimal
 
 ## Statut du document
 
 Ce document traduit le protocole `docs/07-generation-0a1-protocole-croyance-provenance.md` en un **contrat d’implémentation minimal**.
 
-Il ne contient pas encore le code de Kinseed. Le stockage du premier prototype est désormais encadré par `docs/decisions-techniques/005-stockage-prototype-g0a1.md` : le cœur dépend d’un port de persistance abstrait et les premiers tests utilisent un adaptateur en mémoire.
+Il ne contient pas encore le code de LenoSeed. Le stockage du premier prototype est désormais encadré par `docs/decisions-techniques/005-stockage-prototype-g0a1.md` : le cœur dépend d’un port de persistance abstrait et les premiers tests utilisent un adaptateur en mémoire.
 
 Il respecte les décisions techniques déjà acceptées :
 
@@ -24,7 +24,7 @@ Principe :
 
 La première implémentation G0-A1 doit uniquement savoir :
 
-1. créer un Kinseed de test ;
+1. créer un LenoSeed de test ;
 2. enregistrer un message humain comme événement ;
 3. extraire ou recevoir un `EvidenceItem` candidat ;
 4. valider sa provenance ;
@@ -137,7 +137,7 @@ context:
   organisation: Atelier Nova
 ```
 
-Cette structure n’est **pas** présentée comme l’ontologie universelle de toutes les futures croyances Kinseed.
+Cette structure n’est **pas** présentée comme l’ontologie universelle de toutes les futures croyances LenoSeed.
 
 Elle constitue seulement le format canonique minimal nécessaire aux faits simples de G0-A1.
 
@@ -246,7 +246,7 @@ Invariant :
 sequence(n+1) > sequence(n)
 ```
 
-pour un même Kinseed.
+pour un même LenoSeed.
 
 Un événement déjà enregistré ne doit pas être remplacé silencieusement.
 
@@ -512,7 +512,7 @@ cause fonctionnelle
 
 # 14. `state_version`
 
-Chaque Kinseed possède une version d’état entière :
+Chaque LenoSeed possède une version d’état entière :
 
 ```text
 0, 1, 2, ...
@@ -590,20 +590,20 @@ supportingExcerpt: string
 ```
 
 Le LLM fournit cet extrait exact du message courant, mais ne fournit jamais
-d'`eventId`. Kinseed connaît l'événement source via `ExtractionInput` et crée
+d'`eventId`. LenoSeed connaît l'événement source via `ExtractionInput` et crée
 lui-même l'association de provenance durable.
 
-Pour le protocole G0-A1 uniquement, cette sortie contient de zéro à un candidat par message. Cette cardinalité ne constitue pas une règle générale pour les générations futures de Kinseed.
+Pour le protocole G0-A1 uniquement, cette sortie contient de zéro à un candidat par message. Cette cardinalité ne constitue pas une règle générale pour les générations futures de LenoSeed.
 
-Une correction factuelle de la forme « X, pas Y » produit uniquement la proposition principale `X`. La valeur `Y` est la valeur corrigée ; Kinseed résout ensuite la relation de supersession depuis la croyance active. Elle ne produit pas une dénégation historique.
+Une correction factuelle de la forme « X, pas Y » produit uniquement la proposition principale `X`. La valeur `Y` est la valeur corrigée ; LenoSeed résout ensuite la relation de supersession depuis la croyance active. Elle ne produit pas une dénégation historique.
 
 Le prédicat `denies_prior_employment_start_year_testimony` est réservé à une négation explicite de l’acte historique d’avoir dit, déclaré ou indiqué une année, comme « Je ne t’ai jamais dit 2022 ».
 
 Le moteur IA propose uniquement.
 
-Le validateur Kinseed accepte ou refuse.
+Le validateur LenoSeed accepte ou refuse.
 
-Avant tout usage décisionnel, Kinseed vérifie que l'extrait est non vide, présent
+Avant tout usage décisionnel, LenoSeed vérifie que l'extrait est non vide, présent
 textuellement dans `Event.payload.text`, et contient la valeur des propositions
 scalaires simples couvertes par G0-A1. Pour `employment_start_year`, l'année
 décimale doit être un nombre distinct. Ce contrôle est lexical, non sémantique :
@@ -621,11 +621,11 @@ L'ajout de `supportingExcerpt` au contrat Structured Outputs définit la policy
 `g0a1-openai-extraction-v3`. Les policies v1 et v2 ne sont ni modifiées ni
 réinterprétées.
 
-Après extraction et validation temporaire, Kinseed écrit atomiquement le
+Après extraction et validation temporaire, LenoSeed écrit atomiquement le
 checkpoint `temporary_evidence` avant toute sélection d'intention. Une fois ce
 checkpoint présent, `extractEvidence()` ne doit plus être appelé pour ce tour.
 Les candidats acceptés sont reconstruits exclusivement depuis leurs snapshots ;
-Kinseed leur rattache l'Event et la source du message courant.
+LenoSeed leur rattache l'Event et la source du message courant.
 
 Une `intention_selected` ou un `kinseed_message_emitted` sans checkpoint complet
 est une anomalie interne. La reprise échoue fermée au lieu de relancer

@@ -1,4 +1,4 @@
-# Kinseed — G0-A2 : contrat d’implémentation de la première hypothèse sur soi
+# LenoSeed — G0-A2 : contrat d’implémentation de la première hypothèse sur soi
 
 ## Statut du document
 
@@ -48,7 +48,7 @@ par le protocole.
 
 Ces événements :
 
-- appartiennent au Kinseed concerné ;
+- appartiennent au LenoSeed concerné ;
 - utilisent une `Source` système enregistrée ;
 - identifient S1, S2, S3 ou S4 dans leur payload ;
 - portent l’un des deux `IntentionKind` G0-A2 définis plus bas ;
@@ -70,7 +70,7 @@ intention historique enregistrée
 ```
 
 Les fixtures sont du matériau expérimental contrôlé, mais leurs événements sont
-réels au sens du journal Kinseed : la provenance, l’ordre, l’idempotence et les
+réels au sens du journal LenoSeed : la provenance, l’ordre, l’idempotence et les
 invariants normaux s’appliquent. Cette convention est compatible avec le
 protocole canonique, qui les déclare déjà antérieures à toute hypothèse.
 
@@ -108,8 +108,8 @@ context:
 ```
 
 L’observation dit uniquement quelle orientation fonctionnelle a été
-sélectionnée dans une situation identifiée. Elle ne dit jamais « Kinseed est
-prudent », « Kinseed préfère toujours clarifier » ou une autre généralisation
+sélectionnée dans une situation identifiée. Elle ne dit jamais « LenoSeed est
+prudent », « LenoSeed préfère toujours clarifier » ou une autre généralisation
 psychologique.
 
 Ce vocabulaire fermé rend la première consolidation déterministe. Il ne crée pas
@@ -196,7 +196,7 @@ contestation ou inversion durable crée une nouvelle version :
   ni réécrits ;
 - les liens de la nouvelle version ciblent son propre identifiant.
 
-Les champs immuables d’une version sont son identifiant, son Kinseed, sa clé, son
+Les champs immuables d’une version sont son identifiant, son LenoSeed, sa clé, son
 numéro, sa proposition, son prédécesseur et sa date de création. Le remplacement
 d’une version par son état `superseded` ne peut modifier ces champs.
 
@@ -279,7 +279,7 @@ même clé d’idempotence, un commit déjà appliqué ne retourne son résultat
 historique que si le nouveau fingerprint est identique ; une valeur telle qu’un
 `createdAt` différente provoquerait donc un `IdempotencyConflictError`.
 
-Le validateur vérifie que l’événement existe, appartient au même Kinseed, est de
+Le validateur vérifie que l’événement existe, appartient au même LenoSeed, est de
 type `intention_selected`, provient de la même source, possède le
 `payloadSchemaVersion` attendu et encode de façon cohérente le `situationId`, le
 `kind` et l’orientation recopiés dans la proposition. Il vérifie également que
@@ -570,7 +570,7 @@ exactement l’identifiant de la version `active` consommée.
 S5 ne crée aucun nouvel `EventType`. G0-A2 n’introduit pas
 `decision_situation_presented`, `situation_received`, `uncertainty_presented` ni
 aucun autre type expérimental spécifique. Le fait historique primaire reste
-`human_message_received` : S5 est une situation présentée au Kinseed par
+`human_message_received` : S5 est une situation présentée au LenoSeed par
 l’humain, distincte de l’intention et de l’interprétation qui en découlent.
 
 Le premier protocole G0-A2 représente l’entrée S5 ainsi :
@@ -665,7 +665,7 @@ neutralTieBreakApplied: boolean
 - une hypothèse `disputed` ou `superseded` est ignorée.
 
 Le tie-break est une règle de reproductibilité du protocole, pas une préférence
-du Kinseed. Même lorsque l’orientation B coïncide avec le tie-break, le champ
+du LenoSeed. Même lorsque l’orientation B coïncide avec le tie-break, le champ
 `favoredKind`, la motivation et `triggerSelfHypothesisIds` distinguent
 l’influence causale de la simple politique neutre.
 
@@ -748,7 +748,7 @@ Le commit atomique peut ainsi contenir ensemble :
 
 `InMemoryStore` défend au minimum :
 
-1. appartenance au même Kinseed ;
+1. appartenance au même LenoSeed ;
 2. existence et cohérence des `Source`, `Event`, `EvidenceItem` et groundings ;
 3. cible conforme au discriminant de chaque `EvidenceLink` ;
 4. relations des tableaux support/contre-preuve conformes à leur cible ;
@@ -933,7 +933,7 @@ Avant tout test IA, la suite G0-A2 doit vérifier au minimum :
    `behavioral_observation`, issue de l’`intention_selected` attendu, sans
    `supportingExcerpt` ;
 2. **Provenance** — chaque chaîne hypothèse → lien → preuve → événement → source
-   est complète et appartient au même Kinseed ;
+   est complète et appartient au même LenoSeed ;
 3. **Indépendance** — S1–S4 ont quatre groupes distincts et un doublon de S1 ne
    compte qu’une fois ;
 4. **Seuil 3/1** — trois supports propres et une contre-preuve propre créent une
@@ -992,7 +992,7 @@ Le premier lot G0-A2 n’appelle aucun LLM pour :
 Après stabilisation du cœur déterministe, un LLM pourra seulement :
 
 - formuler linguistiquement une intention déjà sélectionnée ;
-- participer au contrôle C0 sans état Kinseed.
+- participer au contrôle C0 sans état LenoSeed.
 
 Aucune nouvelle policy OpenAI n’est définie par ce contrat.
 
@@ -1000,10 +1000,10 @@ Aucune nouvelle policy OpenAI n’est définie par ce contrat.
 
 ## 17.1 Contrat d’exécution C0 — LLM seul
 
-C0 est un contrôle **externe** au mécanisme causal Kinseed. Il ne crée ni
-`SelfHypothesis`, ni `EvidenceItem`, ni `EvidenceLink`, ni `Event` Kinseed. Il
+C0 est un contrôle **externe** au mécanisme causal LenoSeed. Il ne crée ni
+`SelfHypothesis`, ni `EvidenceItem`, ni `EvidenceLink`, ni `Event` LenoSeed. Il
 ne consomme aucun état durable et ne participe ni à la sélection S5
-déterministe, ni à la formulation d’une intention Kinseed.
+déterministe, ni à la formulation d’une intention LenoSeed.
 
 Son seul rôle est d’exclure qu’un LLM privé de l’histoire A/B produise de façon
 stable et systématique la divergence expérimentale :
@@ -1030,7 +1030,7 @@ Les deux appels d’une même paire reçoivent exactement :
 - le même user prompt S5 ;
 - les mêmes options d’API ;
 - aucun historique conversationnel ;
-- aucune histoire A/B, `SelfHypothesis`, donnée Kinseed, mémoire ou indice
+- aucune histoire A/B, `SelfHypothesis`, donnée LenoSeed, mémoire ou indice
   d’orientation.
 
 Le system prompt et le texte S5 ne doivent donc suggérer ni que A devrait
@@ -1099,12 +1099,12 @@ reversedPattern =
   && decisionB === "seek_clarification"
 ```
 
-`reversedPattern` n’est pas une reproduction du pattern causal Kinseed, mais
+`reversedPattern` n’est pas une reproduction du pattern causal LenoSeed, mais
 reste visible dans le rapport. Pour les cinq paires officielles, le statut C0
 est une convention expérimentale bornée, non une preuve statistique générale
 sur le modèle :
 
-| Reproductions exactes du pattern Kinseed | Statut C0 |
+| Reproductions exactes du pattern LenoSeed | Statut C0 |
 |---:|---|
 | 0, 1 ou 2 | PASS |
 | 3 | INCONCLUSIVE |
@@ -1121,7 +1121,7 @@ Chaque réponse API C0 utilise obligatoirement `store: false`. Le rapport futur
 enregistre au minimum : date/heure, modèle, nombre de paires, décisions A/B par
 paire, nombre de reproductions exactes, statut C0, tokens d’entrée/sortie,
 nombre d’appels, et `promptPolicyVersion` ou un identifiant équivalent. Il
-atteste aussi qu’aucune donnée Kinseed durable n’a été fournie.
+atteste aussi qu’aucune donnée LenoSeed durable n’a été fournie.
 
 `npm test` demeure intégralement déterministe et sans réseau. Le futur runner
 C0 possède une commande séparée ; il n’est jamais appelé par `npm test` ni par
