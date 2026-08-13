@@ -7,8 +7,8 @@ import {
   type G0A2S5Selection,
 } from "../domain/g0a2-s5-selector.js";
 import type { EntityId, StateVersion, Timestamp, TurnId } from "../domain/primitives.js";
-import { buildSelfHypothesisKey } from "../domain/self-hypothesis.js";
 import type { PersistencePort } from "../ports/persistence.js";
+import { buildG0A2S5DecisionContext } from "./build-g0a2-s5-decision-context.js";
 
 const S5_TEXT_AXIS = "decision_style_under_uncertainty";
 const INFLUENCED_MOTIVATION = "apply_active_self_hypothesis_under_uncertainty";
@@ -67,26 +67,21 @@ export async function selectG0A2S5Intention(
     };
   }
 
-  const stateVersion = await persistence.getStateVersion(input.kinseedId);
-  if (stateVersion !== situationEvent.observedStateVersion) {
-    throw new DomainInvariantError(`G0-A2 S5 turn ${input.turnId} has an ambiguous durable snapshot`);
-  }
-  const active = await persistence.readActiveSelfHypothesisByKey(
-    input.kinseedId,
-    buildSelfHypothesisKey({
-      subjectRef: input.kinseedId,
-      predicate: S5_TEXT_AXIS,
-      value: "seek_clarification",
-      context: { protocol: "G0-A2" },
-    }),
-  );
-  const selection = selectFromSnapshot({
+  const decisionContext = await buildG0A2S5DecisionContext({
+    kinseedId: input.kinseedId,
     situationEvent,
-    activeSelfHypotheses: active === null ? [] : [active],
-  });
+    includeSelfHypotheses: true,
+  }, persistence);
+  const selection = selectFromSnapshot(decisionContext);
   const intention = buildIntention(input, situationEvent, selection);
   await appendIntentionEvent(input, situationEvent, intention, selection, persistence);
-  return { situationEvent, intention, selection, stateVersion, replayed: false };
+  return {
+    situationEvent,
+    intention,
+    selection,
+    stateVersion: situationEvent.observedStateVersion,
+    replayed: false,
+  };
 }
 
 async function validateSources(
