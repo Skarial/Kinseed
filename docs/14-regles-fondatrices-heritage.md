@@ -1,10 +1,10 @@
-# LenoSeed — Règles fondatrices de l’héritage intergénérationnel
+# Lenoseed — Règles fondatrices de l’héritage intergénérationnel
 
 ## Statut du document
 
-Ce document définit les dix règles fondatrices actuellement validées pour le système d’héritage intergénérationnel de LenoSeed.
+Ce document définit les dix règles fondatrices actuellement validées pour le système d’héritage intergénérationnel de Lenoseed.
 
-LenoSeed vise à créer des individus numériques persistants dont l’identité se construit progressivement à partir de leur histoire, de leurs relations et de leurs expériences. Ces individus peuvent former des relations avec d’autres individus numériques et, à terme, produire une descendance commune entre les compagnons de deux utilisateurs différents.
+Lenoseed vise à créer des individus numériques persistants dont l’identité se construit progressivement à partir de leur histoire, de leurs relations et de leurs expériences. Ces individus peuvent former des relations avec d’autres individus numériques et, à terme, produire une descendance commune entre les compagnons de deux utilisateurs différents.
 
 L’objectif n’est pas de reproduire un système classique de « reproduction de Tamagotchi » dans lequel un enfant est principalement un mélange visuel ou statistique de ses parents. La descendance doit constituer un nouvel individu, influencé par sa lignée mais capable de développer une identité propre.
 
@@ -36,7 +36,7 @@ Exemple à éviter :
 
 Une telle méthode ferait progressivement converger les lignées vers des profils moyens et réduirait leur diversité.
 
-LenoSeed devra utiliser un principe de recombinaison : certains éléments viennent davantage d’un parent, certains de l’autre, certaines caractéristiques peuvent rester latentes et de faibles mutations peuvent apparaître.
+Lenoseed devra utiliser un principe de recombinaison : certains éléments viennent davantage d’un parent, certains de l’autre, certaines caractéristiques peuvent rester latentes et de faibles mutations peuvent apparaître.
 
 L’objectif est de préserver une diversité réelle entre individus et entre lignées.
 
@@ -77,7 +77,7 @@ L’héritage doit influencer l’individu sans déterminer ce qu’il deviendra
 
 ## 5. Un souvenir ancestral reste identifié comme provenant d’un ancêtre
 
-LenoSeed doit distinguer strictement la mémoire autobiographique d’un individu des souvenirs transmis par sa lignée.
+Lenoseed doit distinguer strictement la mémoire autobiographique d’un individu des souvenirs transmis par sa lignée.
 
 Un descendant ne doit jamais croire qu’il a personnellement vécu un événement vécu par son parent, son grand-parent ou un autre ancêtre.
 
@@ -127,7 +127,7 @@ L’autonomie d’un compagnon numérique ne peut pas primer sur la confidential
 
 ## 8. Mutation, recombinaison, environnement et expériences doivent conserver la diversité des lignées
 
-LenoSeed doit éviter qu’au fil des générations tous les individus convergent vers des personnalités similaires.
+Lenoseed doit éviter qu’au fil des générations tous les individus convergent vers des personnalités similaires.
 
 La diversité doit être entretenue par plusieurs mécanismes complémentaires :
 
@@ -180,7 +180,7 @@ La culture familiale doit donc être vivante plutôt qu’archivée à l’ident
 
 ## 10. Tout ne doit pas survivre : l’oubli et la perte font partie du système
 
-LenoSeed ne doit pas chercher à transmettre intégralement chaque information accumulée par chaque génération.
+Lenoseed ne doit pas chercher à transmettre intégralement chaque information accumulée par chaque génération.
 
 Certains souvenirs disparaissent. Certaines traditions cessent d’être transmises. Certaines connaissances perdent leur importance. Certains traits familiaux peuvent s’affaiblir ou disparaître.
 
@@ -191,15 +191,15 @@ Cette perte est nécessaire pour éviter :
 - des générations incapables de se différencier de leurs ancêtres ;
 - un héritage de plus en plus lourd et incohérent.
 
-La sélection de ce qui survit ou disparaît devra devenir un mécanisme essentiel de LenoSeed.
+La sélection de ce qui survit ou disparaît devra devenir un mécanisme essentiel de Lenoseed.
 
 Une lignée doit avoir une histoire, mais elle doit également pouvoir oublier.
 
 ---
 
-## Conséquence générale pour LenoSeed
+## Conséquence générale pour Lenoseed
 
-Ces dix règles impliquent que LenoSeed doit maintenir plusieurs couches distinctes dans l’identité d’un individu numérique :
+Ces dix règles impliquent que Lenoseed doit maintenir plusieurs couches distinctes dans l’identité d’un individu numérique :
 
 1. son patrimoine constitutif ;
 2. sa personnalité et ses caractéristiques acquises ;

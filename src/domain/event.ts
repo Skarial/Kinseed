@@ -18,7 +18,7 @@ export type EventType =
 
 export interface Event {
   readonly id: EntityId;
-  readonly lenoSeedId: EntityId;
+  readonly lenoseedId: EntityId;
   readonly sequence: Sequence;
   readonly type: EventType;
   readonly occurredAt: Timestamp;

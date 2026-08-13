@@ -1,10 +1,10 @@
-# LenoSeed — G0-A : structures minimales et cycle de vie
+# Lenoseed — G0-A : structures minimales et cycle de vie
 
 ## Statut du document
 
 Ce document détaille la phase **G0-A — Continuité minimale** définie dans `docs/04-generation-0-roadmap-experimentale.md`.
 
-Il ne fixe encore ni langage, ni base de données, ni framework. Il définit uniquement les structures minimales nécessaires pour que LenoSeed puisse conserver une histoire fiable, former quelques conclusions provisoires, les réviser et produire des intentions traçables.
+Il ne fixe encore ni langage, ni base de données, ni framework. Il définit uniquement les structures minimales nécessaires pour que Lenoseed puisse conserver une histoire fiable, former quelques conclusions provisoires, les réviser et produire des intentions traçables.
 
 Principe central :
 
@@ -13,7 +13,7 @@ Principe central :
 G0-A doit pouvoir répondre à trois questions :
 
 1. qu’est-ce qui s’est réellement produit ?
-2. qu’est-ce que LenoSeed en conclut actuellement ?
+2. qu’est-ce que Lenoseed en conclut actuellement ?
 3. pourquoi a-t-il choisi cette action ou cette réponse ?
 
 ---
@@ -48,7 +48,7 @@ EvidenceItem
 = ce qui peut être extrait de cet événement sans dépasser ce qu'il permet d'affirmer
 
 Belief / Hypothesis
-= ce que LenoSeed en conclut provisoirement
+= ce que Lenoseed en conclut provisoirement
 ```
 
 Cette couche intermédiaire empêche le passage direct :
@@ -91,7 +91,7 @@ Une source ne possède pas un score global de fiabilité universel.
 
 L’autorité dépend de la proposition concernée.
 
-Exemple : l’humain est une source fortement autorisée concernant son propre prénom, mais il n’est pas autorisé à décréter directement un trait du LenoSeed.
+Exemple : l’humain est une source fortement autorisée concernant son propre prénom, mais il n’est pas autorisé à décréter directement un trait du Lenoseed.
 
 Règle :
 
@@ -132,7 +132,7 @@ engine_version
 
 `caused_by_event_ids` exprime une causalité opérationnelle entre événements, sans remplacer les liens de preuve épistémiques.
 
-`observed_state_version` indique la version durable de LenoSeed disponible lorsque l’événement décisionnel a été produit.
+`observed_state_version` indique la version durable de Lenoseed disponible lorsque l’événement décisionnel a été produit.
 
 Exemple :
 
@@ -268,7 +268,7 @@ Cette proposition constitue une interprétation psychologique plus large et appa
 
 ## 4.2 Behavioral observation
 
-Une action réelle du LenoSeed peut être transformée en observation comportementale.
+Une action réelle du Lenoseed peut être transformée en observation comportementale.
 
 Exemple :
 
@@ -276,7 +276,7 @@ Exemple :
 EV-090
 kind: behavioral_observation
 proposition:
-"Dans cette situation, LenoSeed a cherché une information supplémentaire avant de conclure."
+"Dans cette situation, Lenoseed a cherché une information supplémentaire avant de conclure."
 event_ids: [E-510, E-511]
 ```
 
@@ -285,7 +285,7 @@ Cette unité peut servir de preuve à une `SelfHypothesis`.
 En revanche :
 
 ```text
-LenoSeed dit : "Je suis prudent."
+Lenoseed dit : "Je suis prudent."
 ```
 
 reste une auto-déclaration linguistique et ne possède pas le même poids qu’une observation comportementale indépendante.
@@ -300,7 +300,7 @@ Exemple :
 EV-001
 kind: system_record
 proposition:
-"Le LenoSeed a été créé à l'instant T."
+"Le Lenoseed a été créé à l'instant T."
 event_ids: [E-001]
 ```
 
@@ -312,7 +312,7 @@ Exemples interdits comme unités de preuve directes :
 
 ```text
 "Jordan valorise profondément son autonomie."
-"LenoSeed est une personne prudente."
+"Lenoseed est une personne prudente."
 "Jordan était probablement triste."
 ```
 
@@ -430,7 +430,7 @@ Aucune formule numérique définitive n’est fixée à ce stade.
 
 ---
 
-# 6. Memory : ce que LenoSeed retient
+# 6. Memory : ce que Lenoseed retient
 
 Un événement n’est pas automatiquement une mémoire autobiographique.
 
@@ -451,7 +451,7 @@ last_recalled_at
 revision_of
 ```
 
-Le `gist` représente le souvenir actuel du LenoSeed. Il n’est jamais la source historique primaire.
+Le `gist` représente le souvenir actuel du Lenoseed. Il n’est jamais la source historique primaire.
 
 Les faits contenus dans le `gist` doivent pouvoir être ramenés à des `EvidenceItem` actifs ou à des événements historiques identifiables.
 
@@ -513,7 +513,7 @@ world
 human
 ```
 
-Les croyances sur LenoSeed lui-même sont traitées par `SelfHypothesis`.
+Les croyances sur Lenoseed lui-même sont traitées par `SelfHypothesis`.
 
 ## Cycle de vie
 
@@ -599,7 +599,7 @@ tendency
 
 ## Règle fondamentale
 
-> **Ce que LenoSeed dit être ne constitue jamais, à lui seul, une preuve de ce qu’il est.**
+> **Ce que Lenoseed dit être ne constitue jamais, à lui seul, une preuve de ce qu’il est.**
 
 Une déclaration du type :
 
@@ -615,7 +615,7 @@ Même règle si l’humain déclare :
 "Tu es prudent."
 ```
 
-Cette phrase constitue d’abord un témoignage concernant le regard de l’humain sur LenoSeed. Elle ne vaut pas observation comportementale indépendante.
+Cette phrase constitue d’abord un témoignage concernant le regard de l’humain sur Lenoseed. Elle ne vaut pas observation comportementale indépendante.
 
 ## Promotion `observation → hypothesis`
 
@@ -846,7 +846,7 @@ peut provoquer :
 "Est-ce que cela dépend du contexte ou tu as vraiment l'impression d'avoir changé ?"
 ```
 
-sans que LenoSeed ait déjà committé :
+sans que Lenoseed ait déjà committé :
 
 ```text
 Belief:
@@ -891,7 +891,7 @@ Il signifie :
 
 > les informations sont intéressantes mais insuffisantes pour promouvoir actuellement cette conclusion.
 
-LenoSeed n’est donc pas obligé de choisir entre vrai et faux à chaque interaction.
+Lenoseed n’est donc pas obligé de choisir entre vrai et faux à chaque interaction.
 
 `DEFER` ne s'applique pas à un échec de grounding lexical : dans ce cas la
 recevabilité déterministe du candidat a échoué et la décision est `REJECT`.
@@ -975,7 +975,7 @@ state_version = N + 1
 
 Une intention conserve la version utilisée pour sa sélection.
 
-Cela permettra ultérieurement de reconstruire exactement ce que LenoSeed savait ou croyait au moment d’une action.
+Cela permettra ultérieurement de reconstruire exactement ce que Lenoseed savait ou croyait au moment d’une action.
 
 ---
 
@@ -1039,19 +1039,19 @@ ce que cela signifie psychologiquement
 
 Supposons plusieurs situations indépendantes.
 
-Dans chacune, LenoSeed doit choisir entre conclure rapidement ou rechercher davantage d’information.
+Dans chacune, Lenoseed doit choisir entre conclure rapidement ou rechercher davantage d’information.
 
 Les actions réelles produisent des observations :
 
 ```text
 EV-401
-"Dans le contexte A, LenoSeed a demandé une information supplémentaire avant de conclure."
+"Dans le contexte A, Lenoseed a demandé une information supplémentaire avant de conclure."
 
 EV-517
-"Dans le contexte B, LenoSeed a différé sa conclusion afin de vérifier un élément contradictoire."
+"Dans le contexte B, Lenoseed a différé sa conclusion afin de vérifier un élément contradictoire."
 
 EV-622
-"Dans le contexte C, LenoSeed a cherché une nouvelle preuve avant de trancher."
+"Dans le contexte C, Lenoseed a cherché une nouvelle preuve avant de trancher."
 ```
 
 Ces trois `EvidenceItem` peuvent ensuite soutenir :
@@ -1123,7 +1123,7 @@ G0-A n’implémente volontairement pas :
 - de grands projets autonomes ;
 - un trait identitaire déclaré comme définitivement stable ;
 - un système d’oubli complet ;
-- d’autres LenoSeeds ;
+- d’autres Lenoseeds ;
 - reproduction, lignées ou héritage.
 
 Il peut conserver des structures préparant les phases futures, mais il ne doit pas simuler ces capacités avant leur validation dédiée.

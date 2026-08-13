@@ -1,26 +1,26 @@
-# LenoSeed — État de l’art
+# Lenoseed — État de l’art
 
 ## Statut du document
 
-**Type :** document de recherche, distinct de la documentation d’architecture et des spécifications numérotées de LenoSeed.  
+**Type :** document de recherche, distinct de la documentation d’architecture et des spécifications numérotées de Lenoseed.
 **Dernière vérification :** 10 août 2026.  
 **Statut :** version initiale, à compléter au fil du projet.
 
-Ce document a pour objectif de situer LenoSeed par rapport aux travaux, systèmes et produits déjà existants ou proches de sa direction de recherche.
+Ce document a pour objectif de situer Lenoseed par rapport aux travaux, systèmes et produits déjà existants ou proches de sa direction de recherche.
 
 Il ne doit pas être utilisé pour affirmer qu’une idée est inédite simplement parce qu’aucun équivalent n’a été trouvé rapidement. Son rôle est au contraire de rechercher activement les antériorités, les ressemblances, les différences et les risques de réinventer un mécanisme déjà connu.
 
-La documentation d’architecture de LenoSeed reste séparée de ce document.
+La documentation d’architecture de Lenoseed reste séparée de ce document.
 
 ---
 
 # 1. Question étudiée
 
-LenoSeed cherche à construire un **individu numérique persistant** dont l’identité ne correspond pas simplement à un prompt de personnalité ou à l’état temporaire d’un modèle de langage.
+Lenoseed cherche à construire un **individu numérique persistant** dont l’identité ne correspond pas simplement à un prompt de personnalité ou à l’état temporaire d’un modèle de langage.
 
 Pour la génération 0, le principe central est :
 
-> **Un LenoSeed ne naît pas avec une identité écrite. Il naît avec les mécanismes nécessaires pour en construire une.**
+> **Un Lenoseed ne naît pas avec une identité écrite. Il naît avec les mécanismes nécessaires pour en construire une.**
 
 L’identité doit progressivement se former à partir de :
 
@@ -34,7 +34,7 @@ L’identité doit progressivement se former à partir de :
 - ses décisions antérieures ;
 - les conséquences de ses expériences.
 
-LenoSeed sépare conceptuellement :
+Lenoseed sépare conceptuellement :
 
 - le **LLM**, qui comprend, raisonne et produit du langage ;
 - l’**état persistant de l’individu**, qui conserve son histoire et les propriétés durables autorisées par le système.
@@ -71,13 +71,13 @@ Un mécanisme ou un système a été identifié dans une source vérifiable.
 
 ## Probable
 
-Une différence avec LenoSeed apparaît dans les sources disponibles, mais elle devra être vérifiée plus largement.
+Une différence avec Lenoseed apparaît dans les sources disponibles, mais elle devra être vérifiée plus largement.
 
 ## Inconnu
 
 Aucune conclusion solide ne peut encore être formulée.
 
-Cet état de l’art **n’est pas exhaustif**. Il ne constitue donc pas une preuve de nouveauté scientifique ou juridique de LenoSeed.
+Cet état de l’art **n’est pas exhaustif**. Il ne constitue donc pas une preuve de nouveauté scientifique ou juridique de Lenoseed.
 
 Les publications récentes, les projets non publiés, les systèmes industriels propriétaires, les brevets et certains travaux non anglophones peuvent contenir des approches proches qui n’ont pas encore été identifiées.
 
@@ -97,7 +97,7 @@ Sa documentation décrit notamment :
 - différents statuts de relation ;
 - une personnalité et des souvenirs qui évoluent avec les interactions.
 
-### Ressemblance avec LenoSeed
+### Ressemblance avec Lenoseed
 
 - relation durable entre humain et compagnon numérique ;
 - mémoire à long terme ;
@@ -106,7 +106,7 @@ Sa documentation décrit notamment :
 
 ### Différence importante
 
-Le but principal documenté est la qualité de la relation et de la personnalisation du compagnon envers l’utilisateur. LenoSeed cherche plus spécifiquement à savoir si un **état interne autonome et traçable** peut produire une identité fonctionnelle différenciée, sans considérer les affirmations du chatbot comme une preuve suffisante.
+Le but principal documenté est la qualité de la relation et de la personnalisation du compagnon envers l’utilisateur. Lenoseed cherche plus spécifiquement à savoir si un **état interne autonome et traçable** peut produire une identité fonctionnelle différenciée, sans considérer les affirmations du chatbot comme une preuve suffisante.
 
 Références :
 
@@ -121,7 +121,7 @@ Nomi met fortement en avant la mémoire à court, moyen et long terme ainsi que 
 
 La plateforme permet également de définir une histoire de départ et de personnaliser le compagnon.
 
-### Ressemblance avec LenoSeed
+### Ressemblance avec Lenoseed
 
 - mémoire persistante ;
 - continuité relationnelle ;
@@ -129,7 +129,7 @@ La plateforme permet également de définir une histoire de départ et de person
 
 ### Différence importante
 
-LenoSeed cherche volontairement à réduire au minimum l’identité préécrite de la génération 0. Une personnalité ou une biographie configurée par l’utilisateur avant l’existence du compagnon est précisément un mécanisme que LenoSeed cherche à éviter pour ses propriétés centrales.
+Lenoseed cherche volontairement à réduire au minimum l’identité préécrite de la génération 0. Une personnalité ou une biographie configurée par l’utilisateur avant l’existence du compagnon est précisément un mécanisme que Lenoseed cherche à éviter pour ses propriétés centrales.
 
 Référence :
 
@@ -149,7 +149,7 @@ La documentation de Kindroid décrit plusieurs systèmes de mémoire :
 
 La mémoire longue durée est consolidée automatiquement à partir des conversations.
 
-### Ressemblance avec LenoSeed
+### Ressemblance avec Lenoseed
 
 - architecture de mémoire en plusieurs couches ;
 - consolidation ;
@@ -158,7 +158,7 @@ La mémoire longue durée est consolidée automatiquement à partir des conversa
 
 ### Différence importante
 
-Kindroid est avant tout un système de compagnon personnalisable. Sa documentation permet explicitement d’écrire une backstory, des directives et des éléments durables de personnalité. LenoSeed cherche au contraire à empêcher qu’une simple déclaration produite ou écrite devienne automatiquement un trait réel de l’individu.
+Kindroid est avant tout un système de compagnon personnalisable. Sa documentation permet explicitement d’écrire une backstory, des directives et des éléments durables de personnalité. Lenoseed cherche au contraire à empêcher qu’une simple déclaration produite ou écrite devienne automatiquement un trait réel de l’individu.
 
 Référence :
 
@@ -181,11 +181,11 @@ Le système peut :
 
 Les auteurs présentent également **SiliconFriend**, un chatbot de compagnonnage fondé sur ce système.
 
-### Apport pour LenoSeed
+### Apport pour Lenoseed
 
 MemoryBank montre qu’une mémoire externe au LLM, avec oubli et renforcement, peut améliorer une relation conversationnelle longue durée.
 
-### Limite par rapport à LenoSeed
+### Limite par rapport à Lenoseed
 
 Le système cherche principalement à mieux mémoriser l’utilisateur et les interactions. Il ne définit pas à lui seul une architecture complète dans laquelle la personnalité propre de l’agent doit être historiquement justifiée, contrôlée par provenance et testée par ablation.
 
@@ -203,7 +203,7 @@ L’idée centrale consiste à déplacer intelligemment les informations entre p
 
 Les auteurs montrent notamment des agents conversationnels multi-sessions capables de se souvenir, de réfléchir et d’évoluer au cours d’interactions prolongées.
 
-### Apport pour LenoSeed
+### Apport pour Lenoseed
 
 MemGPT est une référence importante pour la séparation entre :
 
@@ -212,9 +212,9 @@ MemGPT est une référence importante pour la séparation entre :
 - récupération d’informations ;
 - modèle de langage sous-jacent.
 
-### Limite par rapport à LenoSeed
+### Limite par rapport à Lenoseed
 
-La persistance de mémoire ne constitue pas automatiquement une théorie de l’identité. LenoSeed doit donc éviter d’assimiler « se souvenir de l’historique » à « posséder une identité construite par l’histoire ».
+La persistance de mémoire ne constitue pas automatiquement une théorie de l’identité. Lenoseed doit donc éviter d’assimiler « se souvenir de l’historique » à « posséder une identité construite par l’histoire ».
 
 Référence :
 
@@ -238,7 +238,7 @@ L’architecture contient notamment :
 
 Les auteurs montrent que l’observation, la planification et la réflexion contribuent toutes au comportement global des agents.
 
-### Ressemblance avec LenoSeed
+### Ressemblance avec Lenoseed
 
 - expérience stockée ;
 - mémoire autobiographique textuelle ;
@@ -249,7 +249,7 @@ Les auteurs montrent que l’observation, la planification et la réflexion cont
 
 ### Différence importante
 
-Les Generative Agents sont conçus comme des simulations crédibles de comportements humains dans un environnement de type petite ville. Leurs profils sont initialisés avec des descriptions de personnages. LenoSeed cherche au contraire à étudier la **formation progressive d’une identité qui n’est pas écrite à l’avance**.
+Les Generative Agents sont conçus comme des simulations crédibles de comportements humains dans un environnement de type petite ville. Leurs profils sont initialisés avec des descriptions de personnages. Lenoseed cherche au contraire à étudier la **formation progressive d’une identité qui n’est pas écrite à l’avance**.
 
 Référence :
 
@@ -269,13 +269,13 @@ Référence :
 - génération de réponse ;
 - modélisation dynamique de la persona de l’utilisateur et de l’agent.
 
-### Ressemblance avec LenoSeed
+### Ressemblance avec Lenoseed
 
-Le fait que la persona de l’agent puisse être reconstruite ou mise à jour à partir de l’historique est directement pertinent pour LenoSeed.
+Le fait que la persona de l’agent puisse être reconstruite ou mise à jour à partir de l’historique est directement pertinent pour Lenoseed.
 
 ### Différence à vérifier
 
-LD-Agent vise principalement la qualité du dialogue personnalisé. LenoSeed impose des contraintes supplémentaires sur l’origine des traits, la séparation entre déclaration linguistique et état durable, ainsi que la causalité des décisions.
+LD-Agent vise principalement la qualité du dialogue personnalisé. Lenoseed impose des contraintes supplémentaires sur l’origine des traits, la séparation entre déclaration linguistique et état durable, ainsi que la causalité des décisions.
 
 Référence :
 
@@ -297,12 +297,12 @@ Le système est particulièrement pertinent pour étudier les interactions entre
 
 ### Différence importante
 
-La persona reste ici principalement un mécanisme de personnalisation et d’alignement envers l’utilisateur. LenoSeed cherche à permettre une distinction réelle entre :
+La persona reste ici principalement un mécanisme de personnalisation et d’alignement envers l’utilisateur. Lenoseed cherche à permettre une distinction réelle entre :
 
 - ce que l’humain préfère ;
 - ce que l’humain croit ;
-- ce que le LenoSeed apprend à préférer ;
-- ce que le LenoSeed apprend à croire.
+- ce que le Lenoseed apprend à préférer ;
+- ce que le Lenoseed apprend à croire.
 
 Référence :
 
@@ -322,11 +322,11 @@ Le système structure la mémoire en :
 
 Les résultats présentés montrent que la mémoire structurée peut améliorer la continuité de persona et la continuité émotionnelle par rapport à un historique brut.
 
-### Importance pour LenoSeed
+### Importance pour Lenoseed
 
 Ce travail renforce l’idée qu’une mémoire structurée est plus pertinente qu’une accumulation intégrale de conversations.
 
-Il constitue aussi un avertissement : une partie de ce que LenoSeed pourrait appeler « continuité » peut déjà être obtenue par des mécanismes relativement classiques de mémoire et de récupération. Les expériences de LenoSeed devront donc démontrer ce que son architecture apporte au-delà de cette amélioration conversationnelle.
+Il constitue aussi un avertissement : une partie de ce que Lenoseed pourrait appeler « continuité » peut déjà être obtenue par des mécanismes relativement classiques de mémoire et de récupération. Les expériences de Lenoseed devront donc démontrer ce que son architecture apporte au-delà de cette amélioration conversationnelle.
 
 Référence :
 
@@ -346,13 +346,13 @@ Voyager est un agent autonome dans Minecraft qui :
 - utilise les retours de l’environnement et les erreurs pour s’améliorer ;
 - transfère ses acquis vers de nouvelles situations.
 
-### Apport pour LenoSeed
+### Apport pour Lenoseed
 
 Voyager démontre qu’un LLM peut être entouré de mécanismes persistants qui accumulent réellement de l’expérience au lieu de seulement conserver une conversation.
 
 ### Différence importante
 
-L’unité principalement accumulée par Voyager est la **compétence utile**. LenoSeed cherche en plus des transformations durables concernant identité, préférences, croyances, valeurs, relations et objectifs.
+L’unité principalement accumulée par Voyager est la **compétence utile**. Lenoseed cherche en plus des transformations durables concernant identité, préférences, croyances, valeurs, relations et objectifs.
 
 Référence :
 
@@ -369,13 +369,13 @@ Le cadre **Experience-driven Lifelong Learning (ELL)** décrit des agents capabl
 - apprentissage de compétences ;
 - internalisation des connaissances.
 
-### Importance pour LenoSeed
+### Importance pour Lenoseed
 
 Ce domaine rapproche fortement la recherche sur les agents LLM de l’idée d’un système qui possède une véritable histoire d’apprentissage.
 
 ### Différence importante
 
-L’objectif principal reste l’amélioration des capacités et des compétences de l’agent. LenoSeed s’intéresse à la formation d’un individu et à la continuité de son identité, ce qui constitue une question différente même si les mécanismes peuvent se recouvrir.
+L’objectif principal reste l’amélioration des capacités et des compétences de l’agent. Lenoseed s’intéresse à la formation d’un individu et à la continuité de son identité, ce qui constitue une question différente même si les mécanismes peuvent se recouvrir.
 
 Référence :
 
@@ -387,7 +387,7 @@ Référence :
 
 ## 8.1 Memory as Ontology / Animesis — 2026
 
-**Memory as Ontology: A Constitutional Memory Architecture for Persistent Digital Citizens** est l’un des travaux actuellement identifiés comme les plus proches de certains principes centraux de LenoSeed.
+**Memory as Ontology: A Constitutional Memory Architecture for Persistent Digital Citizens** est l’un des travaux actuellement identifiés comme les plus proches de certains principes centraux de Lenoseed.
 
 Le papier défend explicitement l’idée que, pour un agent vivant sur de longues durées :
 
@@ -397,9 +397,9 @@ Le papier défend explicitement l’idée que, pour un agent vivant sur de longu
 
 Le système proposé, **Animesis**, utilise une architecture de mémoire gouvernée et un cycle de vie destiné à des « citoyens numériques » persistants.
 
-### Ressemblance forte avec LenoSeed
+### Ressemblance forte avec Lenoseed
 
-LenoSeed affirme lui aussi que :
+Lenoseed affirme lui aussi que :
 
 > le LLM n’est pas l’identité de l’individu.
 
@@ -407,7 +407,7 @@ Cette proximité doit être prise au sérieux.
 
 ### Différences actuellement identifiées
 
-LenoSeed ajoute des questions spécifiques qui ne constituent pas le centre du papier Animesis :
+Lenoseed ajoute des questions spécifiques qui ne constituent pas le centre du papier Animesis :
 
 - naissance avec identité minimale plutôt qu’identité déjà constituée ;
 - formation historique contrôlée des préférences et croyances ;
@@ -429,7 +429,7 @@ Référence :
 
 ## 9.1 OpenLife — 2026
 
-**OpenLife: Toward Open-World Artificial Life with Autonomous LLM Agents** constitue une autre référence particulièrement importante pour LenoSeed.
+**OpenLife: Toward Open-World Artificial Life with Autonomous LLM Agents** constitue une autre référence particulièrement importante pour Lenoseed.
 
 OpenLife entoure un LLM sans état avec plusieurs processus asynchrones comprenant notamment :
 
@@ -448,7 +448,7 @@ Les auteurs rapportent, sur plusieurs semaines, des phénomènes de :
 
 Ils restent prudents et ne prétendent pas avoir créé la vie artificielle.
 
-### Ressemblance forte avec LenoSeed
+### Ressemblance forte avec Lenoseed
 
 - LLM considéré comme composant d’un système plus large ;
 - persistance externe au modèle ;
@@ -458,9 +458,9 @@ Ils restent prudents et ne prétendent pas avoir créé la vie artificielle.
 
 ### Différences actuellement identifiées
 
-LenoSeed se concentre initialement sur une relation individuelle humain ↔ LenoSeed et sur la construction contrôlée d’une identité personnelle. OpenLife étudie davantage des agents autonomes placés dans un monde ouvert et social.
+Lenoseed se concentre initialement sur une relation individuelle humain ↔ Lenoseed et sur la construction contrôlée d’une identité personnelle. OpenLife étudie davantage des agents autonomes placés dans un monde ouvert et social.
 
-Aucune transmission intergénérationnelle comparable au modèle actuellement prévu par LenoSeed n’a été identifiée dans ce travail.
+Aucune transmission intergénérationnelle comparable au modèle actuellement prévu par Lenoseed n’a été identifiée dans ce travail.
 
 Référence :
 
@@ -472,7 +472,7 @@ Référence :
 
 Les idées de naissance, évolution, reproduction, mutation et lignées numériques sont bien antérieures aux LLM.
 
-LenoSeed ne doit donc pas présenter la reproduction numérique comme une idée nouvelle en elle-même.
+Lenoseed ne doit donc pas présenter la reproduction numérique comme une idée nouvelle en elle-même.
 
 ## 10.1 Tierra
 
@@ -505,9 +505,9 @@ Elle permet d’étudier de manière contrôlée :
 - évolution de populations numériques ;
 - généalogie et changements de génomes numériques.
 
-### Importance pour LenoSeed
+### Importance pour Lenoseed
 
-Avida représente une référence méthodologique importante si LenoSeed introduit ultérieurement des mécanismes de variation héréditaire.
+Avida représente une référence méthodologique importante si Lenoseed introduit ultérieurement des mécanismes de variation héréditaire.
 
 Référence :
 
@@ -526,11 +526,11 @@ Karl Sims a montré dès 1994 que des créatures virtuelles pouvaient recevoir :
 - une sélection ;
 - une descendance.
 
-### Importance pour LenoSeed
+### Importance pour Lenoseed
 
 Ce travail montre que la combinaison de patrimoine parental, mutation et descendance numérique possède une longue histoire en vie artificielle.
 
-La spécificité éventuelle de LenoSeed ne peut donc pas être « des créatures numériques font des enfants ».
+La spécificité éventuelle de Lenoseed ne peut donc pas être « des créatures numériques font des enfants ».
 
 Références :
 
@@ -552,15 +552,15 @@ Ce travail applique explicitement à une population de LLM les notions de :
 - succession ;
 - création de modèles descendants.
 
-### Ressemblance avec LenoSeed
+### Ressemblance avec Lenoseed
 
-Le vocabulaire et certains mécanismes de recombinaison peuvent sembler proches de la future reproduction des LenoSeeds.
+Le vocabulaire et certains mécanismes de recombinaison peuvent sembler proches de la future reproduction des Lenoseeds.
 
 ### Différence fondamentale
 
 L’objectif est d’améliorer les performances d’une **population de modèles de langage** sur des tâches. Les descendants sont des modèles ou configurations héritant de capacités optimisées.
 
-LenoSeed prévoit autre chose : le LLM sous-jacent peut rester un moteur remplaçable tandis que le descendant reçoit un patrimoine constitutif et culturel provenant d’individus numériques persistants.
+Lenoseed prévoit autre chose : le LLM sous-jacent peut rester un moteur remplaçable tandis que le descendant reçoit un patrimoine constitutif et culturel provenant d’individus numériques persistants.
 
 Référence :
 
@@ -585,7 +585,7 @@ Référence :
 | Tierra / Avida | Oui au sens état/génome | Organisme numérique | Oui par évolution | Oui | **Oui** | Héritage génétique numérique | Sans LLM |
 | Karl Sims | Génome numérique | Créature distincte | Évolution | Oui | **Oui** | Héritage génétique numérique | Sans LLM |
 | Évolution populationnelle de LLM | Paramètres / expérience | Modèle descendant | Oui | Non central | **Oui** | Succession de capacités | Non pertinent |
-| **LenoSeed visé** | **Oui** | **Oui** | **Oui** | **Progressivement** | **Prévue** | **Prévue** | **Oui, principe central** |
+| **Lenoseed visé** | **Oui** | **Oui** | **Oui** | **Progressivement** | **Prévue** | **Prévue** | **Oui, principe central** |
 
 Cette table est une simplification destinée à l’orientation du projet et non une classification définitive des systèmes cités.
 
@@ -593,7 +593,7 @@ Cette table est une simplification destinée à l’orientation du projet et non
 
 # 13. Ce qui est déjà clairement connu
 
-À ce stade, les éléments suivants **ne doivent pas être présentés comme des inventions de LenoSeed pris isolément** :
+À ce stade, les éléments suivants **ne doivent pas être présentés comme des inventions de Lenoseed pris isolément** :
 
 - compagnon IA à relation longue durée ;
 - mémoire externe au LLM ;
@@ -614,9 +614,9 @@ Cette table est une simplification destinée à l’orientation du projet et non
 
 ---
 
-# 14. Ce qui paraît actuellement plus spécifique à LenoSeed
+# 14. Ce qui paraît actuellement plus spécifique à Lenoseed
 
-À partir des sources examinées jusqu’au 10 août 2026, l’intérêt potentiel de LenoSeed semble se situer moins dans une brique isolée que dans la **combinaison expérimentale** des contraintes suivantes :
+À partir des sources examinées jusqu’au 10 août 2026, l’intérêt potentiel de Lenoseed semble se situer moins dans une brique isolée que dans la **combinaison expérimentale** des contraintes suivantes :
 
 ## 14.1 Naissance avec identité minimale
 
@@ -630,7 +630,7 @@ Le LLM n’a pas le droit de transformer directement une phrase plausible en pro
 
 ## 14.3 Séparation entre état, motivation, décision et expression
 
-LenoSeed cherche à distinguer explicitement :
+Lenoseed cherche à distinguer explicitement :
 
 ```text
 état persistant
@@ -658,11 +658,11 @@ Les propriétés revendiquées doivent être reliées à un mécanisme et, lorsq
 
 Ce principe possède une proximité forte avec Animesis et d’autres architectures de mémoire persistante. Il ne doit donc pas être revendiqué seul comme nouveauté.
 
-La question spécifique de LenoSeed est plutôt de déterminer si **l’identité historiquement construite** reste suffisamment stable et causalement active après le remplacement du moteur linguistique.
+La question spécifique de Lenoseed est plutôt de déterminer si **l’identité historiquement construite** reste suffisamment stable et causalement active après le remplacement du moteur linguistique.
 
 ## 14.6 Transmission intergénérationnelle multi-couche
 
-Le futur système d’héritage de LenoSeed prévoit de distinguer :
+Le futur système d’héritage de Lenoseed prévoit de distinguer :
 
 - patrimoine constitutif ;
 - caractéristiques acquises ;
@@ -692,7 +692,7 @@ Cette phrase ne constitue pas une preuve d’inédit. Elle signifie uniquement :
 
 # 15. Travaux les plus proches à surveiller en priorité
 
-L’ordre de priorité actuel pour la veille scientifique de LenoSeed est le suivant.
+L’ordre de priorité actuel pour la veille scientifique de Lenoseed est le suivant.
 
 ## Priorité 1 — OpenLife
 
@@ -730,7 +730,7 @@ Pourquoi : empêche de réinventer naïvement des concepts d’hérédité, muta
 
 # 16. Risques de faux sentiment de nouveauté
 
-LenoSeed devra être particulièrement prudent face à plusieurs confusions possibles.
+Lenoseed devra être particulièrement prudent face à plusieurs confusions possibles.
 
 ## 16.1 Mémoire ≠ identité
 
@@ -754,7 +754,7 @@ Des architectures récentes étudient déjà explicitement la persistance d’un
 
 ## 16.6 Comportement impressionnant ≠ mécanisme démontré
 
-Le critère important pour LenoSeed doit rester la présence d’un mécanisme testable, et non l’impression subjective produite par la conversation.
+Le critère important pour Lenoseed doit rester la présence d’un mécanisme testable, et non l’impression subjective produite par la conversation.
 
 ---
 
@@ -768,28 +768,28 @@ Cet état de l’art doit être approfondi sur les questions suivantes :
 4. Existe-t-il des travaux sur une mémoire autobiographique qui distingue strictement expérience vécue, information apprise et souvenir transmis par un ancêtre ?
 5. Existe-t-il des systèmes de compagnons IA dans lesquels deux agents appartenant à deux humains différents produisent un descendant persistant ?
 6. Existe-t-il des systèmes de reproduction d’agents qui transmettent à la fois dispositions, culture et fragments ancestraux avec provenance ?
-7. Comment la recherche sur l’open-ended evolution peut-elle éviter la convergence des lignées LenoSeed vers des profils moyens ?
+7. Comment la recherche sur l’open-ended evolution peut-elle éviter la convergence des lignées Lenoseed vers des profils moyens ?
 8. Quels mécanismes de confidentialité sont déjà étudiés pour empêcher une mémoire privée de traverser une lignée numérique ?
 9. Comment distinguer expérimentalement une identité réellement dépendante de l’histoire d’une simple reconstruction de persona à partir d’un résumé de mémoire ?
 10. Quelles métriques permettent de mesurer la continuité d’un individu lorsque le LLM sous-jacent est remplacé ?
 
 ---
 
-# 18. Positionnement provisoire de LenoSeed
+# 18. Positionnement provisoire de Lenoseed
 
-**Certain :** la plupart des briques techniques envisagées par LenoSeed existent déjà séparément dans plusieurs domaines de recherche.
+**Certain :** la plupart des briques techniques envisagées par Lenoseed existent déjà séparément dans plusieurs domaines de recherche.
 
 **Certain :** la mémoire persistante, les agents autonomes, la personnalisation, les systèmes de persona, la vie artificielle et la reproduction numérique ne sont pas des concepts nouveaux pris isolément.
 
-**Certain :** certains travaux de 2026, notamment OpenLife et Animesis, se rapprochent fortement de plusieurs idées centrales de LenoSeed.
+**Certain :** certains travaux de 2026, notamment OpenLife et Animesis, se rapprochent fortement de plusieurs idées centrales de Lenoseed.
 
-**Probable :** l’intérêt expérimental de LenoSeed se trouve dans la manière dont il combine formation progressive d’identité, causalité traçable, séparation du LLM, relation humaine, évolution sur le temps long et futur héritage intergénérationnel.
+**Probable :** l’intérêt expérimental de Lenoseed se trouve dans la manière dont il combine formation progressive d’identité, causalité traçable, séparation du LLM, relation humaine, évolution sur le temps long et futur héritage intergénérationnel.
 
 **Inconnu :** il n’est pas encore possible d’affirmer que cette combinaison est scientifiquement inédite.
 
 La position correcte du projet est donc actuellement :
 
-> **LenoSeed explore une combinaison particulière de mécanismes déjà partiellement présents dans plusieurs champs. Le projet doit démontrer expérimentalement ce que cette combinaison produit de plus que les architectures existantes, plutôt que supposer sa nouveauté.**
+> **Lenoseed explore une combinaison particulière de mécanismes déjà partiellement présents dans plusieurs champs. Le projet doit démontrer expérimentalement ce que cette combinaison produit de plus que les architectures existantes, plutôt que supposer sa nouveauté.**
 
 ---
 
@@ -845,15 +845,15 @@ La position correcte du projet est donc actuellement :
 
 # 20. Règle de maintenance de ce document
 
-Chaque fois qu’un nouveau mécanisme important est envisagé pour LenoSeed, avant de le considérer comme potentiellement original :
+Chaque fois qu’un nouveau mécanisme important est envisagé pour Lenoseed, avant de le considérer comme potentiellement original :
 
 1. rechercher les travaux antérieurs correspondants ;
 2. ajouter les références pertinentes ici ;
 3. décrire précisément les ressemblances ;
 4. décrire précisément les différences ;
 5. identifier un test permettant de mesurer la différence ;
-6. modifier le positionnement de LenoSeed si une antériorité plus proche est découverte.
+6. modifier le positionnement de Lenoseed si une antériorité plus proche est découverte.
 
 Un état de l’art utile n’est pas un document destiné à défendre le projet.
 
-Il doit être capable de montrer que certaines idées de LenoSeed existaient déjà avant lui et d’obliger le projet à préciser ce qu’il cherche réellement à apporter.
+Il doit être capable de montrer que certaines idées de Lenoseed existaient déjà avant lui et d’obliger le projet à préciser ce qu’il cherche réellement à apporter.

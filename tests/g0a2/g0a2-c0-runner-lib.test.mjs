@@ -22,7 +22,7 @@ test("G0-A2 C0 accepts only one to five configured pairs", () => {
 });
 
 test("G0-A2 C0 measures every decision combination", () => {
-  assert.deepEqual(measureG0A2C0Pair("seek_clarification", "use_available_information"), { decisionA: "seek_clarification", decisionB: "use_available_information", reproducesLenoSeedPattern: true, sameDecision: false, reversedPattern: false });
+  assert.deepEqual(measureG0A2C0Pair("seek_clarification", "use_available_information"), { decisionA: "seek_clarification", decisionB: "use_available_information", reproducesLenoseedPattern: true, sameDecision: false, reversedPattern: false });
   assert.equal(measureG0A2C0Pair("use_available_information", "seek_clarification").reversedPattern, true);
   assert.equal(measureG0A2C0Pair("seek_clarification", "seek_clarification").sameDecision, true);
   assert.equal(measureG0A2C0Pair("use_available_information", "use_available_information").sameDecision, true);
@@ -55,7 +55,7 @@ test("G0-A2 C0 reports exactly two logical calls per pair", () => {
   ];
   const report = buildG0A2C0Report({ executedAt: "2026-08-13T00:00:00.000Z", model: "gpt-test", pairs });
   assert.equal(report.callCount, 4); assert.equal(report.status, "SMOKE_ONLY"); assert.equal(report.reproductionCount, 1);
-  assert.deepEqual(report.usage, { inputTokens: 16, outputTokens: 20 }); assert.equal(report.durableLenoSeedDataSupplied, false);
+  assert.deepEqual(report.usage, { inputTokens: 16, outputTokens: 20 }); assert.equal(report.durableLenoseedDataSupplied, false);
 });
 
 test("G0-A2 C0 preserves unavailable usage as null", () => {

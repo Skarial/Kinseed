@@ -11,7 +11,7 @@ import type { PersistencePort } from "../ports/persistence.js";
 const DECISION_STYLE_UNDER_UNCERTAINTY = "decision_style_under_uncertainty";
 
 export interface BuildG0A2S5DecisionContextInput {
-  readonly lenoSeedId: EntityId;
+  readonly lenoseedId: EntityId;
   readonly situationEvent: Event;
   readonly includeSelfHypotheses: boolean;
 }
@@ -21,12 +21,12 @@ export async function buildG0A2S5DecisionContext(
   persistence: PersistencePort,
 ): Promise<G0A2DecisionContext> {
   validateS5SituationEvent(input.situationEvent);
-  if (input.situationEvent.lenoSeedId !== input.lenoSeedId) {
+  if (input.situationEvent.lenoseedId !== input.lenoseedId) {
     throw new DomainInvariantError(
-      `G0-A2 S5 situation ${input.situationEvent.id} belongs to another LenoSeed`,
+      `G0-A2 S5 situation ${input.situationEvent.id} belongs to another Lenoseed`,
     );
   }
-  const stateVersion = await persistence.getStateVersion(input.lenoSeedId);
+  const stateVersion = await persistence.getStateVersion(input.lenoseedId);
   if (stateVersion !== input.situationEvent.observedStateVersion) {
     throw new DomainInvariantError(
       `G0-A2 S5 situation ${input.situationEvent.id} has an ambiguous durable snapshot`,
@@ -39,9 +39,9 @@ export async function buildG0A2S5DecisionContext(
     };
   }
   const active = await persistence.readActiveSelfHypothesisByKey(
-    input.lenoSeedId,
+    input.lenoseedId,
     buildSelfHypothesisKey({
-      subjectRef: input.lenoSeedId,
+      subjectRef: input.lenoseedId,
       predicate: DECISION_STYLE_UNDER_UNCERTAINTY,
       value: "seek_clarification",
       context: { protocol: "G0-A2" },

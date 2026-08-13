@@ -1,4 +1,4 @@
-# LenoSeed — G0-A : contrat d’un tour et événements minimaux
+# Lenoseed — G0-A : contrat d’un tour et événements minimaux
 
 ## Statut du document
 
@@ -14,7 +14,7 @@ Le but est de garantir une propriété simple :
 
 # 1. Un seul tour mutateur à la fois
 
-Pour G0-A, les tours d’un même LenoSeed sont sérialisés.
+Pour G0-A, les tours d’un même Lenoseed sont sérialisés.
 
 Deux messages ne doivent pas modifier simultanément le même état durable.
 
@@ -89,7 +89,7 @@ Cette règle évite de confondre le fait brut « un message a été reçu » ave
 
 # 4. `lenoseed_created`
 
-Premier événement autobiographique et technique du LenoSeed.
+Premier événement autobiographique et technique du Lenoseed.
 
 Exemple :
 
@@ -132,7 +132,7 @@ Le contenu peut être référencé plutôt que dupliqué directement dans le jou
 
 Règle importante :
 
-> **Le message doit être enregistré avant toute décision LenoSeed fondée sur ce message.**
+> **Le message doit être enregistré avant toute décision Lenoseed fondée sur ce message.**
 
 Ainsi, aucune réponse significative ne peut apparaître dans l’histoire sans entrée correspondante.
 
@@ -162,7 +162,7 @@ Cette unité subit une validation minimale d’extraction avant d’être utilis
 
 Elle reste cependant **éphémère** jusqu’au post-traitement.
 
-Elle peut aider LenoSeed à détecter une contradiction et à poser une question, mais elle ne devient pas encore une croyance persistante.
+Elle peut aider Lenoseed à détecter une contradiction et à poser une question, mais elle ne devient pas encore une croyance persistante.
 
 ---
 
@@ -288,7 +288,7 @@ payload:
   generation_metadata_ref: GEN-...
 ```
 
-Un brouillon rejeté n’est donc pas traité comme une parole autobiographique réellement prononcée par LenoSeed.
+Un brouillon rejeté n’est donc pas traité comme une parole autobiographique réellement prononcée par Lenoseed.
 
 ---
 
@@ -314,7 +314,7 @@ Règle :
 > **La réponse a déjà été décidée. Le post-traitement ne peut plus modifier rétroactivement pourquoi elle a été produite.**
 
 Cette règle n'empêche pas une validation temporaire préalable. Avant
-`intention_selected`, LenoSeed valide les candidats extraits du message courant
+`intention_selected`, Lenoseed valide les candidats extraits du message courant
 afin qu'un candidat irrecevable ne puisse pas influencer la décision du tour.
 Le résultat complet est journalisé par un unique `validation_decision_recorded`
 de lot avant `intention_selected`. Il constitue le checkpoint `EVIDENCE_READY`.
@@ -353,7 +353,7 @@ Le système peut ainsi expliquer pourquoi une hypothèse n’a pas été créée
 
 Pour un rejet lexical de candidat temporaire, `decision` vaut `reject`. Ce n'est
 pas un `processing_failure_recorded` : ce dernier reste réservé à une anomalie
-interne, telle qu'un événement LenoSeed introuvable, un payload de message
+interne, telle qu'un événement Lenoseed introuvable, un payload de message
 inexploitable, une erreur de persistence ou une exception inattendue.
 
 ## 12.1 Checkpoint de preuves temporaires G0-A1
@@ -391,7 +391,7 @@ Un résultat sans candidat est représenté par `outcomes: []`. L'absence de cet
 Event reste ambiguë et ne doit jamais être interprétée comme une extraction vide.
 
 Le `candidateSnapshot` d'un `ACCEPT` ne contient ni `eventId` ni `sourceId` :
-LenoSeed les reconstruit depuis le `human_message_received` du tour. Aucun snapshot
+Lenoseed les reconstruit depuis le `human_message_received` du tour. Aucun snapshot
 complet d'un `REJECT` n'est requis en G0-A1.
 
 Les payloads `validation_decision_recorded` de version 1 restent des événements
@@ -522,7 +522,7 @@ Le `turn_id` et les événements déjà écrits permettent de reconstruire cette
 
 Cette propriété est importante :
 
-> **un crash après la réponse ne doit ni faire parler LenoSeed deux fois, ni créer un demi-changement identitaire.**
+> **un crash après la réponse ne doit ni faire parler Lenoseed deux fois, ni créer un demi-changement identitaire.**
 
 ---
 
@@ -641,7 +641,7 @@ E. FINALIZED
 ```
 
 Une intention ou une réponse sans checkpoint `temporary_evidence` complet est un
-état impossible. LenoSeed échoue fermé et enregistre si possible un
+état impossible. Lenoseed échoue fermé et enregistre si possible un
 `processing_failure_recorded` ; il ne tente jamais une nouvelle extraction
 silencieuse.
 
@@ -673,7 +673,7 @@ Le prototype privilégie donc la causalité claire à la performance maximale.
 
 # 20. Différence entre journal autobiographique et logs techniques
 
-Tous les détails techniques n’ont pas besoin d’entrer dans l’histoire conceptuelle du LenoSeed.
+Tous les détails techniques n’ont pas besoin d’entrer dans l’histoire conceptuelle du Lenoseed.
 
 Exemples pouvant rester dans des logs opérationnels :
 
@@ -690,7 +690,7 @@ Le journal `Event` doit contenir ce qui est nécessaire pour reconstruire :
 - les changements d’état ;
 - les échecs ayant interrompu la continuité.
 
-Cette séparation évite de transformer LenoSeed en journal de serveur géant.
+Cette séparation évite de transformer Lenoseed en journal de serveur géant.
 
 ---
 
@@ -740,7 +740,7 @@ Le tour est alors finalisé.
 
 Les invariants G0-A sont :
 
-1. aucun message LenoSeed émis sans `human_message_received` correspondant dans un tour conversationnel normal ;
+1. aucun message Lenoseed émis sans `human_message_received` correspondant dans un tour conversationnel normal ;
 2. aucune réponse importante sans intention sélectionnée enregistrée ;
 3. aucune nouvelle croyance durable avant émission de la réponse du même tour ;
 4. aucune écriture durable partielle ;
@@ -774,7 +774,7 @@ Après ce contrat, les structures conceptuelles et le flux transactionnel minima
 
 La prochaine étape consiste à définir un scénario expérimental très réduit :
 
-- état initial exact de deux LenoSeeds ;
+- état initial exact de deux Lenoseeds ;
 - suite d’événements imposée à A et B ;
 - EvidenceItem attendus ;
 - croyances et SelfHypothesis autorisées ou interdites ;

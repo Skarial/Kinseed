@@ -2,24 +2,24 @@
 
 - **Statut :** accepté
 - **Date :** 2026-08-10
-- **Périmètre :** application LenoSeed
+- **Périmètre :** application Lenoseed
 - **Décision :** TypeScript + HTML/CSS + Capacitor
 
 ## 1. Contexte
 
-LenoSeed a vocation à devenir une application mobile distribuable au grand public.
+Lenoseed a vocation à devenir une application mobile distribuable au grand public.
 
 La cible initiale est **Android**, avec publication envisagée sur le **Google Play Store**. Si le projet rencontre un intérêt suffisant, une version **iOS** devra ensuite pouvoir être publiée sur l'**App Store** sans nécessiter la réécriture complète de l'application.
 
 Le projet doit également conserver une architecture suffisamment claire pour faire évoluer indépendamment :
 
-- le cœur métier de LenoSeed ;
+- le cœur métier de Lenoseed ;
 - l'interface utilisateur ;
 - le stockage local ;
 - les éventuels services distants ;
 - les fonctions propres à Android ou iOS.
 
-Le choix technique doit donc privilégier une base de code commune, une complexité raisonnable et une séparation nette entre la logique de LenoSeed et la couche mobile.
+Le choix technique doit donc privilégier une base de code commune, une complexité raisonnable et une séparation nette entre la logique de Lenoseed et la couche mobile.
 
 ## 2. Décision
 
@@ -39,7 +39,7 @@ La priorité de développement est :
 
 ## 3. Principe d'architecture
 
-Capacitor ne doit pas devenir le cœur de l'architecture de LenoSeed.
+Capacitor ne doit pas devenir le cœur de l'architecture de Lenoseed.
 
 Le cœur métier doit rester aussi indépendant que possible de :
 
@@ -59,7 +59,7 @@ Capacitor
     │
 Interface HTML / CSS / TypeScript
     │
-Cœur métier LenoSeed en TypeScript
+Cœur métier Lenoseed en TypeScript
     │
 Stockage / synchronisation / services externes
 ```
@@ -70,7 +70,7 @@ Les concepts centraux du projet — événements, sources, mémoires, croyances,
 
 TypeScript est retenu plutôt que JavaScript pur principalement pour mieux sécuriser les structures de données et les relations entre les objets du domaine.
 
-LenoSeed doit manipuler de nombreuses entités fortement liées entre elles. Le typage statique permettra notamment de :
+Lenoseed doit manipuler de nombreuses entités fortement liées entre elles. Le typage statique permettra notamment de :
 
 - définir explicitement la forme des événements, mémoires, croyances et autres entités ;
 - détecter plus tôt certaines incohérences ;
@@ -93,7 +93,7 @@ Son rôle doit rester limité à ce qui concerne la plateforme, par exemple :
 - intégration avec les fonctions propres au téléphone ;
 - packaging destiné aux stores.
 
-Lorsqu'une fonction native spécifique est nécessaire, du code Kotlin ou Swift pourra être ajouté localement sans déplacer le cœur métier de LenoSeed vers ces langages.
+Lorsqu'une fonction native spécifique est nécessaire, du code Kotlin ou Swift pourra être ajouté localement sans déplacer le cœur métier de Lenoseed vers ces langages.
 
 ## 6. Alternatives considérées
 
@@ -119,7 +119,7 @@ Swift reste autorisé pour une intégration iOS spécifique si elle devient néc
 
 Flutter permet une base de code multiplateforme, mais introduirait Dart et un nouvel écosystème complet alors que les besoins actuels peuvent être couverts avec des technologies web déjà proches des compétences existantes du projet.
 
-Cette option pourra être réévaluée si LenoSeed développe plus tard des exigences graphiques ou natives que la stack retenue gère mal.
+Cette option pourra être réévaluée si Lenoseed développe plus tard des exigences graphiques ou natives que la stack retenue gère mal.
 
 ### React Native
 
@@ -148,7 +148,7 @@ React Native permet également de cibler Android et iOS, mais ajouterait React e
 - une continuité avec les technologies web ;
 - une architecture compatible avec une approche mobile et potentiellement PWA ;
 - une séparation claire entre domaine et plateforme ;
-- un typage utile pour les structures complexes de LenoSeed ;
+- un typage utile pour les structures complexes de Lenoseed ;
 - la possibilité d'ajouter ponctuellement du natif sans réécrire tout le projet.
 
 ### Contraintes acceptées
@@ -164,7 +164,7 @@ Cette décision est structurante mais non irréversible.
 
 Elle devra être réexaminée si l'un des cas suivants apparaît :
 
-- une fonction essentielle de LenoSeed ne peut pas être correctement réalisée avec Capacitor ;
+- une fonction essentielle de Lenoseed ne peut pas être correctement réalisée avec Capacitor ;
 - les performances deviennent insuffisantes pour un besoin central du produit ;
 - l'interface exige des capacités graphiques ou natives incompatibles avec cette approche ;
 - le coût de maintenance des adaptations natives devient supérieur au bénéfice de la base commune ;

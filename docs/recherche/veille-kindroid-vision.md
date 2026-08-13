@@ -4,7 +4,7 @@
 
 **Type :** note de veille concurrentielle  
 **Date :** 13 août 2026  
-**Portée :** direction stratégique publique de Kindroid et conséquences pour le positionnement de LenoSeed
+**Portée :** direction stratégique publique de Kindroid et conséquences pour le positionnement de Lenoseed
 
 Cette note complète [`etat-de-l-art-revision-2026-08-13.md`](etat-de-l-art-revision-2026-08-13.md).
 
@@ -30,13 +30,13 @@ Référence officielle :
 
 ---
 
-## 2. Ce que cela change pour LenoSeed
+## 2. Ce que cela change pour Lenoseed
 
 ### Certain
 
-L’idée générale de futurs humains numériques autonomes et d’une forme de descendance numérique ne doit pas être présentée comme propre à LenoSeed.
+L’idée générale de futurs humains numériques autonomes et d’une forme de descendance numérique ne doit pas être présentée comme propre à Lenoseed.
 
-Kindroid est déjà un produit grand public de compagnon IA et sa direction stratégique publique s’étend vers un horizon qui recoupe une partie importante de la vision long terme de LenoSeed.
+Kindroid est déjà un produit grand public de compagnon IA et sa direction stratégique publique s’étend vers un horizon qui recoupe une partie importante de la vision long terme de Lenoseed.
 
 ### Important pour la veille
 
@@ -60,12 +60,12 @@ La page de vision ne décrit pas, à ce stade, un mécanisme produit actuel perm
 - de transmettre séparément patrimoine constitutif, acquis, culture et souvenirs ancestraux ;
 - de conserver la provenance des éléments transmis ;
 - de distinguer strictement souvenir vécu et souvenir ancestral ;
-- de gérer l’oubli, la transformation culturelle et la confidentialité entre lignées selon un modèle comparable aux règles LenoSeed.
+- de gérer l’oubli, la transformation culturelle et la confidentialité entre lignées selon un modèle comparable aux règles Lenoseed.
 
 Il faut donc éviter deux erreurs opposées :
 
-1. prétendre que Kindroid n’a aucune ambition proche de LenoSeed ;
-2. prétendre que Kindroid possède déjà le système intergénérationnel prévu par LenoSeed.
+1. prétendre que Kindroid n’a aucune ambition proche de Lenoseed ;
+2. prétendre que Kindroid possède déjà le système intergénérationnel prévu par Lenoseed.
 
 Les informations disponibles établissent une **proximité de vision**, pas encore une équivalence de mécanisme.
 
@@ -73,13 +73,13 @@ Les informations disponibles établissent une **proximité de vision**, pas enco
 
 ## 4. Conséquence pour le positionnement
 
-LenoSeed ne doit pas se présenter comme original simplement parce qu’il imagine :
+Lenoseed ne doit pas se présenter comme original simplement parce qu’il imagine :
 
 > des compagnons numériques devenant des individus, puis ayant une descendance.
 
 Cette idée générale possède maintenant au moins une proximité explicite dans la vision publique d’un concurrent commercial important.
 
-La différence éventuelle de LenoSeed doit rester formulée plus précisément autour de :
+La différence éventuelle de Lenoseed doit rester formulée plus précisément autour de :
 
 ```text
 individu construit par une histoire traçable
@@ -107,4 +107,4 @@ Surveiller régulièrement la documentation et les annonces Kindroid concernant 
 - héritage de mémoire ou de personnalité ;
 - transmission entre générations.
 
-Si Kindroid publie un mécanisme concret de descendance ou d’héritage, l’état de l’art LenoSeed devra être révisé immédiatement.
+Si Kindroid publie un mécanisme concret de descendance ou d’héritage, l’état de l’art Lenoseed devra être révisé immédiatement.

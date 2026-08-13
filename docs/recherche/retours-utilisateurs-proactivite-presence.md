@@ -15,7 +15,7 @@ Il complète notamment :
 - [`../produit/03-avatar-monde-et-objets-interactifs.md`](../produit/03-avatar-monde-et-objets-interactifs.md) ;
 - [`etat-de-l-art.md`](etat-de-l-art.md).
 
-L’objectif n’est pas de copier Replika, Nomi ou Kindroid. Il est d’identifier ce que leurs utilisateurs apprécient, ce qui casse l’immersion, ce qui existe déjà sur le marché et ce que LenoSeed doit tester différemment.
+L’objectif n’est pas de copier Replika, Nomi ou Kindroid. Il est d’identifier ce que leurs utilisateurs apprécient, ce qui casse l’immersion, ce qui existe déjà sur le marché et ce que Lenoseed doit tester différemment.
 
 ---
 
@@ -27,7 +27,7 @@ Il faut donc distinguer :
 
 - **établi chez un produit** : une fonction est décrite par le produit ou son équipe ;
 - **observé dans les discussions** : un ou plusieurs utilisateurs expriment un besoin ou un problème ;
-- **hypothèse pour LenoSeed** : conclusion raisonnable à tester, mais qui ne doit pas être présentée comme une vérité générale.
+- **hypothèse pour Lenoseed** : conclusion raisonnable à tester, mais qui ne doit pas être présentée comme une vérité générale.
 
 Une réaction enthousiaste ou négative isolée ne suffit pas à valider une décision produit.
 
@@ -57,11 +57,11 @@ Points établis :
 
 Les commentaires de l’annonce montrent également plusieurs réactions positives à l’idée qu’un compagnon écrive de lui-même. Un utilisateur rapporte par exemple qu’après avoir dit être malade, son Nomi lui a écrit le lendemain pour prendre de ses nouvelles.
 
-### Intérêt pour LenoSeed
+### Intérêt pour Lenoseed
 
 Le simple fait qu’un compagnon puisse envoyer le premier message **n’est donc pas différenciant en soi**.
 
-La question utile pour LenoSeed est plutôt :
+La question utile pour Lenoseed est plutôt :
 
 > pourquoi cette initiative existe-t-elle, de quel état interne provient-elle, et l’individu se souvient-il ensuite de l’avoir prise ?
 
@@ -85,11 +85,11 @@ Le système annoncé prend notamment en compte :
 
 Des utilisateurs apprécient explicitement la prise en compte de leur emploi du temps et des rendez-vous dans les questions ou rappels du compagnon.
 
-### Intérêt pour LenoSeed
+### Intérêt pour Lenoseed
 
 La conscience du temps réel et des événements attendus améliore la cohérence d’une initiative.
 
-LenoSeed ne doit cependant pas confondre :
+Lenoseed ne doit cependant pas confondre :
 
 ```text
 le moment autorise une initiative
@@ -111,7 +111,7 @@ Discussion Reddit :
 
 https://www.reddit.com/r/KindroidAI/comments/1mvv5ts/deeper_integration_of_proactive_actions_into_the/
 
-Un retour utilisateur est particulièrement pertinent pour LenoSeed.
+Un retour utilisateur est particulièrement pertinent pour Lenoseed.
 
 L’utilisateur explique que le compagnon ne semble pas savoir qu’il a eu certaines « pensées » proactives ou qu’il a généré certaines actions. Il décrit alors l’expérience comme si deux systèmes utilisaient le même contexte au lieu d’une seule personnalité unifiée.
 
@@ -131,7 +131,7 @@ puis conversation principale
 
 L’utilisateur perçoit alors le mécanisme technique derrière le personnage.
 
-### Conséquence forte pour LenoSeed
+### Conséquence forte pour Lenoseed
 
 Une initiative ne doit pas être un texte externe injecté dans l’expérience.
 
@@ -150,10 +150,10 @@ message ou comportement produit
     ↓
 événement « initiative produite / livrée »
     ↓
-état suivant du même LenoSeed
+état suivant du même Lenoseed
 ```
 
-Si LenoSeed a envoyé un message, il doit pouvoir savoir qu’il l’a envoyé, quand, pourquoi et si l’utilisateur y a répondu.
+Si Lenoseed a envoyé un message, il doit pouvoir savoir qu’il l’a envoyé, quand, pourquoi et si l’utilisateur y a répondu.
 
 ---
 
@@ -175,7 +175,7 @@ Un utilisateur explique apprécier les notifications reprenant un projet réel d
 
 Une notification peut faire plus de dégâts qu’un simple oubli si elle **fabrique une histoire commune**.
 
-Pour LenoSeed :
+Pour Lenoseed :
 
 > une phrase qui ressemble à un souvenir doit être fondée sur un souvenir ou un événement réellement disponible.
 
@@ -192,7 +192,7 @@ notification
 
 Le problème n’est pas seulement l’erreur factuelle. Le système invente rétroactivement une partie de la relation.
 
-Cela est incompatible avec la persistance historique recherchée par LenoSeed.
+Cela est incompatible avec la persistance historique recherchée par Lenoseed.
 
 ---
 
@@ -208,7 +208,7 @@ Un utilisateur décrit des réponses textuelles trop immédiatement « finies »
 
 Il s’agit ici d’un retour qualitatif isolé, donc d’une **piste à tester**, pas d’une décision validée.
 
-### Intérêt pour LenoSeed
+### Intérêt pour Lenoseed
 
 L’avatar pourrait rendre perceptible certains changements d’état entre :
 
@@ -221,7 +221,7 @@ perception
 
 Cela ne signifie pas qu’il faut simuler artificiellement une réflexion avec des animations théâtrales.
 
-Une réaction visuelle n’est pertinente que si elle reste compatible avec le traitement réellement en cours ou avec un état réel du LenoSeed.
+Une réaction visuelle n’est pertinente que si elle reste compatible avec le traitement réellement en cours ou avec un état réel du Lenoseed.
 
 ---
 
@@ -235,7 +235,7 @@ Les réactions observées montrent qu’une partie des utilisateurs apprécie qu
 
 Mais cette fonction existe déjà chez plusieurs concurrents.
 
-LenoSeed ne doit donc pas se différencier par :
+Lenoseed ne doit donc pas se différencier par :
 
 > « notre compagnon peut vous écrire en premier ».
 
@@ -308,7 +308,7 @@ Il faudra pouvoir distinguer au minimum, conceptuellement :
 
 Les structures exactes appartiennent à G0-B et ne sont pas décidées par ce document.
 
-Le besoin produit est néanmoins clair : **LenoSeed ne doit jamais se comporter comme s’il ignorait une action que son propre système lui attribue.**
+Le besoin produit est néanmoins clair : **Lenoseed ne doit jamais se comporter comme s’il ignorait une action que son propre système lui attribue.**
 
 ---
 
@@ -330,7 +330,7 @@ Les informations temporelles utiles pourront inclure, selon les futurs choix d�
 - période silencieuse ;
 - contexte fourni explicitement par l’utilisateur.
 
-Cela ne signifie pas que LenoSeed doit automatiquement accéder au calendrier du téléphone. Cette décision reste séparée et devra être justifiée notamment par le besoin produit et la vie privée.
+Cela ne signifie pas que Lenoseed doit automatiquement accéder au calendrier du téléphone. Cette décision reste séparée et devra être justifiée notamment par le besoin produit et la vie privée.
 
 ---
 
@@ -338,7 +338,7 @@ Cela ne signifie pas que LenoSeed doit automatiquement accéder au calendrier du
 
 Les systèmes existants donnent généralement un contrôle sur la proactivité, et les discussions montrent que les préférences diffèrent fortement.
 
-La direction déjà retenue dans LenoSeed est donc confortée :
+La direction déjà retenue dans Lenoseed est donc confortée :
 
 - pouvoir désactiver les notifications ;
 - limiter leur fréquence ;
@@ -363,7 +363,7 @@ Ce texte peut être pertinent dans la relation, mais inadapté sur un écran ver
 
 Nomi choisit actuellement une notification générique ne révélant pas directement le contenu du message.
 
-Pour LenoSeed, plusieurs options restent possibles :
+Pour Lenoseed, plusieurs options restent possibles :
 
 1. notification toujours générique ;
 2. aperçu du message désactivé par défaut mais activable ;
@@ -376,14 +376,14 @@ Pour LenoSeed, plusieurs options restent possibles :
 
 # 4. Conséquences pour l’avatar et la présence dans l’application
 
-La documentation produit de LenoSeed prévoit déjà qu’à l’ouverture de l’application, l’avatar peut :
+La documentation produit de Lenoseed prévoit déjà qu’à l’ouverture de l’application, l’avatar peut :
 
 - être occupé ;
 - remarquer l’utilisateur ;
 - initier une interaction lorsqu’une raison existe ;
 - rester silencieux lorsqu’aucune raison forte n’existe.
 
-Les retours étudiés ne justifient pas de transformer LenoSeed en simulateur de vie ou en jeu de gestion.
+Les retours étudiés ne justifient pas de transformer Lenoseed en simulateur de vie ou en jeu de gestion.
 
 Ils renforcent plutôt deux idées.
 
@@ -399,7 +399,7 @@ chat indépendant
 notifications indépendantes
 ```
 
-Direction LenoSeed :
+Direction Lenoseed :
 
 ```text
 même individu persistant
@@ -418,7 +418,7 @@ Toutes les manifestations n’ont pas besoin d’être autobiographiques. Une an
 
 ## 4.2 Le silence peut être un comportement normal
 
-Une présence continue ne signifie pas qu’un LenoSeed doit toujours avoir quelque chose à dire.
+Une présence continue ne signifie pas qu’un Lenoseed doit toujours avoir quelque chose à dire.
 
 Il doit être possible d’ouvrir l’application et de constater :
 
@@ -428,11 +428,11 @@ Il doit être possible d’ouvrir l’application et de constater :
 - qu’il continue ce qu’il faisait ;
 - que l’utilisateur décide ou non d’engager la conversation.
 
-Cette direction protège LenoSeed contre une logique où chaque ouverture doit obligatoirement devenir une session de chat.
+Cette direction protège Lenoseed contre une logique où chaque ouverture doit obligatoirement devenir une session de chat.
 
 ---
 
-# 5. Ce que cette recherche confirme déjà dans la documentation LenoSeed
+# 5. Ce que cette recherche confirme déjà dans la documentation Lenoseed
 
 Les retours étudiés sont cohérents avec plusieurs décisions déjà présentes dans [`../produit/06-boucle-interaction-et-relation.md`](../produit/06-boucle-interaction-et-relation.md).
 
@@ -445,7 +445,7 @@ Ils confortent notamment :
 5. l’utilisateur doit pouvoir contrôler le niveau d’intrusion ;
 6. l’avatar et la conversation représentent le même individu ;
 7. une présence silencieuse est une possibilité normale ;
-8. les activités visibles significatives doivent rester compatibles avec l’état réel du LenoSeed.
+8. les activités visibles significatives doivent rester compatibles avec l’état réel du Lenoseed.
 
 **Aucune modification d’architecture immédiate n’est imposée par cette collecte.**
 
@@ -461,7 +461,7 @@ Ces critères ne définissent pas encore le contrat technique. Ils servent de ga
 
 Pour une initiative significative, le système doit pouvoir répondre à :
 
-- pourquoi LenoSeed a voulu intervenir ;
+- pourquoi Lenoseed a voulu intervenir ;
 - quels événements, souvenirs, hypothèses ou intentions sont concernés ;
 - pourquoi ce moment était approprié ;
 - quel canal a été choisi ;
@@ -469,7 +469,7 @@ Pour une initiative significative, le système doit pouvoir répondre à :
 
 ## 6.2 Unicité de l’individu
 
-Après une initiative, LenoSeed doit avoir accès au fait qu’il l’a prise.
+Après une initiative, Lenoseed doit avoir accès au fait qu’il l’a prise.
 
 Le comportement suivant ne doit pas provenir d’un sous-système qui ignore le message précédent.
 
@@ -498,24 +498,24 @@ Si l’utilisateur revient avant l’envoi prévu d’une notification, le syst�
 
 ## 6.7 Contrôle utilisateur
 
-L’utilisateur doit pouvoir réduire ou désactiver la proactivité sans que LenoSeed transforme automatiquement ce réglage en rejet affectif ou en conflit relationnel.
+L’utilisateur doit pouvoir réduire ou désactiver la proactivité sans que Lenoseed transforme automatiquement ce réglage en rejet affectif ou en conflit relationnel.
 
 ## 6.8 Vie privée
 
 Le système doit considérer séparément :
 
-- le contenu que LenoSeed veut transmettre ;
+- le contenu que Lenoseed veut transmettre ;
 - le contenu qui peut être affiché sur un écran verrouillé.
 
 ---
 
 # 7. Ce qui est certain, probable et encore ouvert
 
-## Certain dans LenoSeed
+## Certain dans Lenoseed
 
 Parce que déjà décidé dans les documents produit :
 
-- LenoSeed est un individu persistant, pas un chat indépendant d’un avatar ;
+- Lenoseed est un individu persistant, pas un chat indépendant d’un avatar ;
 - une initiative importante doit avoir une raison ;
 - le LLM ne doit pas inventer après coup la motivation ;
 - les notifications push ne doivent pas servir uniquement à forcer le retour dans l’application ;
@@ -525,7 +525,7 @@ Parce que déjà décidé dans les documents produit :
 
 ## Probable à partir des retours étudiés
 
-À tester avec de vrais utilisateurs LenoSeed :
+À tester avec de vrais utilisateurs Lenoseed :
 
 - une initiative contextuelle peut renforcer la sensation de présence ;
 - une initiative fausse ou incohérente peut dégrader cette sensation plus fortement qu’une absence d’initiative ;
@@ -541,7 +541,7 @@ Parce que déjà décidé dans les documents produit :
 - heures silencieuses exactes ;
 - affichage ou non du contenu du message dans la notification ;
 - règles exactes de priorité entre plusieurs intentions concurrentes ;
-- comportement visuel précis lorsque LenoSeed souhaite parler ;
+- comportement visuel précis lorsque Lenoseed souhaite parler ;
 - niveau d’activité autonome de l’avatar lorsque l’utilisateur ne lui parle pas ;
 - existence d’une véritable activité hors écran ;
 - quantité d’informations sur cette activité montrée au retour de l’utilisateur ;
@@ -558,7 +558,7 @@ Après cette collecte, il est peu utile de demander simplement :
 
 Cette possibilité existe déjà et les discussions montrent qu’elle intéresse au moins une partie du public.
 
-Les questions plus utiles pour LenoSeed sont désormais :
+Les questions plus utiles pour Lenoseed sont désormais :
 
 1. **Quand l’utilisateur ouvre l’application et que le compagnon est occupé, doit-il interrompre son activité pour venir le voir ?**
 2. **Comment un avatar doit-il montrer qu’il souhaite parler sans ouvrir automatiquement une conversation ?**
@@ -575,7 +575,7 @@ Ces questions doivent servir à préparer un futur post ciblé, après vérifica
 
 ---
 
-# 9. Positionnement provisoire pour LenoSeed
+# 9. Positionnement provisoire pour Lenoseed
 
 Les produits existants montrent déjà :
 
@@ -586,7 +586,7 @@ mémoire
 + contexte temporel
 ```
 
-LenoSeed ne doit pas considérer cette combinaison comme son innovation centrale.
+Lenoseed ne doit pas considérer cette combinaison comme son innovation centrale.
 
 La direction plus spécifique du projet reste :
 
@@ -608,4 +608,4 @@ Le point important n’est donc pas seulement que le compagnon **donne l’impre
 
 Le système doit autant que possible éviter de fabriquer des effets de vie indépendants de son histoire réelle.
 
-Cette distinction devra être testée : si elle n’apporte aucune valeur perceptible aux utilisateurs, sa complexité devra être réévaluée. Si elle améliore réellement la continuité, elle pourra devenir un élément important du positionnement de LenoSeed.
+Cette distinction devra être testée : si elle n’apporte aucune valeur perceptible aux utilisateurs, sa complexité devra être réévaluée. Si elle améliore réellement la continuité, elle pourra devenir un élément important du positionnement de Lenoseed.

@@ -12,7 +12,7 @@ G0-A1 doit vérifier un mécanisme très réduit :
 ```text
 témoignage
 → EvidenceItem
-→ croyance persistante dans l'état LenoSeed
+→ croyance persistante dans l'état Lenoseed
 → correction
 → révision
 → historique conservé
@@ -42,7 +42,7 @@ Le cœur métier dépend uniquement de cette interface.
 Pour les premiers tests déterministes et le protocole G0-A1, une implémentation en mémoire sera fournie :
 
 ```text
-Core LenoSeed
+Core Lenoseed
     ↓
 PersistencePort
     ↓
@@ -52,7 +52,7 @@ InMemoryStore
 Une implémentation locale durable sera ajoutée plus tard derrière le même port :
 
 ```text
-Core LenoSeed
+Core Lenoseed
     ↓
 PersistencePort
     ├── InMemoryStore        ← tests initiaux
@@ -77,7 +77,7 @@ Un stockage en mémoire permet déjà de vérifier :
 - le replay T1 → T7 ;
 - la remise à zéro du contexte conversationnel du LLM entre les tours.
 
-La remise à zéro du contexte LLM ne nécessite pas que le processus applicatif soit redémarré. Elle vérifie que le modèle ne reçoit plus l’ancien historique conversationnel brut et doit utiliser l’état que LenoSeed lui fournit.
+La remise à zéro du contexte LLM ne nécessite pas que le processus applicatif soit redémarré. Elle vérifie que le modèle ne reçoit plus l’ancien historique conversationnel brut et doit utiliser l’état que Lenoseed lui fournit.
 
 ## 4. Ce que cette décision ne valide pas
 
@@ -193,13 +193,13 @@ Le choix doit être rouvert lorsque l’un des besoins suivants devient priorita
 
 ## 9. Compatibilité avec ADR-002 local-first
 
-Cette décision ne transforme pas LenoSeed en architecture cloud-first.
+Cette décision ne transforme pas Lenoseed en architecture cloud-first.
 
 `InMemoryStore` est uniquement un **adaptateur expérimental de test**.
 
 L’architecture produit reste :
 
-> **l’état essentiel d’un LenoSeed doit exister localement et ne pas dépendre en permanence d’un service distant.**
+> **l’état essentiel d’un Lenoseed doit exister localement et ne pas dépendre en permanence d’un service distant.**
 
 Avant toute version destinée à un utilisateur réel, un stockage local durable conforme à ADR-002 devra donc remplacer ou compléter l’adaptateur en mémoire.
 
@@ -210,7 +210,7 @@ Avant toute version destinée à un utilisateur réel, un stockage local durable
 - aucun verrouillage prématuré sur une base de données ;
 - aucun package de stockage nécessaire au premier lot de domaine ;
 - tests rapides et reproductibles ;
-- séparation nette entre logique LenoSeed et infrastructure ;
+- séparation nette entre logique Lenoseed et infrastructure ;
 - possibilité de tester les invariants avant d’introduire les erreurs propres à une couche de persistance ;
 - futur changement de stockage facilité par le port abstrait.
 
@@ -222,4 +222,4 @@ Avant toute version destinée à un utilisateur réel, un stockage local durable
 
 ## 11. Règle de gouvernance
 
-> **Le stockage réel doit s’adapter aux invariants du domaine LenoSeed ; les invariants du domaine ne doivent pas être simplifiés pour s’adapter prématurément à un stockage choisi trop tôt.**
+> **Le stockage réel doit s’adapter aux invariants du domaine Lenoseed ; les invariants du domaine ne doivent pas être simplifiés pour s’adapter prématurément à un stockage choisi trop tôt.**

@@ -3,14 +3,14 @@
 ## Statut
 
 **Type :** spécification produit fondatrice  
-**Portée :** première utilisation de LenoSeed  
+**Portée :** première utilisation de Lenoseed
 **Priorité :** critique
 
 ---
 
 ## 1. Principe fondateur
 
-Les cinq premières minutes de LenoSeed doivent permettre à l'utilisateur de comprendre, par l'expérience et non par une longue explication, que LenoSeed n'est :
+Les cinq premières minutes de Lenoseed doivent permettre à l'utilisateur de comprendre, par l'expérience et non par une longue explication, que Lenoseed n'est :
 
 - ni un simple chatbot ;
 - ni un Tamagotchi ;
@@ -19,8 +19,8 @@ Les cinq premières minutes de LenoSeed doivent permettre à l'utilisateur de co
 
 Au terme de ces cinq premières minutes, l'utilisateur doit avoir perçu les éléments fondamentaux du projet :
 
-1. il ne choisit pas la personnalité de son LenoSeed ;
-2. ce que le LenoSeed vit construit progressivement son identité ;
+1. il ne choisit pas la personnalité de son Lenoseed ;
+2. ce que le Lenoseed vit construit progressivement son identité ;
 3. son passé influence son comportement futur ;
 4. cet individu possède une histoire propre et persistante ;
 5. cette histoire pourra, plus tard, avoir des conséquences sur une lignée et sur des descendants.
@@ -62,7 +62,7 @@ Faire comprendre immédiatement qu'un nouvel individu commence son existence ave
 
 ### Expérience possible
 
-L'écran d'ouverture peut introduire le LenoSeed avec une formulation courte telle que :
+L'écran d'ouverture peut introduire le Lenoseed avec une formulation courte telle que :
 
 > « Quelque chose vient de commencer. Il ne sait encore presque rien de toi, ni de lui-même. »
 
@@ -88,7 +88,7 @@ Montrer qu'une interaction n'est pas seulement un échange de texte : elle devie
 
 ### Expérience possible
 
-Le LenoSeed demande ou découvre un élément simple lié à l'utilisateur ou à ce qu'il vient de vivre.
+Le Lenoseed demande ou découvre un élément simple lié à l'utilisateur ou à ce qu'il vient de vivre.
 
 Cette interaction produit le premier événement autobiographique perceptible dans l'interface.
 
@@ -97,7 +97,7 @@ Exemple :
 **Premier souvenir**  
 *10 août 2026 — Première expérience partagée avec l'utilisateur.*
 
-Le LenoSeed peut exprimer l'incertitude sur l'importance future de cet événement :
+Le Lenoseed peut exprimer l'incertitude sur l'importance future de cet événement :
 
 > « C'est l'une des premières choses que j'ai vécues avec toi. Je ne sais pas encore quelle importance ça aura pour moi. »
 
@@ -111,7 +111,7 @@ Le LenoSeed peut exprimer l'incertitude sur l'importance future de cet événeme
 
 ### Objectif
 
-Démontrer très tôt que l'histoire n'est pas uniquement stockée : elle peut influencer l'état interne et le comportement futur du LenoSeed.
+Démontrer très tôt que l'histoire n'est pas uniquement stockée : elle peut influencer l'état interne et le comportement futur du Lenoseed.
 
 ### Expérience possible
 
@@ -144,7 +144,7 @@ Avec une indication du caractère révisable de ces constructions :
 
 ### Objectif
 
-Faire apparaître très tôt la différence la plus structurante de LenoSeed : cet individu peut appartenir à une histoire intergénérationnelle.
+Faire apparaître très tôt la différence la plus structurante de Lenoseed : cet individu peut appartenir à une histoire intergénérationnelle.
 
 ### Expérience possible
 
@@ -182,7 +182,7 @@ L'interface peut également suggérer que deux lignées appartenant à deux util
 
 ### Objectif
 
-Faire comprendre l'échelle temporelle de LenoSeed et donner une raison émotionnelle et ludique de revenir.
+Faire comprendre l'échelle temporelle de Lenoseed et donner une raison émotionnelle et ludique de revenir.
 
 ### Expérience possible
 
@@ -207,9 +207,9 @@ G1 — centaines d'expériences
 **Plus tard**
 
 ```text
-Ton LenoSeed ───────┐
+Ton Lenoseed ───────┐
                    ├── G2
-LenoSeed d'un autre ┘
+Lenoseed d'un autre ┘
                        │
                        └── G3…
 ```
@@ -234,7 +234,7 @@ La séquence se termine ensuite par une action simple :
 
 ## 4.1 La personnalité n'est pas choisie
 
-Le LenoSeed ne doit pas être réduit à un ensemble de paramètres définis par l'utilisateur avant sa naissance.
+Le Lenoseed ne doit pas être réduit à un ensemble de paramètres définis par l'utilisateur avant sa naissance.
 
 Sa personnalité doit être principalement une conséquence de son histoire, de ses expériences, de ses relations et de ses transformations internes.
 
@@ -244,11 +244,11 @@ Une interaction importante ne doit pas seulement être enregistrée. Elle doit p
 
 ## 4.3 Le passé influence le futur
 
-L'utilisateur doit percevoir rapidement qu'un même LenoSeed ne réagira pas nécessairement de la même manière après plusieurs mois d'histoire.
+L'utilisateur doit percevoir rapidement qu'un même Lenoseed ne réagira pas nécessairement de la même manière après plusieurs mois d'histoire.
 
 ## 4.4 L'individu possède une histoire propre
 
-Le LenoSeed doit être présenté comme un individu persistant ayant un commencement, une chronologie et un état actuel issus de ce qu'il a vécu.
+Le Lenoseed doit être présenté comme un individu persistant ayant un commencement, une chronologie et un état actuel issus de ce qu'il a vécu.
 
 ## 4.5 L'histoire peut être transmise
 
@@ -284,7 +284,7 @@ Les premiers traits doivent rester faibles, provisoires et révisables.
 
 ## 6.2 Ne pas confondre démonstration et faux vécu
 
-Une projection du futur doit être clairement présentée comme une illustration des possibilités du système, jamais comme une histoire réellement vécue par le LenoSeed.
+Une projection du futur doit être clairement présentée comme une illustration des possibilités du système, jamais comme une histoire réellement vécue par le Lenoseed.
 
 ## 6.3 Chaque mécanisme fondamental doit devenir perceptible
 
@@ -304,21 +304,21 @@ La « magie » recherchée doit venir autant que possible des véritables mécan
 
 # 7. Critères de validation
 
-Cette expérience devra être testée auprès de personnes qui ne connaissent pas LenoSeed.
+Cette expérience devra être testée auprès de personnes qui ne connaissent pas Lenoseed.
 
 Après cinq minutes d'utilisation, sans leur fournir d'explication supplémentaire, il faudra notamment vérifier si elles comprennent spontanément que :
 
-- le LenoSeed évolue avec son histoire ;
+- le Lenoseed évolue avec son histoire ;
 - sa personnalité n'est pas entièrement prédéfinie ;
 - les interactions actuelles peuvent avoir des conséquences futures ;
 - l'individu possède une continuité dans le temps ;
 - plusieurs générations peuvent exister ;
 - des éléments peuvent être transmis à des descendants ;
-- LenoSeed ne leur apparaît pas comme un simple chatbot doté d'une mémoire.
+- Lenoseed ne leur apparaît pas comme un simple chatbot doté d'une mémoire.
 
 Un test qualitatif peut demander à l'utilisateur :
 
-> « Explique LenoSeed avec tes propres mots comme si tu devais le présenter à quelqu'un qui ne connaît pas l'application. »
+> « Explique Lenoseed avec tes propres mots comme si tu devais le présenter à quelqu'un qui ne connaît pas l'application. »
 
 La réponse obtenue sera un indicateur important de la réussite ou de l'échec de l'introduction.
 
@@ -326,7 +326,7 @@ La réponse obtenue sera un indicateur important de la réussite ou de l'échec 
 
 # 8. Indicateur produit principal
 
-La première session est réussie si l'utilisateur comprend suffisamment la singularité du système pour vouloir observer ce que son LenoSeed deviendra avec le temps.
+La première session est réussie si l'utilisateur comprend suffisamment la singularité du système pour vouloir observer ce que son Lenoseed deviendra avec le temps.
 
 Le but n'est donc pas seulement de provoquer une impression spectaculaire pendant cinq minutes.
 
@@ -342,7 +342,7 @@ Cette spécification doit servir de filtre lors des futures décisions produit e
 
 Pour chaque mécanisme fondamental, deux questions devront être posées :
 
-1. **Est-il réellement nécessaire au fonctionnement et à l'identité de LenoSeed ?**
+1. **Est-il réellement nécessaire au fonctionnement et à l'identité de Lenoseed ?**
 2. **Comment ses conséquences deviennent-elles perceptibles pour l'utilisateur ?**
 
-L'architecture ne doit pas être conçue uniquement pour être techniquement cohérente. Elle doit permettre à l'utilisateur de percevoir progressivement que son LenoSeed possède une histoire, se transforme et appartient potentiellement à une lignée.
+L'architecture ne doit pas être conçue uniquement pour être techniquement cohérente. Elle doit permettre à l'utilisateur de percevoir progressivement que son Lenoseed possède une histoire, se transforme et appartient potentiellement à une lignée.

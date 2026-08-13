@@ -19,7 +19,7 @@ export type EvidenceGrounding =
 
 export interface EvidenceItem {
   readonly id: EntityId;
-  readonly lenoSeedId: EntityId;
+  readonly lenoseedId: EntityId;
   readonly kind: EvidenceKind;
   readonly proposition: Proposition;
   readonly sourceId: EntityId;
@@ -34,7 +34,7 @@ export interface EvidenceItem {
 
 export interface EvidenceLink {
   readonly id: EntityId;
-  readonly lenoSeedId: EntityId;
+  readonly lenoseedId: EntityId;
   readonly evidenceItemId: EntityId;
   readonly targetType: "belief" | "self_hypothesis";
   readonly targetId: EntityId;

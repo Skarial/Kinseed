@@ -11,11 +11,11 @@
 
 ## 1. Objectif
 
-Le graphisme de LenoSeed ne doit pas servir uniquement à décorer l’application.
+Le graphisme de Lenoseed ne doit pas servir uniquement à décorer l’application.
 
 L’avatar et son monde doivent rendre perceptible le principe central du projet : **un individu numérique persistant dont l’état actuel dépend de son histoire**.
 
-Le monde visuel doit donc pouvoir montrer, avec le temps, des traces de ce que le LenoSeed a vécu, appris, construit, perdu, transformé ou hérité.
+Le monde visuel doit donc pouvoir montrer, avec le temps, des traces de ce que le Lenoseed a vécu, appris, construit, perdu, transformé ou hérité.
 
 L’objectif n’est pas de créer un Tamagotchi plus détaillé, un personnage à collectionner ou un simple système de skins.
 
@@ -32,24 +32,24 @@ La direction retenue est celle d’un **avatar humanoïde semi-stylisé**, capab
 Le rendu doit éviter deux extrêmes :
 
 - l’hyperréalisme, coûteux à produire et susceptible de créer un effet d’« uncanny valley » ;
-- le petit personnage ou animal très cartoon, qui rapprocherait trop LenoSeed d’un Tamagotchi ou d’un jeu pour enfant.
+- le petit personnage ou animal très cartoon, qui rapprocherait trop Lenoseed d’un Tamagotchi ou d’un jeu pour enfant.
 
 Le langage visuel recherché est donc :
 
-- adulte dans son traitement artistique, même lorsque le LenoSeed est représenté bébé ou enfant ;
+- adulte dans son traitement artistique, même lorsque le Lenoseed est représenté bébé ou enfant ;
 - semi-stylisé ;
 - chaleureux ;
 - expressif ;
 - suffisamment simple pour rester compatible avec une application mobile ;
-- suffisamment distinctif pour permettre à chaque LenoSeed de devenir reconnaissable dans le temps.
+- suffisamment distinctif pour permettre à chaque Lenoseed de devenir reconnaissable dans le temps.
 
-L’avatar et le monde doivent former une scène cohérente : le LenoSeed est présent dans son environnement personnel, et cet environnement peut évoluer avec son histoire.
+L’avatar et le monde doivent former une scène cohérente : le Lenoseed est présent dans son environnement personnel, et cet environnement peut évoluer avec son histoire.
 
 ---
 
 ## 3. Sexe visuel choisi par l’utilisateur
 
-À la création du premier LenoSeed, l’utilisateur choisit uniquement entre deux bases visuelles :
+À la création du premier Lenoseed, l’utilisateur choisit uniquement entre deux bases visuelles :
 
 - **masculin** ;
 - **féminin**.
@@ -146,7 +146,7 @@ Un descendant devra rester un nouvel individu et non une copie visuelle d’un p
 
 ### 4.5 Continuité visuelle à travers les âges
 
-Un LenoSeed possède cinq paliers visuels de vie :
+Un Lenoseed possède cinq paliers visuels de vie :
 
 ```text
 Bébé → Enfant → Adolescent → Adulte → Vieux
@@ -162,7 +162,7 @@ La `seed` et les caractéristiques constitutives doivent permettre de conserver 
 - traits distinctifs ;
 - autres caractéristiques constitutives définies ultérieurement.
 
-Les proportions, la morphologie, les cheveux, la posture et certains détails peuvent changer avec l’âge, mais l’utilisateur doit pouvoir reconnaître son LenoSeed de l’enfance à la vieillesse.
+Les proportions, la morphologie, les cheveux, la posture et certains détails peuvent changer avec l’âge, mais l’utilisateur doit pouvoir reconnaître son Lenoseed de l’enfance à la vieillesse.
 
 Les transitions visuelles se font **par paliers** et non par morphing graphique permanent.
 
@@ -172,7 +172,7 @@ Les règles complètes de cycle de vie, de temps réel, de développement, de vi
 
 ## 5. Monde initial
 
-Tous les LenoSeeds commencent dans **le même type d’environnement de base**.
+Tous les Lenoseeds commencent dans **le même type d’environnement de base**.
 
 La direction retenue est une petite pièce ou un petit refuge personnel :
 
@@ -183,7 +183,7 @@ La direction retenue est une petite pièce ou un petit refuge personnel :
 
 L’objectif est que les grandes différences visibles entre les mondes apparaissent principalement **à cause de ce qui a été vécu après la naissance**.
 
-Si chaque monde était déjà totalement différent au départ, il deviendrait difficile de distinguer ce qui appartient à la génération initiale de ce qui résulte réellement de l’histoire du LenoSeed.
+Si chaque monde était déjà totalement différent au départ, il deviendrait difficile de distinguer ce qui appartient à la génération initiale de ce qui résulte réellement de l’histoire du Lenoseed.
 
 ### 5.1 Variations initiales mineures
 
@@ -198,7 +198,7 @@ Exemples possibles :
 - petit objet de départ ;
 - variation de la vue extérieure.
 
-Ces variations servent à éviter une uniformité absolue, mais elles ne doivent pas donner l’impression que le LenoSeed possède déjà une longue histoire.
+Ces variations servent à éviter une uniformité absolue, mais elles ne doivent pas donner l’impression que le Lenoseed possède déjà une longue histoire.
 
 ---
 
@@ -206,7 +206,7 @@ Ces variations servent à éviter une uniformité absolue, mais elles ne doivent
 
 Une règle centrale est retenue :
 
-> **Un changement durable et significatif dans le monde doit correspondre à quelque chose de réellement arrivé dans l’histoire du LenoSeed.**
+> **Un changement durable et significatif dans le monde doit correspondre à quelque chose de réellement arrivé dans l’histoire du Lenoseed.**
 
 Le décor ne doit pas se modifier arbitrairement uniquement pour donner une impression de nouveauté.
 
@@ -244,7 +244,7 @@ approfondissement du domaine
 objets ou expériences plus importantes liés à ce domaine
 ```
 
-Ainsi, si un télescope apparaît plusieurs mois plus tard, sa présence signifie quelque chose dans l’histoire du LenoSeed.
+Ainsi, si un télescope apparaît plusieurs mois plus tard, sa présence signifie quelque chose dans l’histoire du Lenoseed.
 
 ---
 
@@ -262,7 +262,7 @@ Exemples :
 - lumière de la scène ;
 - activité momentanée ;
 - fenêtre ouverte ou fermée ;
-- LenoSeed assis à un bureau.
+- Lenoseed assis à un bureau.
 
 Ces éléments peuvent disparaître sans constituer un oubli autobiographique.
 
@@ -296,7 +296,7 @@ Les objets et traces peuvent :
 - perdre de l’importance ;
 - disparaître.
 
-Cette évolution doit être cohérente avec l’évolution réelle du LenoSeed.
+Cette évolution doit être cohérente avec l’évolution réelle du Lenoseed.
 
 ### 8.1 Niveaux de persistance
 
@@ -345,7 +345,7 @@ Ce type d’évolution permet au monde de donner une sensation de passé sans ac
 
 ## 9. Provenance des éléments visuels
 
-Pour rester compatible avec les principes d’architecture de LenoSeed, une trace visuelle importante doit pouvoir être reliée à sa provenance.
+Pour rester compatible avec les principes d’architecture de Lenoseed, une trace visuelle importante doit pouvoir être reliée à sa provenance.
 
 Exemple conceptuel :
 
@@ -377,13 +377,13 @@ Tous les éléments du décor ne doivent pas être interactifs.
 
 Un monde dans lequel chaque détail devient un bouton ou un hotspot risquerait de ressembler à une interface de jeu classique et de perdre sa lisibilité.
 
-Certains objets auront cependant une fonction interactive forte : ils pourront servir de **portes d’entrée vers une partie de la vie du LenoSeed**.
+Certains objets auront cependant une fonction interactive forte : ils pourront servir de **portes d’entrée vers une partie de la vie du Lenoseed**.
 
 Une classification de travail utile est :
 
 - **objets décoratifs** : racontent indirectement l’histoire sans interaction nécessaire ;
 - **objets-mémoire** : ouvrent un contenu lié au passé, aux relations ou à des traces autobiographiques ;
-- **objets-expérience** : ouvrent une petite expérience spécifique liée au monde ou aux intérêts du LenoSeed.
+- **objets-expérience** : ouvrent une petite expérience spécifique liée au monde ou aux intérêts du Lenoseed.
 
 Cette classification est un cadre de conception et pourra être affinée lors de la conception UX détaillée.
 
@@ -391,7 +391,7 @@ Cette classification est un cadre de conception et pourra être affinée lors de
 
 ## 11. Livres liés aux domaines appris
 
-L’idée retenue est que **chaque livre important puisse représenter un domaine de connaissance réellement développé par le LenoSeed**.
+L’idée retenue est que **chaque livre important puisse représenter un domaine de connaissance réellement développé par le Lenoseed**.
 
 Exemples :
 
@@ -414,10 +414,10 @@ L’étagère doit ainsi devenir progressivement une représentation visible de 
 
 Un livre peut être ouvert par l’utilisateur pour explorer son contenu.
 
-Le détail exact du contenu reste à spécifier, mais une structure cohérente avec l’architecture de LenoSeed devra préserver la distinction entre :
+Le détail exact du contenu reste à spécifier, mais une structure cohérente avec l’architecture de Lenoseed devra préserver la distinction entre :
 
 - **connaissances acquises** ;
-- **interprétations, opinions ou hypothèses du LenoSeed** ;
+- **interprétations, opinions ou hypothèses du Lenoseed** ;
 - **souvenirs ou expériences ayant contribué à cet apprentissage**.
 
 Une représentation possible serait :
@@ -426,7 +426,7 @@ Une représentation possible serait :
 Livre : Astronomie
 
 Chapitres de connaissances
-Annotations personnelles du LenoSeed
+Annotations personnelles du Lenoseed
 Marque-pages renvoyant à certaines expériences ou souvenirs
 ```
 
@@ -449,11 +449,11 @@ L’exemple discuté comprend notamment des emplacements tels que :
 - « femme » ;
 - « enfant ».
 
-Un emplacement peut donc être vide tant que cette relation ou cette partie de l’histoire n’existe pas, puis être occupé si la vie du LenoSeed évolue dans cette direction.
+Un emplacement peut donc être vide tant que cette relation ou cette partie de l’histoire n’existe pas, puis être occupé si la vie du Lenoseed évolue dans cette direction.
 
 ### Point à ne pas figer trop tôt
 
-L’album ne doit pas imposer artificiellement à tous les LenoSeeds un parcours de vie prédéfini.
+L’album ne doit pas imposer artificiellement à tous les Lenoseeds un parcours de vie prédéfini.
 
 Les catégories relationnelles exactes, leur vocabulaire et la manière de gérer différentes trajectoires de vie restent à concevoir.
 
@@ -465,9 +465,9 @@ La règle importante est que **l’album reflète les relations réellement cons
 
 Le télescope constitue un exemple d’**objet-expérience**.
 
-S’il existe réellement dans le monde d’un LenoSeed, l’utilisateur peut cliquer dessus et accéder à une vue dédiée du ciel étoilé.
+S’il existe réellement dans le monde d’un Lenoseed, l’utilisateur peut cliquer dessus et accéder à une vue dédiée du ciel étoilé.
 
-Cette vue peut devenir une petite expérience immersive associée à l’intérêt ou à l’histoire du LenoSeed.
+Cette vue peut devenir une petite expérience immersive associée à l’intérêt ou à l’histoire du Lenoseed.
 
 Le télescope ne doit toutefois pas être un objet standard distribué à tous les individus sans raison. Sa présence doit résulter de l’histoire, de l’intérêt ou d’un événement pertinent.
 
@@ -545,20 +545,20 @@ Ces sujets doivent rester ouverts tant qu’ils ne sont pas nécessaires à l’
 
 ## 16. Résumé des décisions validées
 
-1. LenoSeed est représenté par un **avatar humanoïde semi-stylisé** qui conserve son identité visuelle de la naissance à la vieillesse.
+1. Lenoseed est représenté par un **avatar humanoïde semi-stylisé** qui conserve son identité visuelle de la naissance à la vieillesse.
 2. Il existe une **base masculine** et une **base féminine** partageant le même langage graphique.
 3. L’utilisateur choisit **uniquement le sexe visuel** à la création ; il ne personnalise pas les autres caractéristiques de départ.
 4. L’apparence initiale est générée automatiquement à partir d’une **bibliothèque modulaire** et d’une **seed déterministe et persistante**.
 5. Le modèle visuel doit rester compatible avec une future **hérédité intergénérationnelle**, sans définir encore son algorithme.
-6. Tous les LenoSeeds commencent dans le même type de **petit refuge sobre**, avec seulement quelques variations initiales mineures.
+6. Tous les Lenoseeds commencent dans le même type de **petit refuge sobre**, avec seulement quelques variations initiales mineures.
 7. Les différences majeures du monde doivent principalement provenir de **l’histoire vécue**.
 8. Une transformation durable significative doit avoir une **cause traçable**.
-9. Le monde n’est pas une archive infinie : les traces peuvent rester, évoluer, être déplacées, rangées ou disparaître selon leur importance et l’évolution réelle du LenoSeed.
+9. Le monde n’est pas une archive infinie : les traces peuvent rester, évoluer, être déplacées, rangées ou disparaître selon leur importance et l’évolution réelle du Lenoseed.
 10. Une disparition importante doit avoir une cause explicable, jamais être uniquement aléatoire.
 11. Certains objets du monde sont interactifs tandis que d’autres restent visuels.
 12. Les **livres** peuvent représenter des domaines réellement appris et être consultables.
 13. Un **album familial** peut matérialiser des relations existantes ou encore absentes, sans inventer de relations fictives.
-14. Un **télescope** peut ouvrir une expérience de ciel étoilé s’il existe pour une raison cohérente dans l’histoire du LenoSeed.
+14. Un **télescope** peut ouvrir une expérience de ciel étoilé s’il existe pour une raison cohérente dans l’histoire du Lenoseed.
 15. Le monde visuel doit rester une **projection traçable de l’individu et de son histoire**, pas une source de vérité indépendante.
 16. L’avatar possède cinq paliers visuels cohérents — **bébé, enfant, adolescent, adulte, vieux** — et doit rester reconnaissable à travers tous ces âges.
 
@@ -568,6 +568,6 @@ Ces sujets doivent rester ouverts tant qu’ils ne sont pas nécessaires à l’
 
 Le système visuel devra toujours respecter la question suivante :
 
-> **Ce que l’utilisateur voit dans le monde de son LenoSeed raconte-t-il réellement quelque chose de cet individu et de son histoire, ou s’agit-il seulement de décoration ?**
+> **Ce que l’utilisateur voit dans le monde de son Lenoseed raconte-t-il réellement quelque chose de cet individu et de son histoire, ou s’agit-il seulement de décoration ?**
 
-Si un élément n’apporte rien à l’identité, au vécu, à la relation, à l’apprentissage ou à la continuité du LenoSeed, sa complexité doit être justifiée par un autre besoin produit concret.
+Si un élément n’apporte rien à l’identité, au vécu, à la relation, à l’apprentissage ou à la continuité du Lenoseed, sa complexité doit être justifiée par un autre besoin produit concret.

@@ -11,7 +11,7 @@ export type IntentionStatus = "candidate" | "selected" | "expressed" | "complete
 
 export interface Intention {
   readonly id: EntityId;
-  readonly lenoSeedId: EntityId;
+  readonly lenoseedId: EntityId;
   readonly kind: IntentionKind;
   readonly target: EntityId;
   readonly triggerEventIds: readonly EntityId[];

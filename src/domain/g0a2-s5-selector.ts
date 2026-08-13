@@ -23,14 +23,14 @@ export interface G0A2S5Selection {
 export function selectG0A2S5Intention(context: G0A2DecisionContext): G0A2S5Selection {
   validateS5SituationEvent(context.situationEvent);
   const eligible = context.activeSelfHypotheses.filter((hypothesis) => {
-    if (hypothesis.lenoSeedId !== context.situationEvent.lenoSeedId) {
+    if (hypothesis.lenoseedId !== context.situationEvent.lenoseedId) {
       throw new DomainInvariantError(
-        `G0-A2 S5 selector received SelfHypothesis ${hypothesis.id} for another LenoSeed`,
+        `G0-A2 S5 selector received SelfHypothesis ${hypothesis.id} for another Lenoseed`,
       );
     }
     return (
       hypothesis.status === "active" &&
-      hypothesis.proposition.subjectRef === context.situationEvent.lenoSeedId &&
+      hypothesis.proposition.subjectRef === context.situationEvent.lenoseedId &&
       hypothesis.proposition.predicate === "decision_style_under_uncertainty" &&
       hypothesis.proposition.context.protocol === "G0-A2"
     );

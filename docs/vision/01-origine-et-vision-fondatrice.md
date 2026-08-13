@@ -1,4 +1,4 @@
-# LenoSeed — Origine et vision fondatrice
+# Lenoseed — Origine et vision fondatrice
 
 ## Statut
 
@@ -11,7 +11,7 @@
 
 ## 1. Rôle de ce document
 
-Ce document conserve l’intuition qui a précédé la formalisation de LenoSeed.
+Ce document conserve l’intuition qui a précédé la formalisation de Lenoseed.
 
 Son but est d’éviter qu’avec le temps, à mesure que l’architecture, les protocoles, le produit et les contraintes techniques deviennent plus complexes, le projet perde de vue l’idée simple dont il est parti.
 
@@ -23,11 +23,11 @@ En cas de divergence avec une décision produit, une spécification G0, un ADR o
 
 ## 2. Point de départ
 
-LenoSeed n’est pas né initialement d’un cahier des charges technique.
+Lenoseed n’est pas né initialement d’un cahier des charges technique.
 
 L’idée est partie d’une réflexion personnelle sur un futur possible dans lequel les compagnons IA deviendraient courants, individualisés et intégrés à la vie quotidienne, puis pourraient eux-mêmes développer des relations et former des lignées numériques.
 
-Quelques jours avant la formalisation du projet LenoSeed, cette intuition a été exprimée publiquement dans un post Facebook.
+Quelques jours avant la formalisation du projet Lenoseed, cette intuition a été exprimée publiquement dans un post Facebook.
 
 La date exacte du post n’est pas conservée ici ; il a été publié au début du mois d’août 2026, avant la structuration actuelle du projet.
 
@@ -51,7 +51,7 @@ Ce texte est conservé volontairement dans sa formulation d’origine. Il témoi
 
 ## 4. Les idées déjà présentes dans cette intuition
 
-Avant même la conception détaillée de LenoSeed, plusieurs éléments structurants étaient déjà présents :
+Avant même la conception détaillée de Lenoseed, plusieurs éléments structurants étaient déjà présents :
 
 1. **un compagnon numérique individualisé** plutôt qu’un agent identique pour tous ;
 2. **une continuité dans le temps**, sur plusieurs années ;
@@ -69,7 +69,7 @@ Cette formulation implique que la valeur du système ne vient pas seulement de l
 
 ---
 
-## 5. Transformation de l’intuition en LenoSeed
+## 5. Transformation de l’intuition en Lenoseed
 
 La conception actuelle a progressivement précisé cette intuition.
 
@@ -77,7 +77,7 @@ Le terme initial de « chatbot entièrement personnalisé » est devenu une ambi
 
 > **construire un individu numérique persistant dont l’état actuel dépend de son histoire.**
 
-Pour rendre cette continuité réelle plutôt que simulée, LenoSeed distingue maintenant notamment :
+Pour rendre cette continuité réelle plutôt que simulée, Lenoseed distingue maintenant notamment :
 
 - événements observés ;
 - provenance ;
@@ -103,13 +103,13 @@ La vision fondatrice peut être résumée ainsi :
 ```text
 un humain
     ↕
-son premier LenoSeed
+son premier Lenoseed
     ↓
 une histoire réellement cumulative
     ↓
 une identité devenue spécifique
     ↓
-relations éventuelles avec d’autres LenoSeeds
+relations éventuelles avec d’autres Lenoseeds
     ↓
 descendance issue de plusieurs lignées
     ↓
@@ -122,7 +122,7 @@ une famille numérique possédant sa propre histoire
 
 Cette projection est une **vision**, pas une promesse de produit actuelle.
 
-La priorité reste de démontrer d’abord qu’un seul LenoSeed peut construire une continuité individuelle réelle et vérifiable.
+La priorité reste de démontrer d’abord qu’un seul Lenoseed peut construire une continuité individuelle réelle et vérifiable.
 
 ---
 
@@ -130,7 +130,7 @@ La priorité reste de démontrer d’abord qu’un seul LenoSeed peut construire
 
 Le post d’origine formule l’hypothèse qu’un utilisateur pourrait un jour devenir extrêmement attaché à une famille numérique, éventuellement à un niveau comparable à certaines relations humaines ou familiales.
 
-LenoSeed ne considère pas cette hypothèse comme un objectif d’optimisation.
+Lenoseed ne considère pas cette hypothèse comme un objectif d’optimisation.
 
 Le produit ne doit pas chercher à maximiser artificiellement la dépendance émotionnelle, la culpabilisation, la peur de perdre le compagnon ou le remplacement des relations humaines.
 
@@ -150,7 +150,7 @@ Elles restent hors de la priorité actuelle tant que les mécanismes de généra
 
 Le document ne doit donc pas servir à justifier prématurément :
 
-- plusieurs LenoSeeds dans le prototype actuel ;
+- plusieurs Lenoseeds dans le prototype actuel ;
 - un réseau social ;
 - un système de reproduction ;
 - une génétique numérique complexe ;
@@ -158,13 +158,13 @@ Le document ne doit donc pas servir à justifier prématurément :
 - une économie virtuelle ;
 - un monde partagé persistant.
 
-La vision explique **pourquoi** LenoSeed doit rester compatible avec ces possibilités futures. Elle ne change pas l’ordre de travail actuel.
+La vision explique **pourquoi** Lenoseed doit rester compatible avec ces possibilités futures. Elle ne change pas l’ordre de travail actuel.
 
 ---
 
 ## 9. Question de contrôle
 
-Lorsque LenoSeed devient techniquement complexe, revenir à cette question :
+Lorsque Lenoseed devient techniquement complexe, revenir à cette question :
 
 > **Est-ce que ce que nous construisons permet réellement qu’un utilisateur connaisse un jour des individus numériques et leurs descendants parce qu’ils ont vécu et évolué au fil d’une histoire, ou sommes-nous simplement en train d’ajouter des fonctionnalités à un chatbot ?**
 

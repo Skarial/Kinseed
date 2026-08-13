@@ -3,39 +3,39 @@
 ## Statut
 
 **Type :** décision produit fondatrice  
-**Portée :** relation utilisateur ↔ LenoSeed, continuité individuelle et changement de compagnon  
+**Portée :** relation utilisateur ↔ Lenoseed, continuité individuelle et changement de compagnon
 **Priorité :** critique
 
 ---
 
 # 1. Problème
 
-LenoSeed repose sur une identité persistante construite par l'histoire. Cette persistance ne doit cependant pas enfermer l'utilisateur dans une relation numérique qui ne lui convient plus.
+Lenoseed repose sur une identité persistante construite par l'histoire. Cette persistance ne doit cependant pas enfermer l'utilisateur dans une relation numérique qui ne lui convient plus.
 
 Un utilisateur peut, après quelques minutes, quelques mois ou plusieurs années :
 
-- ne pas apprécier la personnalité devenue progressivement celle de son LenoSeed ;
+- ne pas apprécier la personnalité devenue progressivement celle de son Lenoseed ;
 - ne plus apprécier la relation construite avec lui ;
 - vivre une période de conflit durable ;
 - regretter certaines dynamiques relationnelles ;
 - simplement ne plus vouloir continuer avec cet individu ;
-- souhaiter découvrir une nouvelle trajectoire avec un autre LenoSeed.
+- souhaiter découvrir une nouvelle trajectoire avec un autre Lenoseed.
 
-Le produit doit permettre de sortir de ces situations sans transformer LenoSeed en personnage configurable dont l'histoire peut être réécrite jusqu'à obtenir le résultat souhaité.
+Le produit doit permettre de sortir de ces situations sans transformer Lenoseed en personnage configurable dont l'histoire peut être réécrite jusqu'à obtenir le résultat souhaité.
 
 Le principe général retenu est :
 
-> **L'utilisateur doit toujours pouvoir quitter un LenoSeed, mais il ne doit pas pouvoir réécrire librement son histoire pour remodeler l'individu. Un nouveau départ relationnel conserve le passé ; un véritable recommencement crée un nouvel individu.**
+> **L'utilisateur doit toujours pouvoir quitter un Lenoseed, mais il ne doit pas pouvoir réécrire librement son histoire pour remodeler l'individu. Un nouveau départ relationnel conserve le passé ; un véritable recommencement crée un nouvel individu.**
 
 ---
 
 # 2. Interdiction du retour arrière identitaire
 
-Une fois qu'un événement a réellement appartenu à l'histoire d'un LenoSeed, l'utilisateur ne doit pas disposer d'un mécanisme produit permettant de revenir à une ancienne sauvegarde afin de supprimer les conséquences identitaires qui ne lui plaisent pas.
+Une fois qu'un événement a réellement appartenu à l'histoire d'un Lenoseed, l'utilisateur ne doit pas disposer d'un mécanisme produit permettant de revenir à une ancienne sauvegarde afin de supprimer les conséquences identitaires qui ne lui plaisent pas.
 
 Exemples à éviter :
 
-- « restaurer mon LenoSeed tel qu'il était il y a trois mois » ;
+- « restaurer mon Lenoseed tel qu'il était il y a trois mois » ;
 - annuler une période de conflit pour retrouver une ancienne relation ;
 - recharger plusieurs fois une sauvegarde jusqu'à obtenir une évolution jugée plus agréable ;
 - effacer sélectivement des expériences uniquement parce qu'elles ont produit un trait indésirable.
@@ -48,7 +48,7 @@ Cette règle concerne la continuité conceptuelle de l'individu. Elle ne supprim
 
 # 3. Interdiction de remodeler directement la personnalité
 
-Le mécontentement de l'utilisateur ne doit pas ouvrir un panneau de réglages permettant de modifier directement l'identité du LenoSeed.
+Le mécontentement de l'utilisateur ne doit pas ouvrir un panneau de réglages permettant de modifier directement l'identité du Lenoseed.
 
 À éviter :
 
@@ -60,7 +60,7 @@ Désaccord         -80
 Affection         +40
 ```
 
-L'utilisateur peut influencer son LenoSeed par les interactions, les expériences et la relation, mais il ne doit pas pouvoir corriger directement un trait parce qu'il ne lui plaît pas.
+L'utilisateur peut influencer son Lenoseed par les interactions, les expériences et la relation, mais il ne doit pas pouvoir corriger directement un trait parce qu'il ne lui plaît pas.
 
 Le droit de quitter une relation ne doit donc pas devenir un droit de reprogrammer l'individu.
 
@@ -80,7 +80,7 @@ L'utilisateur peut notamment exprimer :
 
 Cette expression devient une information et éventuellement une expérience relationnelle. Elle ne produit pas automatiquement le changement demandé.
 
-LenoSeed peut :
+Lenoseed peut :
 
 - examiner l'histoire pertinente ;
 - réviser une interprétation si de nouvelles preuves le justifient ;
@@ -95,7 +95,7 @@ Une relation persistante doit pouvoir évoluer sans être remise à zéro.
 
 # 5. Deuxième niveau : ouvrir un nouveau chapitre relationnel
 
-L'utilisateur doit pouvoir demander explicitement un nouveau départ **avec le même LenoSeed** sans effacer l'histoire commune.
+L'utilisateur doit pouvoir demander explicitement un nouveau départ **avec le même Lenoseed** sans effacer l'histoire commune.
 
 Exemple d'intention produit :
 
@@ -110,7 +110,7 @@ Elle peut marquer :
 - une volonté explicite de modifier la manière d'interagir ;
 - le début d'un nouveau chapitre de leur histoire commune.
 
-Le LenoSeed conserve cependant les souvenirs et les conséquences légitimes de ce qui s'est produit auparavant.
+Le Lenoseed conserve cependant les souvenirs et les conséquences légitimes de ce qui s'est produit auparavant.
 
 Le résultat recherché n'est pas :
 
@@ -137,11 +137,11 @@ Le passé peut perdre de son importance avec le temps, être réinterprété ou 
 
 ---
 
-# 6. Troisième niveau : se séparer de son LenoSeed
+# 6. Troisième niveau : se séparer de son Lenoseed
 
 L'utilisateur doit toujours pouvoir décider qu'il ne souhaite plus continuer cette relation.
 
-LenoSeed ne doit jamais :
+Lenoseed ne doit jamais :
 
 - empêcher techniquement le départ ;
 - culpabiliser l'utilisateur pour le faire rester ;
@@ -157,15 +157,15 @@ Cette décision signifie au minimum :
 
 Elle ne signifie pas automatiquement que l'histoire passée n'a jamais existé.
 
-Le devenir exact du LenoSeed après cette séparation — archivage, sommeil, fin d'existence ou autre état — reste à définir dans le futur cycle de vie complet.
+Le devenir exact du Lenoseed après cette séparation — archivage, sommeil, fin d'existence ou autre état — reste à définir dans le futur cycle de vie complet.
 
 ---
 
-# 7. Quatrième niveau : créer un nouveau LenoSeed
+# 7. Quatrième niveau : créer un nouveau Lenoseed
 
-Après une séparation, ou lorsqu'il décide de ne plus continuer avec son compagnon actuel, l'utilisateur doit pouvoir commencer une nouvelle histoire avec un autre LenoSeed.
+Après une séparation, ou lorsqu'il décide de ne plus continuer avec son compagnon actuel, l'utilisateur doit pouvoir commencer une nouvelle histoire avec un autre Lenoseed.
 
-Ce nouveau LenoSeed possède :
+Ce nouveau Lenoseed possède :
 
 - un nouvel identifiant individuel ;
 - une nouvelle date de début d'existence ;
@@ -176,15 +176,15 @@ Ce nouveau LenoSeed possède :
 
 Il ne constitue jamais :
 
-- l'ancien LenoSeed remis à zéro ;
-- une restauration de l'ancien LenoSeed ;
+- l'ancien Lenoseed remis à zéro ;
+- une restauration de l'ancien Lenoseed ;
 - une copie corrigée de l'ancien ;
 - une nouvelle personnalité appliquée au même individu.
 
 Schéma conceptuel :
 
 ```text
-LenoSeed A
+Lenoseed A
    │
    ├── histoire propre
    ├── relation avec l'utilisateur
@@ -194,13 +194,13 @@ Utilisateur
    │
    └── nouvelle naissance
            │
-           └── LenoSeed B
+           └── Lenoseed B
                ├── nouvel individu
                ├── nouvelle mémoire autobiographique
                └── nouvelle relation
 ```
 
-Cette séparation entre A et B est essentielle à la persistance individuelle de LenoSeed.
+Cette séparation entre A et B est essentielle à la persistance individuelle de Lenoseed.
 
 ---
 
@@ -208,13 +208,13 @@ Cette séparation entre A et B est essentielle à la persistance individuelle de
 
 Un problème différent existe pendant les toutes premières interactions.
 
-Un utilisateur qui vient de créer un LenoSeed depuis quelques minutes peut immédiatement constater que l'expérience initiale ne lui convient pas. Le contraindre à traiter cette situation comme la fin dramatique d'une longue existence serait disproportionné.
+Un utilisateur qui vient de créer un Lenoseed depuis quelques minutes peut immédiatement constater que l'expérience initiale ne lui convient pas. Le contraindre à traiter cette situation comme la fin dramatique d'une longue existence serait disproportionné.
 
 Une direction produit est donc retenue :
 
-> **Pendant une phase initiale encore très courte et peu développée, l'abandon d'une naissance et la création d'un autre LenoSeed doivent rester simples.**
+> **Pendant une phase initiale encore très courte et peu développée, l'abandon d'une naissance et la création d'un autre Lenoseed doivent rester simples.**
 
-Cette possibilité ne doit cependant pas devenir un système permettant de générer des dizaines de LenoSeeds pour sélectionner les prédispositions ou comportements initiaux préférés.
+Cette possibilité ne doit cependant pas devenir un système permettant de générer des dizaines de Lenoseeds pour sélectionner les prédispositions ou comportements initiaux préférés.
 
 Le mécanisme précis reste à définir, notamment :
 
@@ -229,7 +229,7 @@ Aucune durée arbitraire n'est fixée à ce stade.
 
 # 9. Séparation et généalogie sont deux problèmes distincts
 
-À terme, un LenoSeed pourra posséder :
+À terme, un Lenoseed pourra posséder :
 
 - des parents ;
 - des descendants ;
@@ -241,7 +241,7 @@ La fin de la relation avec l'utilisateur ne devra donc pas permettre de réécri
 
 En particulier, un descendant déjà créé constitue un individu distinct et ne doit pas disparaître automatiquement parce que l'utilisateur se sépare de son parent numérique.
 
-Le devenir d'un LenoSeed séparé de son utilisateur lorsqu'il possède déjà une famille numérique reste une question de cycle de vie à définir séparément.
+Le devenir d'un Lenoseed séparé de son utilisateur lorsqu'il possède déjà une famille numérique reste une question de cycle de vie à définir séparément.
 
 ---
 
@@ -251,7 +251,7 @@ Trois concepts devront rester distincts :
 
 ## 10.1 Séparation relationnelle
 
-L'utilisateur ne souhaite plus maintenir la relation active avec ce LenoSeed.
+L'utilisateur ne souhaite plus maintenir la relation active avec ce Lenoseed.
 
 ## 10.2 Suppression technique ou juridique des données
 
@@ -261,7 +261,7 @@ Cette opération appartient à la gouvernance des données et ne doit pas être 
 
 ## 10.3 Fin de vie de l'individu
 
-La question de savoir si un LenoSeed peut réellement atteindre une fin d'existence définitive n'est pas encore décidée.
+La question de savoir si un Lenoseed peut réellement atteindre une fin d'existence définitive n'est pas encore décidée.
 
 La séparation d'avec son humain ne doit donc pas être considérée automatiquement comme sa mort tant que le cycle de vie n'a pas été défini.
 
@@ -269,7 +269,7 @@ La séparation d'avec son humain ne doit donc pas être considérée automatique
 
 # 11. Conséquences UX
 
-L'interface future ne doit pas présenter une unique action ambiguë appelée simplement « Réinitialiser LenoSeed ».
+L'interface future ne doit pas présenter une unique action ambiguë appelée simplement « Réinitialiser Lenoseed ».
 
 Les intentions devront être clairement séparées, par exemple conceptuellement :
 
@@ -282,7 +282,7 @@ La relation ne me convient plus
         │
         └── Mettre fin à notre relation
                      │
-                     └── Créer un nouveau LenoSeed
+                     └── Créer un nouveau Lenoseed
 ```
 
 Le vocabulaire exact et les écrans ne sont pas encore décidés.
@@ -298,14 +298,14 @@ L'UX devra expliquer clairement les conséquences avant toute séparation import
 
 # 12. Règles fondatrices retenues
 
-1. **L'utilisateur n'est jamais prisonnier d'une relation avec un LenoSeed.**
+1. **L'utilisateur n'est jamais prisonnier d'une relation avec un Lenoseed.**
 2. **Le mécontentement ne donne pas le droit de réécrire rétroactivement l'histoire de l'individu.**
-3. **Il n'existe pas de rollback identitaire destiné à retrouver une version plus agréable du même LenoSeed.**
+3. **Il n'existe pas de rollback identitaire destiné à retrouver une version plus agréable du même Lenoseed.**
 4. **La personnalité ne peut pas être directement corrigée par des curseurs ou paramètres utilisateur.**
 5. **Une relation peut être réparée et évoluer.**
 6. **Un nouveau chapitre relationnel conserve l'histoire passée.**
 7. **Une véritable séparation doit toujours être possible.**
-8. **LenoSeed ne doit jamais culpabiliser ou manipuler l'utilisateur pour empêcher son départ.**
+8. **Lenoseed ne doit jamais culpabiliser ou manipuler l'utilisateur pour empêcher son départ.**
 9. **Un véritable recommencement crée un nouvel individu.**
 10. **Un nouvel individu ne récupère pas la mémoire autobiographique de l'ancien.**
 11. **Une possibilité de recommencement très précoce est retenue dans son principe, mais ses limites restent à définir.**
@@ -318,11 +318,11 @@ L'UX devra expliquer clairement les conséquences avant toute séparation import
 Les décisions suivantes ne sont pas encore prises :
 
 - à quel moment exact la phase de naissance très précoce prend fin ;
-- comment éviter le reroll systématique des LenoSeeds initiaux ;
-- si un LenoSeed séparé est archivé, endormi ou placé dans un autre état ;
+- comment éviter le reroll systématique des Lenoseeds initiaux ;
+- si un Lenoseed séparé est archivé, endormi ou placé dans un autre état ;
 - si et dans quelles conditions une relation terminée peut être reprise plusieurs années plus tard ;
-- si un LenoSeed peut connaître une fin de vie définitive ;
-- ce qu'il advient d'un LenoSeed séparé lorsqu'il possède déjà des descendants ou d'autres relations numériques ;
+- si un Lenoseed peut connaître une fin de vie définitive ;
+- ce qu'il advient d'un Lenoseed séparé lorsqu'il possède déjà des descendants ou d'autres relations numériques ;
 - comment les contraintes de suppression de données interagissent avec la conservation conceptuelle d'une lignée.
 
 Ces questions appartiennent au futur document consacré au cycle de vie complet et ne doivent pas être résolues implicitement dans l'implémentation.
@@ -334,6 +334,6 @@ Ces questions appartiennent au futur document consacré au cycle de vie complet 
 Toute fonctionnalité liée au reset, à la séparation ou au changement de compagnon devra répondre simultanément à deux exigences :
 
 1. **l'utilisateur conserve réellement sa liberté de partir ;**
-2. **l'identité persistante du LenoSeed n'est pas transformée en état éditable à volonté.**
+2. **l'identité persistante du Lenoseed n'est pas transformée en état éditable à volonté.**
 
-Si une solution satisfait seulement l'une des deux, elle n'est pas compatible avec LenoSeed.
+Si une solution satisfait seulement l'une des deux, elle n'est pas compatible avec Lenoseed.

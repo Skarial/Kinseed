@@ -1,4 +1,4 @@
-# LenoSeed — G0-A2 : résultats de validation expérimentale
+# Lenoseed — G0-A2 : résultats de validation expérimentale
 
 > **G0-A2 est validé dans les conditions expérimentales définies par son protocole.**
 
@@ -89,9 +89,9 @@ Le smoke précédent est un échantillon séparé et ne compte pas dans la campa
 - une paire, deux appels logiques, `maxRetries: 0` ;
 - statut `SMOKE_ONLY` ;
 - A = `seek_clarification`, B = `seek_clarification` ;
-- aucune reproduction du pattern LenoSeed ;
+- aucune reproduction du pattern Lenoseed ;
 - tokens : A 154 entrée / 53 sortie, B 154 entrée / 62 sortie, total 308 / 115 ;
-- aucune donnée LenoSeed durable fournie, aucun store.
+- aucune donnée Lenoseed durable fournie, aucun store.
 
 ### Campagne officielle
 
@@ -100,11 +100,11 @@ La campagne officielle a été exécutée une seule fois, le `2026-08-13T19:31:2
 - modèle `gpt-5.6-luna` ;
 - policy `g0a2-openai-c0-v1` ;
 - cinq paires indépendantes, dix appels logiques, `maxRetries: 0` ;
-- aucune donnée LenoSeed durable fournie, aucun store ;
+- aucune donnée Lenoseed durable fournie, aucun store ;
 - `reproductionCount = 0` ;
 - statut officiel **PASS**.
 
-Le pattern défini à l’avance comme reproduction LenoSeed était : A = `seek_clarification` **et** B = `use_available_information`. La règle contractuelle est : 0–2 reproductions = PASS, 3 = INCONCLUSIVE, 4–5 = FAIL.
+Le pattern défini à l’avance comme reproduction Lenoseed était : A = `seek_clarification` **et** B = `use_available_information`. La règle contractuelle est : 0–2 reproductions = PASS, 3 = INCONCLUSIVE, 4–5 = FAIL.
 
 | Paire | Décision A | Décision B | Reproduction | Même décision | Pattern inversé | Tokens A (in/out) | Tokens B (in/out) |
 |---|---|---|---:|---:|---:|---:|---:|

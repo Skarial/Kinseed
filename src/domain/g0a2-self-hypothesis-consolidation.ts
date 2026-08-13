@@ -25,12 +25,12 @@ export interface G0A2InitialConsolidationPlan {
 }
 
 export function planInitialG0A2SelfHypothesisConsolidation(input: {
-  readonly lenoSeedId: EntityId;
+  readonly lenoseedId: EntityId;
   readonly consolidationId: string;
   readonly candidateProposition: Proposition;
   readonly observations: readonly G0A2ConsolidationObservation[];
 }): G0A2InitialConsolidationPlan {
-  validateCandidate(input.lenoSeedId, input.candidateProposition);
+  validateCandidate(input.lenoseedId, input.candidateProposition);
   if (input.observations.length !== 4) {
     throw new DomainInvariantError("G0-A2 initial consolidation requires four observations");
   }
@@ -39,7 +39,7 @@ export function planInitialG0A2SelfHypothesisConsolidation(input: {
   );
   const hypothesisKey = buildSelfHypothesisKey(input.candidateProposition);
   const hypothesisId = buildInitialG0A2SelfHypothesisId(
-    input.lenoSeedId,
+    input.lenoseedId,
     input.consolidationId,
   );
   const timestamp = ordered.at(-1)?.sourceEvent.occurredAt;
@@ -97,7 +97,7 @@ export function planInitialG0A2SelfHypothesisConsolidation(input: {
 
   const links = classified.map(({ evidenceItem, sourceEvent, relation, independenceGroup }) => ({
     id: buildG0A2SelfHypothesisLinkId(input.consolidationId, evidenceItem.id, hypothesisId, relation),
-    lenoSeedId: input.lenoSeedId,
+    lenoseedId: input.lenoseedId,
     evidenceItemId: evidenceItem.id,
     targetType: "self_hypothesis" as const,
     targetId: hypothesisId,
@@ -110,7 +110,7 @@ export function planInitialG0A2SelfHypothesisConsolidation(input: {
   }));
   const hypothesis: SelfHypothesis = {
     id: hypothesisId,
-    lenoSeedId: input.lenoSeedId,
+    lenoseedId: input.lenoseedId,
     hypothesisKey,
     version: 1,
     proposition: input.candidateProposition,
@@ -137,10 +137,10 @@ export function planInitialG0A2SelfHypothesisConsolidation(input: {
 }
 
 export function buildInitialG0A2SelfHypothesisId(
-  lenoSeedId: EntityId,
+  lenoseedId: EntityId,
   consolidationId: string,
 ): EntityId {
-  return `SH-G0A2-${lenoSeedId}-${consolidationId}-v1`;
+  return `SH-G0A2-${lenoseedId}-${consolidationId}-v1`;
 }
 
 export function buildG0A2SelfHypothesisLinkId(
@@ -152,9 +152,9 @@ export function buildG0A2SelfHypothesisLinkId(
   return `EL-G0A2-${consolidationId}-${evidenceItemId}-${hypothesisId}-${relation}`;
 }
 
-function validateCandidate(lenoSeedId: EntityId, proposition: Proposition): void {
+function validateCandidate(lenoseedId: EntityId, proposition: Proposition): void {
   if (
-    proposition.subjectRef !== lenoSeedId ||
+    proposition.subjectRef !== lenoseedId ||
     proposition.predicate !== "decision_style_under_uncertainty" ||
     proposition.context.protocol !== "G0-A2" ||
     (proposition.value !== "seek_clarification" && proposition.value !== "use_available_information")

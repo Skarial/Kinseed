@@ -1,4 +1,4 @@
-# LenoSeed — Gates de validation entre phases
+# Lenoseed — Gates de validation entre phases
 
 ## Statut
 
@@ -71,7 +71,7 @@ Avant tout passage de phase, vérifier les points suivants.
 
 ## Démonstration attendue
 
-Deux LenoSeeds initialement comparables, soumis à des histoires différentes, doivent pouvoir produire des hypothèses internes différentes qui :
+Deux Lenoseeds initialement comparables, soumis à des histoires différentes, doivent pouvoir produire des hypothèses internes différentes qui :
 
 - ont une provenance identifiable ;
 - influencent des décisions futures ;
@@ -89,7 +89,7 @@ Deux LenoSeeds initialement comparables, soumis à des histoires différentes, d
 - [x] écriture durable protégée par validation, dans les périmètres G0-A1 et G0-A2 validés ;
 - [x] divergence entre histoires démontrée — A/B G0-A2 ;
 - [x] influence future démontrée — sélection S5 G0-A2 ;
-- [x] contrôle sans mécanisme LenoSeed ou équivalent exécuté — C0 G0-A2 exécuté ;
+- [x] contrôle sans mécanisme Lenoseed ou équivalent exécuté — C0 G0-A2 exécuté ;
 - [x] ablation ciblée exécutée — consommation de `SelfHypothesis` G0-A2 ;
 - [x] résultats et limites documentés — G0-A1 et G0-A2 ;
 - [ ] aucun risque critique actuel non compris.
@@ -110,7 +110,7 @@ Roadmap — **G0-B — Initiative minimale**.
 
 ## Démonstration attendue
 
-LenoSeed doit produire au moins une initiative dont la cause existe **avant** sa formulation et peut être retrouvée dans son état.
+Lenoseed doit produire au moins une initiative dont la cause existe **avant** sa formulation et peut être retrouvée dans son état.
 
 ## Checklist opérationnelle
 
@@ -207,7 +207,7 @@ Roadmap — **G0-F — Longévité**.
 
 ## Démonstration attendue
 
-Après une histoire longue ou accélérée, LenoSeed doit rester cohérent, révisable et explicable sans dépendre d’un modèle linguistique précis.
+Après une histoire longue ou accélérée, Lenoseed doit rester cohérent, révisable et explicable sans dépendre d’un modèle linguistique précis.
 
 ## Checklist opérationnelle
 
@@ -223,7 +223,7 @@ Après une histoire longue ou accélérée, LenoSeed doit rester cohérent, rév
 - [ ] dérive identitaire mesurée ;
 - [ ] coûts mémoire, calcul et LLM mesurés sur longue durée.
 
-La sortie de G0-F ne signifie pas que LenoSeed est un produit commercial terminé. Elle signifie que le noyau de génération 0 dispose d’éléments suffisants pour envisager les couches futures sans abandonner les principes expérimentaux initiaux.
+La sortie de G0-F ne signifie pas que Lenoseed est un produit commercial terminé. Elle signifie que le noyau de génération 0 dispose d’éléments suffisants pour envisager les couches futures sans abandonner les principes expérimentaux initiaux.
 
 ---
 

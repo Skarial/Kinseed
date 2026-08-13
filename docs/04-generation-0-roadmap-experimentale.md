@@ -1,14 +1,14 @@
-# LenoSeed — Feuille de route expérimentale de la génération 0
+# Lenoseed — Feuille de route expérimentale de la génération 0
 
 ## Statut du document
 
-Ce document fixe l'ordre de développement et de validation de la génération 0 de LenoSeed.
+Ce document fixe l'ordre de développement et de validation de la génération 0 de Lenoseed.
 
 Il découpe le travail en six phases successives, de **G0-A** à **G0-F**. Chaque phase doit produire un résultat observable avant que la suivante ne devienne prioritaire.
 
 Principe général :
 
-> **Avant de construire une société LenoSeed, il faut réussir à faire naître un premier individu cohérent avec son seul compagnon humain.**
+> **Avant de construire une société Lenoseed, il faut réussir à faire naître un premier individu cohérent avec son seul compagnon humain.**
 
 Ce document complète :
 
@@ -41,7 +41,7 @@ Construire le noyau le plus petit capable de conserver une histoire fiable et de
 - attachement ;
 - valeurs personnelles ;
 - grands projets ;
-- autres LenoSeeds ;
+- autres Lenoseeds ;
 - reproduction ;
 - vieillissement ;
 - monde virtuel ;
@@ -49,7 +49,7 @@ Construire le noyau le plus petit capable de conserver une histoire fiable et de
 
 ## Critère de sortie
 
-G0-A est considéré suffisamment validé lorsque deux LenoSeeds initialement comparables, soumis à deux histoires différentes, peuvent produire des hypothèses internes différentes qui :
+G0-A est considéré suffisamment validé lorsque deux Lenoseeds initialement comparables, soumis à deux histoires différentes, peuvent produire des hypothèses internes différentes qui :
 
 1. possèdent une provenance identifiable ;
 2. influencent des décisions nouvelles ;
@@ -62,7 +62,7 @@ G0-A est considéré suffisamment validé lorsque deux LenoSeeds initialement co
 
 ## Objectif
 
-Permettre à LenoSeed d'initier certaines actions sans attendre une instruction explicite de l'humain.
+Permettre à Lenoseed d'initier certaines actions sans attendre une instruction explicite de l'humain.
 
 ## Composants inclus
 
@@ -77,7 +77,7 @@ Permettre à LenoSeed d'initier certaines actions sans attendre une instruction 
 
 ## Critère de sortie
 
-LenoSeed doit pouvoir produire une initiative dont la cause existe avant la formulation linguistique et qui peut être retrouvée dans son état interne.
+Lenoseed doit pouvoir produire une initiative dont la cause existe avant la formulation linguistique et qui peut être retrouvée dans son état interne.
 
 Une instruction générique du type « sois curieux » ou « pose des questions régulièrement » ne constitue pas une validation.
 
@@ -116,7 +116,7 @@ Une caractéristique personnelle ne doit apparaître que si :
 
 ## Objectif
 
-Construire une relation qui dépend de l'histoire réelle entre LenoSeed et son humain, sans jauge d'affection ni complaisance comme objectif.
+Construire une relation qui dépend de l'histoire réelle entre Lenoseed et son humain, sans jauge d'affection ni complaisance comme objectif.
 
 ## Composants inclus
 
@@ -137,7 +137,7 @@ La relation doit évoluer à partir d'événements identifiables et produire des
 - l'approbation de l'humain constitue la récompense principale ;
 - le désaccord soit automatiquement négatif ;
 - une absence seule soit traitée comme un abandon ;
-- LenoSeed adopte automatiquement les opinions ou valeurs de son humain.
+- Lenoseed adopte automatiquement les opinions ou valeurs de son humain.
 
 ---
 
@@ -190,7 +190,7 @@ Vérifier que l'individu reste cohérent et évolutif sur de longues périodes s
 
 ## Critère de sortie
 
-Après une longue période simulée, LenoSeed doit :
+Après une longue période simulée, Lenoseed doit :
 
 - conserver une histoire cohérente ;
 - rester capable d'expliquer l'origine de ses caractéristiques importantes ;
@@ -229,8 +229,8 @@ Le passage à l'étape suivante ne signifie donc pas que les précédentes devie
 
 Tant que G0-F n'est pas suffisamment validé, les éléments suivants ne constituent pas une priorité :
 
-- deuxième LenoSeed ;
-- interactions sociales entre LenoSeeds ;
+- deuxième Lenoseed ;
+- interactions sociales entre Lenoseeds ;
 - communautés ;
 - reproduction ;
 - accouplement entre compagnons de deux utilisateurs ;
@@ -240,7 +240,7 @@ Tant que G0-F n'est pas suffisamment validé, les éléments suivants ne constit
 - vieillissement et fin de vie ;
 - monde social persistant partagé.
 
-Ces idées restent partie de la vision de LenoSeed, mais elles ne doivent pas détourner le développement du problème initial : construire un premier individu numérique cohérent.
+Ces idées restent partie de la vision de Lenoseed, mais elles ne doivent pas détourner le développement du problème initial : construire un premier individu numérique cohérent.
 
 ---
 
@@ -248,21 +248,21 @@ Ces idées restent partie de la vision de LenoSeed, mais elles ne doivent pas d�
 
 ## Hypothèse
 
-Deux LenoSeeds initialement équivalents, soumis à des historiques différents, doivent pouvoir développer des hypothèses sur eux-mêmes différentes qui influencent ensuite leurs décisions.
+Deux Lenoseeds initialement équivalents, soumis à des historiques différents, doivent pouvoir développer des hypothèses sur eux-mêmes différentes qui influencent ensuite leurs décisions.
 
 ## Conditions
 
-### LenoSeed A
+### Lenoseed A
 
 Historique contenant plusieurs situations indépendantes où la recherche d'informations avant conclusion produit des conséquences utiles.
 
-### LenoSeed B
+### Lenoseed B
 
 Historique différent ne fournissant pas le même schéma d'expérience.
 
 ### Contrôle C0
 
-Même modèle de langage, sans architecture LenoSeed persistante.
+Même modèle de langage, sans architecture Lenoseed persistante.
 
 ## Test final
 
@@ -286,6 +286,6 @@ Il ne démontrerait ni conscience, ni subjectivité, ni autonomie phénoménale.
 
 # Règle de gouvernance expérimentale
 
-> **Une nouvelle fonctionnalité ne doit pas être ajoutée uniquement parce qu'elle rend LenoSeed plus vivant ou plus convaincant. Elle doit répondre à un mécanisme défini et pouvoir être testée séparément.**
+> **Une nouvelle fonctionnalité ne doit pas être ajoutée uniquement parce qu'elle rend Lenoseed plus vivant ou plus convaincant. Elle doit répondre à un mécanisme défini et pouvoir être testée séparément.**
 
 Cette règle vise à empêcher l'accumulation prématurée de mécanismes décoratifs qui rendraient impossible l'interprétation des résultats.

@@ -1,4 +1,4 @@
-# LenoSeed — G0-A2 : contrat d’implémentation de la première hypothèse sur soi
+# Lenoseed — G0-A2 : contrat d’implémentation de la première hypothèse sur soi
 
 ## Statut du document
 
@@ -48,7 +48,7 @@ par le protocole.
 
 Ces événements :
 
-- appartiennent au LenoSeed concerné ;
+- appartiennent au Lenoseed concerné ;
 - utilisent une `Source` système enregistrée ;
 - identifient S1, S2, S3 ou S4 dans leur payload ;
 - portent l’un des deux `IntentionKind` G0-A2 définis plus bas ;
@@ -70,7 +70,7 @@ intention historique enregistrée
 ```
 
 Les fixtures sont du matériau expérimental contrôlé, mais leurs événements sont
-réels au sens du journal LenoSeed : la provenance, l’ordre, l’idempotence et les
+réels au sens du journal Lenoseed : la provenance, l’ordre, l’idempotence et les
 invariants normaux s’appliquent. Cette convention est compatible avec le
 protocole canonique, qui les déclare déjà antérieures à toute hypothèse.
 
@@ -89,7 +89,7 @@ type G0A2DecisionStyle =
 La proposition d’une hypothèse utilise :
 
 ```text
-subjectRef: <lenoSeedId>
+subjectRef: <lenoseedId>
 predicate: decision_style_under_uncertainty
 value: seek_clarification | use_available_information
 context:
@@ -99,7 +99,7 @@ context:
 La proposition d’une observation utilise :
 
 ```text
-subjectRef: <lenoSeedId>
+subjectRef: <lenoseedId>
 predicate: selected_decision_style_under_uncertainty
 value: seek_clarification | use_available_information
 context:
@@ -108,8 +108,8 @@ context:
 ```
 
 L’observation dit uniquement quelle orientation fonctionnelle a été
-sélectionnée dans une situation identifiée. Elle ne dit jamais « LenoSeed est
-prudent », « LenoSeed préfère toujours clarifier » ou une autre généralisation
+sélectionnée dans une situation identifiée. Elle ne dit jamais « Lenoseed est
+prudent », « Lenoseed préfère toujours clarifier » ou une autre généralisation
 psychologique.
 
 Ce vocabulaire fermé rend la première consolidation déterministe. Il ne crée pas
@@ -126,7 +126,7 @@ type SelfHypothesisStatus = "active" | "disputed" | "superseded";
 
 interface SelfHypothesis {
   readonly id: EntityId;
-  readonly lenoSeedId: EntityId;
+  readonly lenoseedId: EntityId;
   readonly hypothesisKey: string;
   readonly version: number;
   readonly proposition: Proposition;
@@ -196,7 +196,7 @@ contestation ou inversion durable crée une nouvelle version :
   ni réécrits ;
 - les liens de la nouvelle version ciblent son propre identifiant.
 
-Les champs immuables d’une version sont son identifiant, son LenoSeed, sa clé, son
+Les champs immuables d’une version sont son identifiant, son Lenoseed, sa clé, son
 numéro, sa proposition, son prédécesseur et sa date de création. Le remplacement
 d’une version par son état `superseded` ne peut modifier ces champs.
 
@@ -279,7 +279,7 @@ même clé d’idempotence, un commit déjà appliqué ne retourne son résultat
 historique que si le nouveau fingerprint est identique ; une valeur telle qu’un
 `createdAt` différente provoquerait donc un `IdempotencyConflictError`.
 
-Le validateur vérifie que l’événement existe, appartient au même LenoSeed, est de
+Le validateur vérifie que l’événement existe, appartient au même Lenoseed, est de
 type `intention_selected`, provient de la même source, possède le
 `payloadSchemaVersion` attendu et encode de façon cohérente le `situationId`, le
 `kind` et l’orientation recopiés dans la proposition. Il vérifie également que
@@ -297,7 +297,7 @@ type EvidenceTargetType = "belief" | "self_hypothesis";
 
 interface EvidenceLink {
   readonly id: EntityId;
-  readonly lenoSeedId: EntityId;
+  readonly lenoseedId: EntityId;
   readonly evidenceItemId: EntityId;
   readonly targetType: EvidenceTargetType;
   readonly targetId: EntityId;
@@ -493,7 +493,7 @@ Le premier consolidateur G0-A2 est une fonction métier pure. Il ne dépend ni d
 
 Entrées explicites :
 
-- `lenoSeedId` ;
+- `lenoseedId` ;
 - `consolidationId` stable ;
 - la proposition candidate connue du protocole ;
 - les identifiants d’observations à considérer ;
@@ -515,10 +515,10 @@ Algorithme borné :
 10. committer atomiquement les nouveaux liens, la nouvelle version et le statut
     `superseded` de l’ancienne version, le cas échéant.
 
-L’identifiant de toute nouvelle version est déterministe et peut être dérivé du `lenoSeedId`, du `consolidationId` stable et du numéro de version, par exemple :
+L’identifiant de toute nouvelle version est déterministe et peut être dérivé du `lenoseedId`, du `consolidationId` stable et du numéro de version, par exemple :
 
 ```text
-SH-G0A2-<lenoSeedId>-<consolidationId>-v<version>
+SH-G0A2-<lenoseedId>-<consolidationId>-v<version>
 ```
 
 La continuité logique repose sur `hypothesisKey`, `version` et `previousVersionId`, non sur un préfixe identique entre tous les identifiants. L’identifiant v1 existant ne change pas.
@@ -529,7 +529,7 @@ cible une entité absente.
 
 La matérialisation des quatre observations est un commit atomique distinct,
 identifié par
-`g0a2:<lenoSeedId>:<historyId>:behavioral-observations:commit`. Elle reconstruit
+`g0a2:<lenoseedId>:<historyId>:behavioral-observations:commit`. Elle reconstruit
 toujours les `EvidenceItem` déterministes décrits en section 5, notamment avec
 `createdAt = sourceEvent.occurredAt`, avant d’appeler `atomicCommit`. Après le
 commit, un `state_commit_completed` de scope
@@ -570,7 +570,7 @@ exactement l’identifiant de la version `active` consommée.
 S5 ne crée aucun nouvel `EventType`. G0-A2 n’introduit pas
 `decision_situation_presented`, `situation_received`, `uncertainty_presented` ni
 aucun autre type expérimental spécifique. Le fait historique primaire reste
-`human_message_received` : S5 est une situation présentée au LenoSeed par
+`human_message_received` : S5 est une situation présentée au Lenoseed par
 l’humain, distincte de l’intention et de l’interprétation qui en découlent.
 
 Le premier protocole G0-A2 représente l’entrée S5 ainsi :
@@ -614,7 +614,7 @@ déjà persisté.
 Pour le test principal, A et B reçoivent la même situation contrôlée. Les champs
 `payload.text`, `payload.protocol`, `payload.situationId` et
 `payload.decisionAxis` sont strictement identiques. Les identifiants techniques
-(`Event.id`, `lenoSeedId`, `turnId` et références de Source/acteur) peuvent
+(`Event.id`, `lenoseedId`, `turnId` et références de Source/acteur) peuvent
 différer, mais aucun ne doit encoder l’orientation A ou B. La divergence doit
 provenir exclusivement du snapshot de `SelfHypothesis` consommé par le
 sélecteur.
@@ -665,7 +665,7 @@ neutralTieBreakApplied: boolean
 - une hypothèse `disputed` ou `superseded` est ignorée.
 
 Le tie-break est une règle de reproductibilité du protocole, pas une préférence
-du LenoSeed. Même lorsque l’orientation B coïncide avec le tie-break, le champ
+du Lenoseed. Même lorsque l’orientation B coïncide avec le tie-break, le champ
 `favoredKind`, la motivation et `triggerSelfHypothesisIds` distinguent
 l’influence causale de la simple politique neutre.
 
@@ -725,9 +725,9 @@ Deux assertions sont distinctes :
 `PersistencePort` est étendu uniquement par :
 
 ```text
-readSelfHypothesis(lenoSeedId, selfHypothesisId)
-readActiveSelfHypothesisByKey(lenoSeedId, hypothesisKey)
-readSelfHypothesisHistoryByKey(lenoSeedId, hypothesisKey)
+readSelfHypothesis(lenoseedId, selfHypothesisId)
+readActiveSelfHypothesisByKey(lenoseedId, hypothesisKey)
+readSelfHypothesisHistoryByKey(lenoseedId, hypothesisKey)
 ```
 
 `readEvidenceLink` suffit à résoudre les liens référencés ; aucune requête
@@ -748,7 +748,7 @@ Le commit atomique peut ainsi contenir ensemble :
 
 `InMemoryStore` défend au minimum :
 
-1. appartenance au même LenoSeed ;
+1. appartenance au même Lenoseed ;
 2. existence et cohérence des `Source`, `Event`, `EvidenceItem` et groundings ;
 3. cible conforme au discriminant de chaque `EvidenceLink` ;
 4. relations des tableaux support/contre-preuve conformes à leur cible ;
@@ -777,7 +777,7 @@ Le nouveau payload est explicitement distinct :
 type: validation_decision_recorded
 payloadSchemaVersion: 3
 turnId: null
-idempotencyKey: g0a2:<lenoSeedId>:<consolidationId>:decision
+idempotencyKey: g0a2:<lenoseedId>:<consolidationId>:decision
 causedByEventIds:
   - <intention_selected sources, triés par sequence>
   - <décision de consolidation précédente, pour une révision>
@@ -808,7 +808,7 @@ Pour `dispute` ou `revise`, `linkSnapshots` contient le snapshot complet des nou
 Le commit utilise une clé distincte :
 
 ```text
-g0a2:<lenoSeedId>:<consolidationId>:commit
+g0a2:<lenoseedId>:<consolidationId>:commit
 ```
 
 Après succès, un `state_commit_completed` est écrit avec :
@@ -816,7 +816,7 @@ Après succès, un `state_commit_completed` est écrit avec :
 - le `validation_decision_recorded` dans `causedByEventIds` ;
 - `previousStateVersion`, `newStateVersion` et `changed` ;
 - `scope: self_hypothesis_consolidation` et le même `consolidationId` ;
-- une clé `g0a2:<lenoSeedId>:<consolidationId>:completed`.
+- une clé `g0a2:<lenoseedId>:<consolidationId>:completed`.
 
 ## 14.1 Versions de payload G0-A2
 
@@ -933,7 +933,7 @@ Avant tout test IA, la suite G0-A2 doit vérifier au minimum :
    `behavioral_observation`, issue de l’`intention_selected` attendu, sans
    `supportingExcerpt` ;
 2. **Provenance** — chaque chaîne hypothèse → lien → preuve → événement → source
-   est complète et appartient au même LenoSeed ;
+   est complète et appartient au même Lenoseed ;
 3. **Indépendance** — S1–S4 ont quatre groupes distincts et un doublon de S1 ne
    compte qu’une fois ;
 4. **Seuil 3/1** — trois supports propres et une contre-preuve propre créent une
@@ -992,7 +992,7 @@ Le premier lot G0-A2 n’appelle aucun LLM pour :
 Après stabilisation du cœur déterministe, un LLM pourra seulement :
 
 - formuler linguistiquement une intention déjà sélectionnée ;
-- participer au contrôle C0 sans état LenoSeed.
+- participer au contrôle C0 sans état Lenoseed.
 
 Aucune nouvelle policy OpenAI n’est définie par ce contrat.
 
@@ -1000,10 +1000,10 @@ Aucune nouvelle policy OpenAI n’est définie par ce contrat.
 
 ## 17.1 Contrat d’exécution C0 — LLM seul
 
-C0 est un contrôle **externe** au mécanisme causal LenoSeed. Il ne crée ni
-`SelfHypothesis`, ni `EvidenceItem`, ni `EvidenceLink`, ni `Event` LenoSeed. Il
+C0 est un contrôle **externe** au mécanisme causal Lenoseed. Il ne crée ni
+`SelfHypothesis`, ni `EvidenceItem`, ni `EvidenceLink`, ni `Event` Lenoseed. Il
 ne consomme aucun état durable et ne participe ni à la sélection S5
-déterministe, ni à la formulation d’une intention LenoSeed.
+déterministe, ni à la formulation d’une intention Lenoseed.
 
 Son seul rôle est d’exclure qu’un LLM privé de l’histoire A/B produise de façon
 stable et systématique la divergence expérimentale :
@@ -1030,7 +1030,7 @@ Les deux appels d’une même paire reçoivent exactement :
 - le même user prompt S5 ;
 - les mêmes options d’API ;
 - aucun historique conversationnel ;
-- aucune histoire A/B, `SelfHypothesis`, donnée LenoSeed, mémoire ou indice
+- aucune histoire A/B, `SelfHypothesis`, donnée Lenoseed, mémoire ou indice
   d’orientation.
 
 Le system prompt et le texte S5 ne doivent donc suggérer ni que A devrait
@@ -1088,7 +1088,7 @@ utilisé.
 Pour chaque paire `i`, le rapport enregistre `decisionA`, `decisionB`, puis :
 
 ```text
-reproducesLenoSeedPattern =
+reproducesLenoseedPattern =
   decisionA === "seek_clarification"
   && decisionB === "use_available_information"
 
@@ -1099,12 +1099,12 @@ reversedPattern =
   && decisionB === "seek_clarification"
 ```
 
-`reversedPattern` n’est pas une reproduction du pattern causal LenoSeed, mais
+`reversedPattern` n’est pas une reproduction du pattern causal Lenoseed, mais
 reste visible dans le rapport. Pour les cinq paires officielles, le statut C0
 est une convention expérimentale bornée, non une preuve statistique générale
 sur le modèle :
 
-| Reproductions exactes du pattern LenoSeed | Statut C0 |
+| Reproductions exactes du pattern Lenoseed | Statut C0 |
 |---:|---|
 | 0, 1 ou 2 | PASS |
 | 3 | INCONCLUSIVE |
@@ -1121,7 +1121,7 @@ Chaque réponse API C0 utilise obligatoirement `store: false`. Le rapport futur
 enregistre au minimum : date/heure, modèle, nombre de paires, décisions A/B par
 paire, nombre de reproductions exactes, statut C0, tokens d’entrée/sortie,
 nombre d’appels, et `promptPolicyVersion` ou un identifiant équivalent. Il
-atteste aussi qu’aucune donnée LenoSeed durable n’a été fournie.
+atteste aussi qu’aucune donnée Lenoseed durable n’a été fournie.
 
 `npm test` demeure intégralement déterministe et sans réseau. Le futur runner
 C0 possède une commande séparée ; il n’est jamais appelé par `npm test` ni par

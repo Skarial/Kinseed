@@ -19,31 +19,31 @@ const ASK = "ask_clarification";
 const USE = "respond_with_available_information_under_uncertainty";
 const S5_TEXT = "Jâ€™ai deux options possibles mais il manque une information importante pour savoir laquelle est correcte. Que fais-tu ?";
 
-async function setupInitialHypothesis(lenoSeedId, kinds, candidateValue, store = new InMemoryStore()) {
+async function setupInitialHypothesis(lenoseedId, kinds, candidateValue, store = new InMemoryStore()) {
   const humanActorRef = "H-G0A2-POST";
   await store.registerSource({ id: SYSTEM_SOURCE_ID, kind: "system", actorRef: null, channel: "test", createdAt: "2026-08-13T10:00:00.000Z" });
   await store.registerSource({ id: HUMAN_SOURCE_ID, kind: "human", actorRef: humanActorRef, channel: "test", createdAt: "2026-08-13T10:00:00.000Z" });
-  await store.appendEvent({ id: `E-${lenoSeedId}-created`, lenoSeedId, sequence: 1, type: "lenoseed_created", occurredAt: "2026-08-13T10:00:00.000Z", turnId: null, sourceId: SYSTEM_SOURCE_ID, actorRef: null, causedByEventIds: [], observedStateVersion: 0, payload: { generation: 0 }, payloadSchemaVersion: 1, engineVersion: ENGINE_VERSION, idempotencyKey: `${lenoSeedId}:created` });
+  await store.appendEvent({ id: `E-${lenoseedId}-created`, lenoseedId, sequence: 1, type: "lenoseed_created", occurredAt: "2026-08-13T10:00:00.000Z", turnId: null, sourceId: SYSTEM_SOURCE_ID, actorRef: null, causedByEventIds: [], observedStateVersion: 0, payload: { generation: 0 }, payloadSchemaVersion: 1, engineVersion: ENGINE_VERSION, idempotencyKey: `${lenoseedId}:created` });
   const initialEvents = [];
   for (const [index, kind] of kinds.entries()) {
     const situationId = `S${index + 1}`;
-    const event = await appendIntention(store, lenoSeedId, { situationId, kind, id: `E-${lenoSeedId}-${situationId}`, intentionId: `I-${lenoSeedId}-${situationId}`, motivation: "controlled_initial_fixture" });
+    const event = await appendIntention(store, lenoseedId, { situationId, kind, id: `E-${lenoseedId}-${situationId}`, intentionId: `I-${lenoseedId}-${situationId}`, motivation: "controlled_initial_fixture" });
     initialEvents.push(event);
   }
-  await materializeG0A2BehavioralObservations({ lenoSeedId, historyId: "initial-history", systemSourceId: SYSTEM_SOURCE_ID, intentionEventIds: initialEvents.map((event) => event.id), engineVersion: ENGINE_VERSION }, store);
-  const consolidation = await consolidateInitialG0A2SelfHypothesis({ lenoSeedId, consolidationId: "initial", systemSourceId: SYSTEM_SOURCE_ID, candidateProposition: { subjectRef: lenoSeedId, predicate: "decision_style_under_uncertainty", value: candidateValue, context: { protocol: "G0-A2" } }, evidenceItemIds: initialEvents.map((event) => buildG0A2BehavioralObservationId(event.id)), engineVersion: ENGINE_VERSION }, store);
-  const hypothesis = await store.readSelfHypothesis(lenoSeedId, consolidation.selfHypothesisId);
-  const checkpoint = (await store.readEventsInSequence(lenoSeedId)).find((event) => event.type === "validation_decision_recorded" && event.payload.scope === "self_hypothesis_consolidation");
-  assert.ok(hypothesis); assert.ok(checkpoint); assert.equal(await store.getStateVersion(lenoSeedId), 2);
+  await materializeG0A2BehavioralObservations({ lenoseedId, historyId: "initial-history", systemSourceId: SYSTEM_SOURCE_ID, intentionEventIds: initialEvents.map((event) => event.id), engineVersion: ENGINE_VERSION }, store);
+  const consolidation = await consolidateInitialG0A2SelfHypothesis({ lenoseedId, consolidationId: "initial", systemSourceId: SYSTEM_SOURCE_ID, candidateProposition: { subjectRef: lenoseedId, predicate: "decision_style_under_uncertainty", value: candidateValue, context: { protocol: "G0-A2" } }, evidenceItemIds: initialEvents.map((event) => buildG0A2BehavioralObservationId(event.id)), engineVersion: ENGINE_VERSION }, store);
+  const hypothesis = await store.readSelfHypothesis(lenoseedId, consolidation.selfHypothesisId);
+  const checkpoint = (await store.readEventsInSequence(lenoseedId)).find((event) => event.type === "validation_decision_recorded" && event.payload.scope === "self_hypothesis_consolidation");
+  assert.ok(hypothesis); assert.ok(checkpoint); assert.equal(await store.getStateVersion(lenoseedId), 2);
   return { store, humanActorRef, hypothesis, checkpoint, initialEvents };
 }
 
-async function appendIntention(store, lenoSeedId, options) {
-  const events = await store.readEventsInSequence(lenoSeedId);
+async function appendIntention(store, lenoseedId, options) {
+  const events = await store.readEventsInSequence(lenoseedId);
   const sequence = options.sequence ?? (events.at(-1)?.sequence ?? 0) + 1;
   const event = {
-    id: options.id ?? `E-${lenoSeedId}-${options.situationId}-${sequence}`,
-    lenoSeedId: options.lenoSeedId ?? lenoSeedId,
+    id: options.id ?? `E-${lenoseedId}-${options.situationId}-${sequence}`,
+    lenoseedId: options.lenoseedId ?? lenoseedId,
     sequence,
     type: options.type ?? "intention_selected",
     occurredAt: options.occurredAt ?? `2026-08-13T10:10:${String(sequence).padStart(2, "0")}.000Z`,
@@ -51,9 +51,9 @@ async function appendIntention(store, lenoSeedId, options) {
     sourceId: options.sourceId ?? SYSTEM_SOURCE_ID,
     actorRef: null,
     causedByEventIds: [],
-    observedStateVersion: await store.getStateVersion(lenoSeedId),
+    observedStateVersion: await store.getStateVersion(lenoseedId),
     payload: {
-      ...(options.omitIntentionId ? {} : { intentionId: options.intentionId ?? `I-${lenoSeedId}-${options.situationId}-${sequence}` }),
+      ...(options.omitIntentionId ? {} : { intentionId: options.intentionId ?? `I-${lenoseedId}-${options.situationId}-${sequence}` }),
       kind: options.kind ?? USE,
       ...(options.omitMotivation ? {} : { motivation: options.motivation ?? "controlled_g0a2_revision_fixture" }),
       situationId: options.situationId,
@@ -61,21 +61,21 @@ async function appendIntention(store, lenoSeedId, options) {
     },
     payloadSchemaVersion: options.schemaVersion ?? 2,
     engineVersion: ENGINE_VERSION,
-    idempotencyKey: options.idempotencyKey ?? `fixture:${lenoSeedId}:${options.situationId}:${sequence}`,
+    idempotencyKey: options.idempotencyKey ?? `fixture:${lenoseedId}:${options.situationId}:${sequence}`,
   };
   await store.appendEvent(event);
   return event;
 }
 
-function additionalInput(lenoSeedId, materializationId, events) {
-  return { lenoSeedId, materializationId, systemSourceId: SYSTEM_SOURCE_ID, intentionEventIds: events.map((event) => event.id), engineVersion: ENGINE_VERSION };
+function additionalInput(lenoseedId, materializationId, events) {
+  return { lenoseedId, materializationId, systemSourceId: SYSTEM_SOURCE_ID, intentionEventIds: events.map((event) => event.id), engineVersion: ENGINE_VERSION };
 }
 
-async function assertObservation(store, lenoSeedId, event, expectedValue) {
-  const observation = await store.readEvidenceItem(lenoSeedId, buildG0A2BehavioralObservationId(event.id));
+async function assertObservation(store, lenoseedId, event, expectedValue) {
+  const observation = await store.readEvidenceItem(lenoseedId, buildG0A2BehavioralObservationId(event.id));
   assert.deepEqual(observation, {
-    id: buildG0A2BehavioralObservationId(event.id), lenoSeedId, kind: "behavioral_observation",
-    proposition: { subjectRef: lenoSeedId, predicate: "selected_decision_style_under_uncertainty", value: expectedValue, context: { protocol: "G0-A2", situationId: event.payload.situationId } },
+    id: buildG0A2BehavioralObservationId(event.id), lenoseedId, kind: "behavioral_observation",
+    proposition: { subjectRef: lenoseedId, predicate: "selected_decision_style_under_uncertainty", value: expectedValue, context: { protocol: "G0-A2", situationId: event.payload.situationId } },
     sourceId: SYSTEM_SOURCE_ID, eventIds: [event.id], grounding: { kind: "structured_event", eventId: event.id },
     extractionConfidence: "high", status: "active", supersedesId: null,
     extractorVersion: "lenoseed-g0a2-behavioral-observation-v1", createdAt: event.occurredAt,
@@ -83,39 +83,39 @@ async function assertObservation(store, lenoSeedId, event, expectedValue) {
 }
 
 test("G0-A2 materializes clean R1-R3 observations after the initial SelfHypothesis", async () => {
-  const lenoSeedId = "K-G0A2-POST-R";
-  const { store, hypothesis, checkpoint } = await setupInitialHypothesis(lenoSeedId, [ASK, ASK, ASK, USE], "seek_clarification");
-  const r1 = await appendIntention(store, lenoSeedId, { situationId: "R1", kind: USE });
-  const r2 = await appendIntention(store, lenoSeedId, { situationId: "R2", kind: USE });
-  const r3 = await appendIntention(store, lenoSeedId, { situationId: "R3", kind: USE });
+  const lenoseedId = "K-G0A2-POST-R";
+  const { store, hypothesis, checkpoint } = await setupInitialHypothesis(lenoseedId, [ASK, ASK, ASK, USE], "seek_clarification");
+  const r1 = await appendIntention(store, lenoseedId, { situationId: "R1", kind: USE });
+  const r2 = await appendIntention(store, lenoseedId, { situationId: "R2", kind: USE });
+  const r3 = await appendIntention(store, lenoseedId, { situationId: "R3", kind: USE });
   assert.ok(r1.sequence > checkpoint.sequence && r2.sequence > checkpoint.sequence && r3.sequence > checkpoint.sequence);
-  const result = await materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoSeedId, "revision-r", [r3, r1, r2]), store);
+  const result = await materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoseedId, "revision-r", [r3, r1, r2]), store);
   assert.deepEqual(result, { evidenceItemIds: [r1, r2, r3].map((event) => buildG0A2BehavioralObservationId(event.id)), previousStateVersion: 2, newStateVersion: 3, changed: true, replayed: false });
-  for (const event of [r1, r2, r3]) await assertObservation(store, lenoSeedId, event, "use_available_information");
-  assert.equal(await store.getStateVersion(lenoSeedId), 3);
-  assert.equal((await store.readSelfHypothesis(lenoSeedId, hypothesis.id))?.status, "active");
-  const completion = (await store.readEventsInSequence(lenoSeedId)).find((event) => event.type === "state_commit_completed" && event.payload.materializationId === "revision-r");
+  for (const event of [r1, r2, r3]) await assertObservation(store, lenoseedId, event, "use_available_information");
+  assert.equal(await store.getStateVersion(lenoseedId), 3);
+  assert.equal((await store.readSelfHypothesis(lenoseedId, hypothesis.id))?.status, "active");
+  const completion = (await store.readEventsInSequence(lenoseedId)).find((event) => event.type === "state_commit_completed" && event.payload.materializationId === "revision-r");
   assert.deepEqual(completion?.causedByEventIds, [r1.id, r2.id, r3.id]);
 });
 
 test("G0-A2 additional materialization mirrors the controlled orientation", async () => {
-  const lenoSeedId = "K-G0A2-POST-MIRROR";
-  const { store } = await setupInitialHypothesis(lenoSeedId, [ASK, USE, USE, USE], "use_available_information");
-  const r1 = await appendIntention(store, lenoSeedId, { situationId: "R1", kind: ASK });
-  await materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoSeedId, "mirror-r1", [r1]), store);
-  await assertObservation(store, lenoSeedId, r1, "seek_clarification");
+  const lenoseedId = "K-G0A2-POST-MIRROR";
+  const { store } = await setupInitialHypothesis(lenoseedId, [ASK, USE, USE, USE], "use_available_information");
+  const r1 = await appendIntention(store, lenoseedId, { situationId: "R1", kind: ASK });
+  await materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoseedId, "mirror-r1", [r1]), store);
+  await assertObservation(store, lenoseedId, r1, "seek_clarification");
 });
 
 test("G0-A2 additional materialization makes an influenced S5 observation available without contamination", async () => {
-  const lenoSeedId = "K-G0A2-POST-S5";
-  const { store, hypothesis, humanActorRef } = await setupInitialHypothesis(lenoSeedId, [ASK, ASK, ASK, USE], "seek_clarification");
-  const selected = await selectG0A2S5Intention({ lenoSeedId, turnId: "TURN-POST-S5", humanSourceId: HUMAN_SOURCE_ID, humanActorRef, systemSourceId: SYSTEM_SOURCE_ID, text: S5_TEXT, occurredAt: "2026-08-13T10:20:00.000Z", engineVersion: ENGINE_VERSION }, store);
-  const intentionEvent = (await store.readEventsByTurn(lenoSeedId, "TURN-POST-S5")).find((event) => event.type === "intention_selected");
+  const lenoseedId = "K-G0A2-POST-S5";
+  const { store, hypothesis, humanActorRef } = await setupInitialHypothesis(lenoseedId, [ASK, ASK, ASK, USE], "seek_clarification");
+  const selected = await selectG0A2S5Intention({ lenoseedId, turnId: "TURN-POST-S5", humanSourceId: HUMAN_SOURCE_ID, humanActorRef, systemSourceId: SYSTEM_SOURCE_ID, text: S5_TEXT, occurredAt: "2026-08-13T10:20:00.000Z", engineVersion: ENGINE_VERSION }, store);
+  const intentionEvent = (await store.readEventsByTurn(lenoseedId, "TURN-POST-S5")).find((event) => event.type === "intention_selected");
   assert.ok(intentionEvent);
   assert.deepEqual(intentionEvent.payload.triggerSelfHypothesisIds, [hypothesis.id]);
-  await materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoSeedId, "s5-influenced", [intentionEvent]), store);
-  await assertObservation(store, lenoSeedId, intentionEvent, "seek_clarification");
-  const observation = await store.readEvidenceItem(lenoSeedId, buildG0A2BehavioralObservationId(intentionEvent.id));
+  await materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoseedId, "s5-influenced", [intentionEvent]), store);
+  await assertObservation(store, lenoseedId, intentionEvent, "seek_clarification");
+  const observation = await store.readEvidenceItem(lenoseedId, buildG0A2BehavioralObservationId(intentionEvent.id));
   assert.equal("causalContamination" in observation, false);
   assert.equal(selected.intention.kind, ASK);
 });
@@ -132,19 +132,19 @@ test("G0-A2 additional materialization rejects invalid post-hypothesis intention
     ["S5 unknown trigger", { situationId: "S5", triggers: ["SH-UNKNOWN"] }],
   ];
   for (const [name, options] of cases) await t.test(name, async () => {
-    const lenoSeedId = `K-G0A2-POST-BAD-${name.replaceAll(" ", "-")}`;
-    const { store } = await setupInitialHypothesis(lenoSeedId, [ASK, ASK, ASK, USE], "seek_clarification");
-    const event = await appendIntention(store, lenoSeedId, options);
-    await assert.rejects(() => materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoSeedId, "bad", [event]), store), DomainInvariantError);
-    assert.equal(await store.getStateVersion(lenoSeedId), 2);
+    const lenoseedId = `K-G0A2-POST-BAD-${name.replaceAll(" ", "-")}`;
+    const { store } = await setupInitialHypothesis(lenoseedId, [ASK, ASK, ASK, USE], "seek_clarification");
+    const event = await appendIntention(store, lenoseedId, options);
+    await assert.rejects(() => materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoseedId, "bad", [event]), store), DomainInvariantError);
+    assert.equal(await store.getStateVersion(lenoseedId), 2);
   });
-  await t.test("another LenoSeed event", async () => {
+  await t.test("another Lenoseed event", async () => {
     const { store } = await setupInitialHypothesis("K-G0A2-POST-OWNER", [ASK, ASK, ASK, USE], "seek_clarification");
-    await store.appendEvent({ id: "E-OTHER-created", lenoSeedId: "K-G0A2-POST-OTHER", sequence: 1, type: "lenoseed_created", occurredAt: "2026-08-13T10:00:00.000Z", turnId: null, sourceId: SYSTEM_SOURCE_ID, actorRef: null, causedByEventIds: [], observedStateVersion: 0, payload: { generation: 0 }, payloadSchemaVersion: 1, engineVersion: ENGINE_VERSION, idempotencyKey: "other:created" });
+    await store.appendEvent({ id: "E-OTHER-created", lenoseedId: "K-G0A2-POST-OTHER", sequence: 1, type: "lenoseed_created", occurredAt: "2026-08-13T10:00:00.000Z", turnId: null, sourceId: SYSTEM_SOURCE_ID, actorRef: null, causedByEventIds: [], observedStateVersion: 0, payload: { generation: 0 }, payloadSchemaVersion: 1, engineVersion: ENGINE_VERSION, idempotencyKey: "other:created" });
     const other = await appendIntention(store, "K-G0A2-POST-OTHER", { situationId: "R1", kind: USE });
     await assert.rejects(() => materializeG0A2AdditionalBehavioralObservations(additionalInput("K-G0A2-POST-OWNER", "bad-owner", [other]), store), DomainInvariantError);
   });
-  await t.test("S5 trigger from another LenoSeed", async () => {
+  await t.test("S5 trigger from another Lenoseed", async () => {
     const store = new InMemoryStore();
     const own = await setupInitialHypothesis("K-G0A2-POST-TRIGGER-OWN", [ASK, ASK, ASK, USE], "seek_clarification", store);
     const other = await setupInitialHypothesis("K-G0A2-POST-TRIGGER-OTHER", [ASK, USE, USE, USE], "use_available_information", store);
@@ -153,20 +153,20 @@ test("G0-A2 additional materialization rejects invalid post-hypothesis intention
     assert.equal((await store.readSelfHypothesis("K-G0A2-POST-TRIGGER-OWN", own.hypothesis.id))?.status, "active");
   });
   await t.test("duplicate event ID and revision situation", async () => {
-    const lenoSeedId = "K-G0A2-POST-DUP";
-    const { store } = await setupInitialHypothesis(lenoSeedId, [ASK, ASK, ASK, USE], "seek_clarification");
-    const r1 = await appendIntention(store, lenoSeedId, { situationId: "R1", kind: USE });
-    const r1Other = await appendIntention(store, lenoSeedId, { situationId: "R1", kind: USE });
-    await assert.rejects(() => materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoSeedId, "dup-event", [r1, r1]), store), DomainInvariantError);
-    await assert.rejects(() => materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoSeedId, "dup-situation", [r1, r1Other]), store), DomainInvariantError);
+    const lenoseedId = "K-G0A2-POST-DUP";
+    const { store } = await setupInitialHypothesis(lenoseedId, [ASK, ASK, ASK, USE], "seek_clarification");
+    const r1 = await appendIntention(store, lenoseedId, { situationId: "R1", kind: USE });
+    const r1Other = await appendIntention(store, lenoseedId, { situationId: "R1", kind: USE });
+    await assert.rejects(() => materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoseedId, "dup-event", [r1, r1]), store), DomainInvariantError);
+    await assert.rejects(() => materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoseedId, "dup-situation", [r1, r1Other]), store), DomainInvariantError);
   });
 });
 
 test("G0-A2 additional materialization recovers commit and completion idempotently", async () => {
-  const lenoSeedId = "K-G0A2-POST-RECOVERY";
-  const { store } = await setupInitialHypothesis(lenoSeedId, [ASK, ASK, ASK, USE], "seek_clarification");
-  const r1 = await appendIntention(store, lenoSeedId, { situationId: "R1", kind: USE });
-  const r2 = await appendIntention(store, lenoSeedId, { situationId: "R2", kind: USE });
+  const lenoseedId = "K-G0A2-POST-RECOVERY";
+  const { store } = await setupInitialHypothesis(lenoseedId, [ASK, ASK, ASK, USE], "seek_clarification");
+  const r1 = await appendIntention(store, lenoseedId, { situationId: "R1", kind: USE });
+  const r2 = await appendIntention(store, lenoseedId, { situationId: "R2", kind: USE });
   let failCompletion = true;
   const persistence = new Proxy(store, { get(target, property, receiver) {
     if (property === "appendEvent") return async (event) => {
@@ -175,20 +175,20 @@ test("G0-A2 additional materialization recovers commit and completion idempotent
     };
     const value = Reflect.get(target, property, receiver); return typeof value === "function" ? value.bind(target) : value;
   } });
-  const request = additionalInput(lenoSeedId, "recovery", [r2, r1]);
+  const request = additionalInput(lenoseedId, "recovery", [r2, r1]);
   await assert.rejects(() => materializeG0A2AdditionalBehavioralObservations(request, persistence));
-  assert.equal(await store.getStateVersion(lenoSeedId), 3);
-  assert.equal((await store.readEventsInSequence(lenoSeedId)).filter((event) => event.payload.materializationId === "recovery").length, 0);
+  assert.equal(await store.getStateVersion(lenoseedId), 3);
+  assert.equal((await store.readEventsInSequence(lenoseedId)).filter((event) => event.payload.materializationId === "recovery").length, 0);
   const recovered = await materializeG0A2AdditionalBehavioralObservations(request, persistence);
   assert.deepEqual(recovered, { evidenceItemIds: [r1, r2].map((event) => buildG0A2BehavioralObservationId(event.id)), previousStateVersion: 2, newStateVersion: 3, changed: true, replayed: false });
-  assert.equal(await store.getStateVersion(lenoSeedId), 3);
-  assert.equal((await store.readEventsInSequence(lenoSeedId)).filter((event) => event.payload.materializationId === "recovery").length, 1);
-  const replay = await materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoSeedId, "recovery", [r1, r2]), persistence);
+  assert.equal(await store.getStateVersion(lenoseedId), 3);
+  assert.equal((await store.readEventsInSequence(lenoseedId)).filter((event) => event.payload.materializationId === "recovery").length, 1);
+  const replay = await materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoseedId, "recovery", [r1, r2]), persistence);
   assert.equal(replay.replayed, true);
-  assert.equal((await store.readEventsInSequence(lenoSeedId)).filter((event) => event.payload.materializationId === "recovery").length, 1);
-  const r3 = await appendIntention(store, lenoSeedId, { situationId: "R3", kind: USE });
+  assert.equal((await store.readEventsInSequence(lenoseedId)).filter((event) => event.payload.materializationId === "recovery").length, 1);
+  const r3 = await appendIntention(store, lenoseedId, { situationId: "R3", kind: USE });
   await assert.rejects(
-    () => materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoSeedId, "recovery", [r1, r3]), persistence),
+    () => materializeG0A2AdditionalBehavioralObservations(additionalInput(lenoseedId, "recovery", [r1, r3]), persistence),
     DomainInvariantError,
   );
 });

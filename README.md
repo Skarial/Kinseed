@@ -1,16 +1,16 @@
-# LenoSeed
+# Lenoseed
 
-LenoSeed est un projet expérimental de **compagnon numérique adulte** dont l’objectif est de construire un individu numérique persistant dont l’identité se développe progressivement à partir de son histoire et de sa relation avec son compagnon humain.
+Lenoseed est un projet expérimental de **compagnon numérique adulte** dont l’objectif est de construire un individu numérique persistant dont l’identité se développe progressivement à partir de son histoire et de sa relation avec son compagnon humain.
 
 Le projet ne cherche pas à créer un simple chatbot avec une personnalité prédéfinie ni un Tamagotchi classique fondé sur des jauges de faim, d’affection ou de présence quotidienne.
 
 Le principe central est :
 
-> **Un LenoSeed ne naît pas avec une identité écrite. Il naît avec les mécanismes nécessaires pour en construire une.**
+> **Un Lenoseed ne naît pas avec une identité écrite. Il naît avec les mécanismes nécessaires pour en construire une.**
 
 ## Priorité actuelle : génération 0
 
-La première étape du projet concerne exclusivement le **premier LenoSeed**.
+La première étape du projet concerne exclusivement le **premier Lenoseed**.
 
 À sa naissance, il commence :
 
@@ -18,16 +18,16 @@ La première étape du projet concerne exclusivement le **premier LenoSeed**.
 - sans généalogie ;
 - sans culture héritée ;
 - sans souvenirs ancestraux ;
-- sans autre LenoSeed connu ;
+- sans autre Lenoseed connu ;
 - avec une seule relation initiale : son compagnon humain.
 
 Le défi initial est de déterminer si cette histoire peut progressivement produire une identité fonctionnelle différenciée : préférences, croyances, modèle de soi, objectifs, relation, valeurs et mémoire, sans que ces propriétés soient simplement inventées par le modèle de langage.
 
 ## Principe d’architecture
 
-LenoSeed sépare le modèle de langage de l’identité persistante de l’individu.
+Lenoseed sépare le modèle de langage de l’identité persistante de l’individu.
 
-> **Le LLM comprend et exprime. LenoSeed conserve l’état, décide ce qui peut devenir durable et maintient la continuité de l’individu.**
+> **Le LLM comprend et exprime. Lenoseed conserve l’état, décide ce qui peut devenir durable et maintient la continuité de l’individu.**
 
 Une réponse linguistiquement convaincante n’est donc jamais considérée comme une preuve suffisante qu’un mécanisme existe réellement.
 
@@ -85,7 +85,7 @@ Oubli, consolidation à long terme, réinterprétation du passé, résistance à
 
 Ordre de lecture recommandé :
 
-1. [`docs/01-generation-0-specification-conceptuelle.md`](docs/01-generation-0-specification-conceptuelle.md) — définit ce qu’est le premier LenoSeed et les règles de son développement.
+1. [`docs/01-generation-0-specification-conceptuelle.md`](docs/01-generation-0-specification-conceptuelle.md) — définit ce qu’est le premier Lenoseed et les règles de son développement.
 2. [`docs/02-generation-0-criteres-validation.md`](docs/02-generation-0-criteres-validation.md) — définit comment distinguer un mécanisme réel d’un comportement simplement plausible du LLM.
 3. [`docs/03-generation-0-architecture-conceptuelle.md`](docs/03-generation-0-architecture-conceptuelle.md) — définit les frontières entre mémoire, croyances, identité, décision et langage.
 4. [`docs/04-generation-0-roadmap-experimentale.md`](docs/04-generation-0-roadmap-experimentale.md) — fixe l’ordre G0-A → G0-F et les critères de sortie de chaque phase.
@@ -124,9 +124,9 @@ Ainsi, tout nouveau document consacré au travail actuel prend le prochain numé
 
 La vision future comprend notamment :
 
-- la rencontre entre plusieurs LenoSeeds ;
+- la rencontre entre plusieurs Lenoseeds ;
 - des relations propres entre individus numériques ;
-- la possibilité pour deux LenoSeeds appartenant à deux personnes différentes d’avoir une descendance commune ;
+- la possibilité pour deux Lenoseeds appartenant à deux personnes différentes d’avoir une descendance commune ;
 - la transmission contrôlée de dispositions, de culture et de certains éléments ancestraux ;
 - des lignées persistantes sur plusieurs générations.
 
@@ -134,7 +134,7 @@ Ces fonctions ne constituent **pas la priorité actuelle**. Elles ne doivent pas
 
 ## Position scientifique
 
-LenoSeed peut étudier des mécanismes fonctionnels ressemblant à :
+Lenoseed peut étudier des mécanismes fonctionnels ressemblant à :
 
 - une identité persistante ;
 - des préférences ;

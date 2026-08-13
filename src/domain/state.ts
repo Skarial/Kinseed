@@ -1,6 +1,6 @@
 import type { EntityId, StateVersion } from "./primitives.js";
 
-export interface LenoSeedState {
-  readonly lenoSeedId: EntityId;
+export interface LenoseedState {
+  readonly lenoseedId: EntityId;
   readonly stateVersion: StateVersion;
 }

@@ -1,4 +1,4 @@
-# LenoSeed — Registre des risques et garde-fous
+# Lenoseed — Registre des risques et garde-fous
 
 ## Statut
 
@@ -10,7 +10,7 @@
 
 ## 1. Objectif
 
-LenoSeed comporte des risques qui ne sont pas seulement des bugs techniques. Un système peut fonctionner sans erreur visible tout en échouant conceptuellement, par exemple si le LLM invente une continuité qui n’existe pas réellement.
+Lenoseed comporte des risques qui ne sont pas seulement des bugs techniques. Un système peut fonctionner sans erreur visible tout en échouant conceptuellement, par exemple si le LLM invente une continuité qui n’existe pas réellement.
 
 Ce registre sert à rendre ces risques explicites, à identifier les signaux d’alerte et à définir les garde-fous à mettre en place avant qu’ils deviennent coûteux à corriger.
 
@@ -31,7 +31,7 @@ Ce registre sert à rendre ces risques explicites, à identifier les signaux d�
 
 | ID | Risque | Criticité | Signal / déclencheur | Garde-fou principal | État |
 |---|---|---|---|---|---|
-| R-001 | Le LLM invente une mémoire, une croyance, une motivation ou une justification qui n’existe pas dans l’état LenoSeed. | CRITIQUE | Une réponse affirme un état interne sans provenance ou cause préexistante. | Séparer décision, état durable et formulation ; valider avant persistance ; tests d’ablation. | TRAITÉ PARTIELLEMENT EN G0-A |
+| R-001 | Le LLM invente une mémoire, une croyance, une motivation ou une justification qui n’existe pas dans l’état Lenoseed. | CRITIQUE | Une réponse affirme un état interne sans provenance ou cause préexistante. | Séparer décision, état durable et formulation ; valider avant persistance ; tests d’ablation. | TRAITÉ PARTIELLEMENT EN G0-A |
 | R-002 | Une extraction sémantique incorrecte devient une preuve durable et contamine l’identité. | CRITIQUE | `EvidenceItem` accepté alors que le texte source ne soutient pas réellement la proposition. | `supportingExcerpt` exact, grounding lexical déterministe, défense au commit, tests adversariaux ; validation sémantique générale restante. | TRAITÉ PARTIELLEMENT — grounding lexical v3 validé ; validation sémantique générale ouverte |
 | R-003 | Le projet accumule trop de fonctionnalités avant de valider son noyau. | ÉLEVÉ | Travail simultané sur avatar avancé, reproduction, monde, notifications, relation complète, backend, etc. | Budget de complexité ; gates de phase ; backlog futur pour tout élément non nécessaire à la validation actuelle. | ACTIF |
 | R-004 | Les coûts LLM deviennent difficiles à maîtriser. | ÉLEVÉ | Hausse du nombre d’appels, contexte trop long, tests massifs non bornés, recharge automatique. | Plafonds explicites, métriques d’usage, campagnes de tests bornées, modèles adaptés au niveau de difficulté. | SOUS CONTRÔLE À SURVEILLER |
@@ -41,7 +41,7 @@ Ce registre sert à rendre ces risques explicites, à identifier les signaux d�
 | R-008 | L’identité dérive sur plusieurs mois et devient incohérente ou saturée. | CRITIQUE | Simulations longues, accumulation importante de souvenirs/croyances, changement de LLM. | Tests accélérés longue durée, oubli/consolidation, migration d’état, scénarios de dérive G0-F. | FUTUR G0-F |
 | R-009 | Les notifications ou initiatives deviennent une mécanique artificielle d’engagement. | ÉLEVÉ | Relances à fréquence fixe, culpabilisation, fausse urgence, « tu me manques » sans état causal. | Toute initiative doit avoir une motivation métier traçable ; canal push séparé de la décision. | RÈGLE PRODUIT DÉFINIE, IMPLÉMENTATION FUTURE |
 | R-010 | Le code généré par IA devient trop complexe pour être compris et vérifié par le mainteneur du projet. | ÉLEVÉ | Modification importante impossible à expliquer, dépendances ou services ajoutés sans compréhension claire, corrections en cascade. | Petits changements testables, documentation, pas de refactor massif, revue humaine extérieure quand la compréhension devient insuffisante. | ACTIF |
-| R-011 | Une architecture multi-utilisateur ou de reproduction mélange les données de deux propriétaires ou rend le consentement ambigu. | CRITIQUE | Début de la reproduction entre LenoSeeds de deux utilisateurs ou partage de lignées. | Contrat de propriété/consentement, permissions, transactions atomiques, audit d’architecture externe avant mise en production. | FUTUR — BLOQUANT AVANT REPRODUCTION |
+| R-011 | Une architecture multi-utilisateur ou de reproduction mélange les données de deux propriétaires ou rend le consentement ambigu. | CRITIQUE | Début de la reproduction entre Lenoseeds de deux utilisateurs ou partage de lignées. | Contrat de propriété/consentement, permissions, transactions atomiques, audit d’architecture externe avant mise en production. | FUTUR — BLOQUANT AVANT REPRODUCTION |
 | R-012 | Le monde visuel devient une seconde source de vérité indépendante du modèle métier. | ÉLEVÉ | Un objet, une relation ou une activité apparaît sans cause traçable dans l’histoire. | Le monde est une projection d’états existants ; provenance des traces visuelles ; pas d’invention par le rendu. | RÈGLE PRODUIT DÉFINIE |
 | R-013 | Une phase est déclarée validée parce que le comportement semble convaincant sans preuve causale. | CRITIQUE | Démonstration linguistique réussie sans ablation, contrôle ou état interne vérifiable ; hypothèse qui se confirme avec des comportements qu’elle a elle-même influencés. | Critères de validation G0, contrôles, ablations, gates formelles avant passage de phase ; marquage causal et exclusion des preuves auto-influencées du seuil G0-A2. | ACTIF |
 | R-014 | Dépendance excessive à un fournisseur ou modèle LLM particulier. | ÉLEVÉ | Identité ou logique métier encodée dans les prompts d’un modèle spécifique. | Port d’IA, état séparé du LLM, tests multi-modèles, G0-F avec changement de modèle. | TRAITÉ PARTIELLEMENT |
@@ -66,7 +66,7 @@ Une revue par un développeur ou expert externe devient recommandée, et parfois
 
 - paiement, abonnement, droits d’accès payants ou webhooks de facturation ;
 - données sensibles accessibles à plusieurs comptes ;
-- mécanisme de reproduction entre LenoSeeds de propriétaires différents ;
+- mécanisme de reproduction entre Lenoseeds de propriétaires différents ;
 - migration irréversible d’histoires utilisateurs ;
 - faiblesse de sécurité connue non résolue.
 

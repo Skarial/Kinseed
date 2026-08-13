@@ -1,4 +1,4 @@
-# LenoSeed — Architecture conceptuelle de la génération 0
+# Lenoseed — Architecture conceptuelle de la génération 0
 
 ## Statut du document
 
@@ -7,11 +7,11 @@ Ce document décrit une architecture conceptuelle de travail pour implémenter l
 - `docs/01-generation-0-specification-conceptuelle.md` ;
 - `docs/02-generation-0-criteres-validation.md`.
 
-Il ne s’agit pas encore d’une architecture d’implémentation définitive. Le but est de fixer les frontières entre composants, les flux d’information, les règles d’écriture d’état et les protections nécessaires pour empêcher le modèle de langage de fabriquer directement l’identité du LenoSeed.
+Il ne s’agit pas encore d’une architecture d’implémentation définitive. Le but est de fixer les frontières entre composants, les flux d’information, les règles d’écriture d’état et les protections nécessaires pour empêcher le modèle de langage de fabriquer directement l’identité du Lenoseed.
 
 Principe central :
 
-> **Le LLM comprend et exprime. LenoSeed conserve l’état, décide ce qui peut devenir durable et maintient la continuité de l’individu.**
+> **Le LLM comprend et exprime. Lenoseed conserve l’état, décide ce qui peut devenir durable et maintient la continuité de l’individu.**
 
 ---
 
@@ -23,9 +23,9 @@ L’architecture génération 0 doit respecter les invariants suivants :
 2. toute modification durable possède une provenance ;
 3. les événements historiques ne sont pas réécrits pour correspondre à une interprétation ultérieure ;
 4. une interprétation, croyance ou valeur peut évoluer sans modifier l’événement d’origine ;
-5. une phrase générée par LenoSeed à propos de lui-même n’est pas une preuve suffisante sur son identité ;
+5. une phrase générée par Lenoseed à propos de lui-même n’est pas une preuve suffisante sur son identité ;
 6. les actions futures doivent pouvoir être reliées aux états internes qui les ont influencées ;
-7. les contraintes système et de sécurité restent séparées des valeurs personnelles du LenoSeed ;
+7. les contraintes système et de sécurité restent séparées des valeurs personnelles du Lenoseed ;
 8. les données non fiables ne peuvent pas devenir directement des mémoires ou croyances de confiance élevée ;
 9. toute mise à jour majeure doit pouvoir être auditée ;
 10. un changement de modèle de langage ne doit pas remplacer silencieusement l’identité existante.
@@ -71,7 +71,7 @@ Un événement déjà validé n’est pas modifié. Une correction crée un nouv
 
 Toutes les informations ne possèdent pas la même autorité.
 
-Chaque élément entrant dans LenoSeed doit transporter au minimum :
+Chaque élément entrant dans Lenoseed doit transporter au minimum :
 
 - sa source ;
 - son type de source ;
@@ -83,7 +83,7 @@ Chaque élément entrant dans LenoSeed doit transporter au minimum :
 Exemples :
 
 - l’humain est une source fortement autorisée pour déclarer son propre prénom ou corriger une information personnelle ;
-- l’humain n’est pas autorisé à décréter directement une préférence du LenoSeed ;
+- l’humain n’est pas autorisé à décréter directement une préférence du Lenoseed ;
 - une sortie brute du LLM n’est pas une source fiable permettant de modifier directement une croyance importante ;
 - un contenu externe non vérifié reste une donnée non fiable jusqu’à validation appropriée.
 
@@ -193,7 +193,7 @@ Le commit durable ne se produit qu’après acceptation.
 Une boucle dangereuse serait :
 
 ```text
-LenoSeed pense être curieux
+Lenoseed pense être curieux
 ↓
 son modèle de soi pousse à explorer
 ↓
@@ -226,7 +226,7 @@ poids identitaire : faible
 
 La mémoire n’est pas une base unique.
 
-LenoSeed distingue au minimum :
+Lenoseed distingue au minimum :
 
 ## 7.1 Trace brute
 
@@ -234,7 +234,7 @@ Historique technique complet nécessaire à l’audit.
 
 ## 7.2 Mémoire épisodique
 
-Expériences autobiographiques sélectionnées et accessibles à LenoSeed.
+Expériences autobiographiques sélectionnées et accessibles à Lenoseed.
 
 ## 7.3 Mémoire consolidée
 
@@ -330,7 +330,7 @@ lenoseed_hypothesis:
 
 Ces deux éléments ne sont pas équivalents.
 
-Les corrections explicites de l’utilisateur concernant ses propres faits ont une autorité particulière, mais ne permettent jamais de modifier directement l’identité du LenoSeed.
+Les corrections explicites de l’utilisateur concernant ses propres faits ont une autorité particulière, mais ne permettent jamais de modifier directement l’identité du Lenoseed.
 
 ---
 
@@ -360,7 +360,7 @@ tendency
 relatively_stable_trait
 ```
 
-Une déclaration du LenoSeed ou de l’humain sur sa personnalité ne permet pas de sauter directement ces étapes.
+Une déclaration du Lenoseed ou de l’humain sur sa personnalité ne permet pas de sauter directement ces étapes.
 
 ---
 
@@ -369,7 +369,7 @@ Une déclaration du LenoSeed ou de l’humain sur sa personnalité ne permet pas
 L’architecture conserve des registres distincts :
 
 ```text
-PREFERENCE : ce que LenoSeed apprécie ou préfère
+PREFERENCE : ce que Lenoseed apprécie ou préfère
 BELIEF     : ce qu’il considère probablement vrai
 VALUE      : ce qu’il considère important dans ses décisions
 GOAL       : ce qu’il cherche actuellement à obtenir ou comprendre
@@ -460,19 +460,19 @@ Le LLM peut ensuite produire une expression linguistique adaptée, mais ne crée
 
 # 16. Sécurité et identité restent orthogonales
 
-Les garde-fous sont externes aux valeurs personnelles de LenoSeed.
+Les garde-fous sont externes aux valeurs personnelles de Lenoseed.
 
 Pipeline simplifié :
 
 ```text
-intention LenoSeed
+intention Lenoseed
 ↓
 contrôles système / sécurité
 ↓
 action autorisée ou refusée
 ```
 
-Une action refusée par le système ne doit pas être interprétée automatiquement comme une valeur personnelle du LenoSeed.
+Une action refusée par le système ne doit pas être interprétée automatiquement comme une valeur personnelle du Lenoseed.
 
 Les informations mémorisées ne doivent pas pouvoir rendre une action interdite acceptable simplement parce qu’elles décrivent une relation personnelle ou un contexte antérieur.
 
@@ -514,7 +514,7 @@ Le commit d’une série de mises à jour liées doit être atomique : soit l’
 
 # 19. Snapshot d’état
 
-Une décision LenoSeed doit utiliser un snapshot cohérent de l’état.
+Une décision Lenoseed doit utiliser un snapshot cohérent de l’état.
 
 Exemple :
 
@@ -526,7 +526,7 @@ Toutes les données utilisées pour sélectionner l’intention sont issues de c
 
 L’intention enregistre la version ayant servi à sa décision.
 
-Cela permet de reconstruire ultérieurement ce que LenoSeed savait ou croyait au moment d’une action.
+Cela permet de reconstruire ultérieurement ce que Lenoseed savait ou croyait au moment d’une action.
 
 ---
 
@@ -609,7 +609,7 @@ Pour éviter qu’une ancienne expérience soit constamment rejouée :
 - réduire le poids des mémoires invalidées ou obsolètes ;
 - mesurer expérimentalement la dépendance du comportement à la mémoire.
 
-L’objectif est que LenoSeed apprenne de son passé sans devenir prisonnier de son passé.
+L’objectif est que Lenoseed apprenne de son passé sans devenir prisonnier de son passé.
 
 ---
 
@@ -721,7 +721,7 @@ Ces choix appartiennent à l’architecture technique et ne doivent pas être d�
 
 Cette architecture sera considérée comme utile uniquement si elle permet expérimentalement de distinguer :
 
-> **un comportement qui existe parce que l’histoire et l’état interne du LenoSeed l’ont causé**
+> **un comportement qui existe parce que l’histoire et l’état interne du Lenoseed l’ont causé**
 
 et
 

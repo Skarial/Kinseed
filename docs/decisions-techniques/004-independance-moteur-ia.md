@@ -2,23 +2,23 @@
 
 - **Statut :** accepté
 - **Date :** 2026-08-10
-- **Périmètre :** cœur métier et intégration IA de LenoSeed
-- **Décision :** l'individu LenoSeed ne doit pas être confondu avec un modèle d'IA particulier ; les modèles externes doivent rester des moteurs remplaçables utilisés par le système.
+- **Périmètre :** cœur métier et intégration IA de Lenoseed
+- **Décision :** l'individu Lenoseed ne doit pas être confondu avec un modèle d'IA particulier ; les modèles externes doivent rester des moteurs remplaçables utilisés par le système.
 
 ## 1. Contexte
 
-LenoSeed peut avoir besoin de modèles d'IA pour interpréter du langage, produire des réponses, raisonner sur certaines informations, résumer des expériences ou proposer des transformations.
+Lenoseed peut avoir besoin de modèles d'IA pour interpréter du langage, produire des réponses, raisonner sur certaines informations, résumer des expériences ou proposer des transformations.
 
-Cependant, si l'identité, les mémoires, les croyances et les intentions de l'individu résident uniquement dans le contexte interne d'un modèle donné, LenoSeed deviendrait dépendant de ce fournisseur, de cette version de modèle et de ses limites techniques.
+Cependant, si l'identité, les mémoires, les croyances et les intentions de l'individu résident uniquement dans le contexte interne d'un modèle donné, Lenoseed deviendrait dépendant de ce fournisseur, de cette version de modèle et de ses limites techniques.
 
 Cela empêcherait notamment de garantir la continuité de l'individu lorsqu'un modèle est remplacé, devient indisponible, change de comportement ou n'est plus économiquement viable.
 
 ## 2. Décision
 
-LenoSeed distingue explicitement :
+Lenoseed distingue explicitement :
 
 ```text
-INDIVIDU LENOSEED
+INDIVIDU Lenoseed
 ├── identité
 ├── histoire
 ├── événements
@@ -38,7 +38,7 @@ Le moteur IA est donc une dépendance fonctionnelle éventuelle, pas le lieu où
 
 ## 3. Règles
 
-### 3.1 Le cœur persistant appartient à LenoSeed
+### 3.1 Le cœur persistant appartient à Lenoseed
 
 Les données structurantes doivent être stockées dans les structures propres au projet et non uniquement dans :
 
@@ -54,7 +54,7 @@ Le cœur métier doit éviter de dépendre directement d'une API particulière.
 Une couche d'adaptation devra permettre, lorsque cela sera nécessaire, de passer par exemple :
 
 ```text
-LenoSeed
+Lenoseed
    ↓
 interface de moteur IA
    ├── fournisseur A
@@ -68,7 +68,7 @@ Le schéma précis de cette interface sera défini uniquement lorsqu'un premier 
 
 Une réponse générée par un modèle doit être traitée comme une proposition, une interprétation ou une transformation produite par une source identifiée.
 
-Elle ne doit pas devenir automatiquement une mémoire fiable, une croyance certaine ou une vérité sur le monde sans passer par les règles propres à LenoSeed.
+Elle ne doit pas devenir automatiquement une mémoire fiable, une croyance certaine ou une vérité sur le monde sans passer par les règles propres à Lenoseed.
 
 ### 3.4 Changer de modèle ne doit pas créer un nouvel individu
 
@@ -91,14 +91,14 @@ Il pourra modifier certaines performances ou certains comportements, mais l'indi
 - réduction du verrouillage fournisseur ;
 - possibilité de comparer plusieurs modèles ;
 - continuité de l'individu malgré l'évolution des technologies IA ;
-- meilleure traçabilité de ce qui vient de LenoSeed et de ce qui vient d'un modèle externe ;
+- meilleure traçabilité de ce qui vient de Lenoseed et de ce qui vient d'un modèle externe ;
 - possibilité future d'utiliser certains traitements localement et d'autres à distance ;
 - architecture plus compatible avec une démarche expérimentale.
 
 ### Contraintes
 
 - nécessité future de concevoir une interface d'abstraction pour les moteurs IA ;
-- nécessité de convertir les entrées et sorties des modèles vers les structures internes de LenoSeed ;
+- nécessité de convertir les entrées et sorties des modèles vers les structures internes de Lenoseed ;
 - certains fournisseurs pourront avoir des fonctionnalités particulières qui ne seront pas communes à tous ;
 - il faudra tester qu'un changement de moteur ne modifie pas silencieusement les règles fondamentales du système.
 
@@ -119,4 +119,4 @@ Ces décisions seront prises à partir de besoins expérimentaux concrets.
 
 ## 6. Règle d'architecture
 
-**Le modèle peut aider LenoSeed à penser ou à communiquer ; il ne doit pas être LenoSeed.**
+**Le modèle peut aider Lenoseed à penser ou à communiquer ; il ne doit pas être Lenoseed.**

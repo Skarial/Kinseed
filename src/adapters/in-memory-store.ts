@@ -21,7 +21,7 @@ import type {
   PersistencePort,
 } from "../ports/persistence.js";
 
-interface LenoSeedBucket {
+interface LenoseedBucket {
   stateVersion: StateVersion;
   readonly events: Event[];
   readonly eventsById: Map<EntityId, Event>;
@@ -35,7 +35,7 @@ interface LenoSeedBucket {
 
 export class InMemoryStore implements PersistencePort {
   private readonly sources = new Map<EntityId, Source>();
-  private readonly lenoSeeds = new Map<EntityId, LenoSeedBucket>();
+  private readonly lenoseeds = new Map<EntityId, LenoseedBucket>();
   private nextAtomicCommitFailure: Error | null = null;
 
   failNextAtomicCommitForTests(error = new Error("Injected atomic commit failure")): void {
@@ -57,19 +57,19 @@ export class InMemoryStore implements PersistencePort {
     return this.sources.get(sourceId) ?? null;
   }
 
-  async getStateVersion(lenoSeedId: EntityId): Promise<StateVersion> {
-    return this.getBucket(lenoSeedId).stateVersion;
+  async getStateVersion(lenoseedId: EntityId): Promise<StateVersion> {
+    return this.getBucket(lenoseedId).stateVersion;
   }
 
   async appendEvent(event: Event): Promise<void> {
-    let bucket = this.lenoSeeds.get(event.lenoSeedId);
+    let bucket = this.lenoseeds.get(event.lenoseedId);
 
     if (bucket === undefined) {
       if (event.type !== "lenoseed_created") {
-        throw new NotFoundError(`LenoSeed ${event.lenoSeedId} has not been created`);
+        throw new NotFoundError(`Lenoseed ${event.lenoseedId} has not been created`);
       }
       bucket = this.createBucket();
-      this.lenoSeeds.set(event.lenoSeedId, bucket);
+      this.lenoseeds.set(event.lenoseedId, bucket);
     }
 
     const existingForKey = bucket.eventIdempotency.get(event.idempotencyKey);
@@ -101,34 +101,34 @@ export class InMemoryStore implements PersistencePort {
     bucket.eventIdempotency.set(event.idempotencyKey, event.id);
   }
 
-  async readEventById(lenoSeedId: EntityId, eventId: EntityId): Promise<Event | null> {
-    return this.getBucket(lenoSeedId).eventsById.get(eventId) ?? null;
+  async readEventById(lenoseedId: EntityId, eventId: EntityId): Promise<Event | null> {
+    return this.getBucket(lenoseedId).eventsById.get(eventId) ?? null;
   }
 
-  async readEventsInSequence(lenoSeedId: EntityId): Promise<readonly Event[]> {
-    return [...this.getBucket(lenoSeedId).events];
+  async readEventsInSequence(lenoseedId: EntityId): Promise<readonly Event[]> {
+    return [...this.getBucket(lenoseedId).events];
   }
 
-  async readEventsByTurn(lenoSeedId: EntityId, turnId: TurnId): Promise<readonly Event[]> {
-    return this.getBucket(lenoSeedId).events.filter((event) => event.turnId === turnId);
+  async readEventsByTurn(lenoseedId: EntityId, turnId: TurnId): Promise<readonly Event[]> {
+    return this.getBucket(lenoseedId).events.filter((event) => event.turnId === turnId);
   }
 
   async readEvidenceItem(
-    lenoSeedId: EntityId,
+    lenoseedId: EntityId,
     evidenceItemId: EntityId,
   ): Promise<EvidenceItem | null> {
-    return this.getBucket(lenoSeedId).evidenceItems.get(evidenceItemId) ?? null;
+    return this.getBucket(lenoseedId).evidenceItems.get(evidenceItemId) ?? null;
   }
 
   async readEvidenceLink(
-    lenoSeedId: EntityId,
+    lenoseedId: EntityId,
     evidenceLinkId: EntityId,
   ): Promise<EvidenceLink | null> {
-    return this.getBucket(lenoSeedId).evidenceLinks.get(evidenceLinkId) ?? null;
+    return this.getBucket(lenoseedId).evidenceLinks.get(evidenceLinkId) ?? null;
   }
 
-  async readActiveBeliefByKey(lenoSeedId: EntityId, beliefKey: string): Promise<Belief | null> {
-    const matches = [...this.getBucket(lenoSeedId).beliefs.values()].filter(
+  async readActiveBeliefByKey(lenoseedId: EntityId, beliefKey: string): Promise<Belief | null> {
+    const matches = [...this.getBucket(lenoseedId).beliefs.values()].filter(
       (belief) => belief.beliefKey === beliefKey && belief.status === "active",
     );
 
@@ -139,24 +139,24 @@ export class InMemoryStore implements PersistencePort {
     return matches[0] ?? null;
   }
 
-  async readBeliefHistoryByKey(lenoSeedId: EntityId, beliefKey: string): Promise<readonly Belief[]> {
-    return [...this.getBucket(lenoSeedId).beliefs.values()]
+  async readBeliefHistoryByKey(lenoseedId: EntityId, beliefKey: string): Promise<readonly Belief[]> {
+    return [...this.getBucket(lenoseedId).beliefs.values()]
       .filter((belief) => belief.beliefKey === beliefKey)
       .sort((left, right) => left.version - right.version);
   }
 
   async readSelfHypothesis(
-    lenoSeedId: EntityId,
+    lenoseedId: EntityId,
     selfHypothesisId: EntityId,
   ): Promise<SelfHypothesis | null> {
-    return this.getBucket(lenoSeedId).selfHypotheses.get(selfHypothesisId) ?? null;
+    return this.getBucket(lenoseedId).selfHypotheses.get(selfHypothesisId) ?? null;
   }
 
   async readActiveSelfHypothesisByKey(
-    lenoSeedId: EntityId,
+    lenoseedId: EntityId,
     hypothesisKey: string,
   ): Promise<SelfHypothesis | null> {
-    const matches = [...this.getBucket(lenoSeedId).selfHypotheses.values()].filter(
+    const matches = [...this.getBucket(lenoseedId).selfHypotheses.values()].filter(
       (hypothesis) => hypothesis.hypothesisKey === hypothesisKey && hypothesis.status === "active",
     );
     if (matches.length > 1) {
@@ -166,21 +166,21 @@ export class InMemoryStore implements PersistencePort {
   }
 
   async readSelfHypothesisHistoryByKey(
-    lenoSeedId: EntityId,
+    lenoseedId: EntityId,
     hypothesisKey: string,
   ): Promise<readonly SelfHypothesis[]> {
-    return [...this.getBucket(lenoSeedId).selfHypotheses.values()]
+    return [...this.getBucket(lenoseedId).selfHypotheses.values()]
       .filter((hypothesis) => hypothesis.hypothesisKey === hypothesisKey)
       .sort((left, right) => left.version - right.version);
   }
 
   async atomicCommit(
-    lenoSeedId: EntityId,
+    lenoseedId: EntityId,
     expectedStateVersion: StateVersion,
     mutations: CommitMutations,
     idempotencyKey: string,
   ): Promise<AtomicCommitResult> {
-    const bucket = this.getBucket(lenoSeedId);
+    const bucket = this.getBucket(lenoseedId);
     const fingerprint = JSON.stringify(mutations);
     const previousCommit = bucket.commitResults.get(idempotencyKey);
     if (previousCommit !== undefined) {
@@ -200,7 +200,7 @@ export class InMemoryStore implements PersistencePort {
     const nextSelfHypotheses = new Map(bucket.selfHypotheses);
 
     for (const evidenceItem of mutations.evidenceItems) {
-      this.assertSameLenoSeed(lenoSeedId, evidenceItem.lenoSeedId, evidenceItem.id);
+      this.assertSameLenoseed(lenoseedId, evidenceItem.lenoseedId, evidenceItem.id);
       if (nextEvidenceItems.has(evidenceItem.id)) {
         throw new DomainInvariantError(`EvidenceItem ${evidenceItem.id} already exists`);
       }
@@ -208,7 +208,7 @@ export class InMemoryStore implements PersistencePort {
     }
 
     for (const belief of mutations.beliefs) {
-      this.assertSameLenoSeed(lenoSeedId, belief.lenoSeedId, belief.id);
+      this.assertSameLenoseed(lenoseedId, belief.lenoseedId, belief.id);
       const existing = nextBeliefs.get(belief.id);
       if (existing !== undefined) {
         this.assertBeliefReplacementIsSafe(existing, belief);
@@ -217,7 +217,7 @@ export class InMemoryStore implements PersistencePort {
     }
 
     for (const hypothesis of mutations.selfHypotheses) {
-      this.assertSameLenoSeed(lenoSeedId, hypothesis.lenoSeedId, hypothesis.id);
+      this.assertSameLenoseed(lenoseedId, hypothesis.lenoseedId, hypothesis.id);
       const existing = nextSelfHypotheses.get(hypothesis.id);
       if (existing !== undefined) {
         this.assertSelfHypothesisReplacementIsSafe(existing, hypothesis);
@@ -226,7 +226,7 @@ export class InMemoryStore implements PersistencePort {
     }
 
     for (const evidenceLink of mutations.evidenceLinks) {
-      this.assertSameLenoSeed(lenoSeedId, evidenceLink.lenoSeedId, evidenceLink.id);
+      this.assertSameLenoseed(lenoseedId, evidenceLink.lenoseedId, evidenceLink.id);
       if (nextEvidenceLinks.has(evidenceLink.id)) {
         throw new DomainInvariantError(`EvidenceLink ${evidenceLink.id} already exists`);
       }
@@ -276,14 +276,14 @@ export class InMemoryStore implements PersistencePort {
     return result;
   }
 
-  async checkIdempotencyKey(lenoSeedId: EntityId, idempotencyKey: string): Promise<boolean> {
-    const bucket = this.getBucket(lenoSeedId);
+  async checkIdempotencyKey(lenoseedId: EntityId, idempotencyKey: string): Promise<boolean> {
+    const bucket = this.getBucket(lenoseedId);
     return (
       bucket.eventIdempotency.has(idempotencyKey) || bucket.commitResults.has(idempotencyKey)
     );
   }
 
-  private createBucket(): LenoSeedBucket {
+  private createBucket(): LenoseedBucket {
     return {
       stateVersion: 0,
       events: [],
@@ -297,18 +297,18 @@ export class InMemoryStore implements PersistencePort {
     };
   }
 
-  private getBucket(lenoSeedId: EntityId): LenoSeedBucket {
-    const bucket = this.lenoSeeds.get(lenoSeedId);
+  private getBucket(lenoseedId: EntityId): LenoseedBucket {
+    const bucket = this.lenoseeds.get(lenoseedId);
     if (bucket === undefined) {
-      throw new NotFoundError(`Unknown LenoSeed ${lenoSeedId}`);
+      throw new NotFoundError(`Unknown Lenoseed ${lenoseedId}`);
     }
     return bucket;
   }
 
-  private assertSameLenoSeed(expected: EntityId, actual: EntityId, entityId: EntityId): void {
+  private assertSameLenoseed(expected: EntityId, actual: EntityId, entityId: EntityId): void {
     if (expected !== actual) {
       throw new DomainInvariantError(
-        `Entity ${entityId} belongs to ${actual}, expected LenoSeed ${expected}`,
+        `Entity ${entityId} belongs to ${actual}, expected Lenoseed ${expected}`,
       );
     }
   }
@@ -316,7 +316,7 @@ export class InMemoryStore implements PersistencePort {
   private assertBeliefReplacementIsSafe(existing: Belief, replacement: Belief): void {
     if (
       existing.id !== replacement.id ||
-      existing.lenoSeedId !== replacement.lenoSeedId ||
+      existing.lenoseedId !== replacement.lenoseedId ||
       existing.beliefKey !== replacement.beliefKey ||
       existing.version !== replacement.version ||
       !propositionEquals(existing.proposition, replacement.proposition) ||
@@ -333,7 +333,7 @@ export class InMemoryStore implements PersistencePort {
   ): void {
     if (
       existing.id !== replacement.id ||
-      existing.lenoSeedId !== replacement.lenoSeedId ||
+      existing.lenoseedId !== replacement.lenoseedId ||
       existing.hypothesisKey !== replacement.hypothesisKey ||
       existing.version !== replacement.version ||
       !propositionEquals(existing.proposition, replacement.proposition) ||
@@ -583,7 +583,7 @@ export class InMemoryStore implements PersistencePort {
         throw new DomainInvariantError(`SelfHypothesis ${hypothesis.id} has inconsistent hypothesisKey`);
       }
       if (
-        hypothesis.proposition.subjectRef !== hypothesis.lenoSeedId ||
+        hypothesis.proposition.subjectRef !== hypothesis.lenoseedId ||
         hypothesis.proposition.predicate !== "decision_style_under_uncertainty" ||
         hypothesis.proposition.context.protocol !== "G0-A2" ||
         (hypothesis.proposition.value !== "seek_clarification" &&

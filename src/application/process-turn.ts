@@ -28,7 +28,7 @@ const EMPLOYMENT_START_YEAR = "employment_start_year";
 const HISTORY_DENIAL = "denies_prior_employment_start_year_testimony";
 
 export interface ProcessTurnInput {
-  readonly lenoSeedId: EntityId;
+  readonly lenoseedId: EntityId;
   readonly turnId: TurnId;
   readonly humanSourceId: EntityId;
   readonly humanActorRef: EntityId;
@@ -49,7 +49,7 @@ export async function processTurn(
   persistence: PersistencePort,
   aiEngine: AIEngine,
 ): Promise<ProcessTurnResult> {
-  const existingEvents = await persistence.readEventsByTurn(input.lenoSeedId, input.turnId);
+  const existingEvents = await persistence.readEventsByTurn(input.lenoseedId, input.turnId);
   const existingInputEvent = existingEvents.find((event) => event.type === "human_message_received");
   const existingIntentionEvent = existingEvents.find((event) => event.type === "intention_selected");
   const emittedEvent = existingEvents.find((event) => event.type === "lenoseed_message_emitted");
@@ -88,17 +88,17 @@ export async function processTurn(
   if (emittedEvent !== undefined && commitCompletedEvent !== undefined) {
     return {
       response: readTextPayload(emittedEvent),
-      stateVersion: await persistence.getStateVersion(input.lenoSeedId),
+      stateVersion: await persistence.getStateVersion(input.lenoseedId),
       replayed: true,
     };
   }
 
-  const observedStateVersion = await persistence.getStateVersion(input.lenoSeedId);
+  const observedStateVersion = await persistence.getStateVersion(input.lenoseedId);
   const inputEvent =
     existingInputEvent ??
     (await appendEvent(
       persistence,
-      input.lenoSeedId,
+      input.lenoseedId,
       {
         id: `E-${input.turnId}-input`,
         type: "human_message_received",
@@ -157,8 +157,8 @@ export async function processTurn(
 
     try {
       const validation = await validateTemporaryCandidates(input, inputEvent, rawCandidates, persistence);
-      const stateVersion = await persistence.getStateVersion(input.lenoSeedId);
-      const checkpointEvent = await appendEvent(persistence, input.lenoSeedId, {
+      const stateVersion = await persistence.getStateVersion(input.lenoseedId);
+      const checkpointEvent = await appendEvent(persistence, input.lenoseedId, {
         id: `E-${input.turnId}-temporary-evidence`,
         type: "validation_decision_recorded",
         occurredAt: input.occurredAt,
@@ -184,10 +184,10 @@ export async function processTurn(
     }
   }
 
-  const stateVersion = await persistence.getStateVersion(input.lenoSeedId);
+  const stateVersion = await persistence.getStateVersion(input.lenoseedId);
   const beliefContext = await readBeliefContext(
     persistence,
-    input.lenoSeedId,
+    input.lenoseedId,
     input.humanActorRef,
     stateVersion,
   );
@@ -213,7 +213,7 @@ export async function processTurn(
 
   const intentionEvent =
     existingIntentionEvent ??
-    (await appendEvent(persistence, input.lenoSeedId, {
+    (await appendEvent(persistence, input.lenoseedId, {
       id: `E-${input.turnId}-intention`,
       type: "intention_selected",
       occurredAt: input.occurredAt,
@@ -254,7 +254,7 @@ export async function processTurn(
       throw error;
     }
 
-    responseEvent = await appendEvent(persistence, input.lenoSeedId, {
+    responseEvent = await appendEvent(persistence, input.lenoseedId, {
       id: `E-${input.turnId}-emitted`,
       type: "lenoseed_message_emitted",
       occurredAt: input.occurredAt,
@@ -272,9 +272,9 @@ export async function processTurn(
   const commitKey = `${input.turnId}:commit`;
   let commit: AtomicCommitResult;
   try {
-    const commitAlreadyApplied = await persistence.checkIdempotencyKey(input.lenoSeedId, commitKey);
+    const commitAlreadyApplied = await persistence.checkIdempotencyKey(input.lenoseedId, commitKey);
     commit = commitAlreadyApplied
-      ? recoverAppliedCommit(checkpoint.event.observedStateVersion, await persistence.getStateVersion(input.lenoSeedId))
+      ? recoverAppliedCommit(checkpoint.event.observedStateVersion, await persistence.getStateVersion(input.lenoseedId))
       : await commitTurn(
           input,
           inputEvent,
@@ -294,7 +294,7 @@ export async function processTurn(
     throw error;
   }
 
-  await appendEvent(persistence, input.lenoSeedId, {
+  await appendEvent(persistence, input.lenoseedId, {
     id: `E-${input.turnId}-commit`,
     type: "state_commit_completed",
     occurredAt: input.occurredAt,
@@ -346,7 +346,7 @@ async function commitTurn(
 
   for (const candidate of candidates) {
     const current = await persistence.readActiveBeliefByKey(
-      input.lenoSeedId,
+      input.lenoseedId,
       buildBeliefKey(candidate.proposition),
     );
     const evidenceItem = await createEvidenceItem(input, inputEvent, candidate, current, persistence);
@@ -365,7 +365,7 @@ async function commitTurn(
     if (current === null) {
       const beliefId = "B-START-v1";
       const support = createEvidenceLink(
-        input.lenoSeedId,
+        input.lenoseedId,
         evidenceItem.id,
         beliefId,
         "supports",
@@ -373,7 +373,7 @@ async function commitTurn(
       );
       const belief = createInitialBelief({
         id: beliefId,
-        lenoSeedId: input.lenoSeedId,
+        lenoseedId: input.lenoseedId,
         proposition: candidate.proposition,
         evidenceForLinkId: support.id,
         confidence: "moderate_high",
@@ -387,14 +387,14 @@ async function commitTurn(
     if (!propositionEquals(current.proposition, candidate.proposition)) {
       const nextBeliefId = `B-START-v${current.version + 1}`;
       const contradicts = createEvidenceLink(
-        input.lenoSeedId,
+        input.lenoseedId,
         evidenceItem.id,
         current.id,
         "contradicts",
         input.occurredAt,
       );
       const supports = createEvidenceLink(
-        input.lenoSeedId,
+        input.lenoseedId,
         evidenceItem.id,
         nextBeliefId,
         "supports",
@@ -415,7 +415,7 @@ async function commitTurn(
   }
 
   const mutations: CommitMutations = { evidenceItems, evidenceLinks, beliefs, selfHypotheses: [] };
-  return persistence.atomicCommit(input.lenoSeedId, stateVersion, mutations, commitKey);
+  return persistence.atomicCommit(input.lenoseedId, stateVersion, mutations, commitKey);
 }
 
 async function validateTemporaryCandidates(
@@ -432,7 +432,7 @@ async function validateTemporaryCandidates(
     const groundingRejection = await validateEvidenceItem(
       {
         id: candidateId,
-        lenoSeedId: input.lenoSeedId,
+        lenoseedId: input.lenoseedId,
         kind: candidate.kind,
         proposition: candidate.proposition,
         sourceId: input.humanSourceId,
@@ -470,7 +470,7 @@ async function createEvidenceItem(
     current !== null &&
     candidate.proposition.predicate === EMPLOYMENT_START_YEAR &&
     !propositionEquals(current.proposition, candidate.proposition)
-      ? await currentSupportingEvidenceId(input.lenoSeedId, current, persistence)
+      ? await currentSupportingEvidenceId(input.lenoseedId, current, persistence)
       : null;
 
   return {
@@ -478,7 +478,7 @@ async function createEvidenceItem(
       candidate.proposition.predicate === EMPLOYMENT_START_YEAR
         ? `EV-START-${candidate.proposition.value}`
         : `EV-${input.turnId}`,
-    lenoSeedId: input.lenoSeedId,
+    lenoseedId: input.lenoseedId,
     kind: candidate.kind,
     proposition: candidate.proposition,
     sourceId: input.humanSourceId,
@@ -497,7 +497,7 @@ async function createEvidenceItem(
 }
 
 async function currentSupportingEvidenceId(
-  lenoSeedId: EntityId,
+  lenoseedId: EntityId,
   belief: Belief,
   persistence: PersistencePort,
 ): Promise<EntityId> {
@@ -505,7 +505,7 @@ async function currentSupportingEvidenceId(
   if (linkId === undefined) {
     throw new DomainInvariantError(`Active belief ${belief.id} has no supporting EvidenceLink`);
   }
-  const link = await persistence.readEvidenceLink(lenoSeedId, linkId);
+  const link = await persistence.readEvidenceLink(lenoseedId, linkId);
   if (link === null) {
     throw new DomainInvariantError(`Belief ${belief.id} references unknown EvidenceLink ${linkId}`);
   }
@@ -513,7 +513,7 @@ async function currentSupportingEvidenceId(
 }
 
 function createEvidenceLink(
-  lenoSeedId: EntityId,
+  lenoseedId: EntityId,
   evidenceItemId: EntityId,
   targetId: EntityId,
   relation: "supports" | "contradicts",
@@ -521,7 +521,7 @@ function createEvidenceLink(
 ): EvidenceLink {
   return {
     id: `EL-${evidenceItemId}-${targetId}-${relation}`,
-    lenoSeedId,
+    lenoseedId,
     evidenceItemId,
     targetType: "belief",
     targetId,
@@ -536,12 +536,12 @@ function createEvidenceLink(
 
 async function readBeliefContext(
   persistence: PersistencePort,
-  lenoSeedId: EntityId,
+  lenoseedId: EntityId,
   humanActorRef: EntityId,
   stateVersion: StateVersion,
 ): Promise<FormulationContext> {
   const key = buildBeliefKey(employmentStartProposition(humanActorRef, 0));
-  const history = await persistence.readBeliefHistoryByKey(lenoSeedId, key);
+  const history = await persistence.readBeliefHistoryByKey(lenoseedId, key);
   const snapshots: BeliefSnapshot[] = [];
   for (const belief of history) {
     if (belief.status !== "active" && belief.status !== "superseded") {
@@ -584,7 +584,7 @@ function selectIntention(
 
   return {
     id: `I-${input.turnId}`,
-    lenoSeedId: input.lenoSeedId,
+    lenoseedId: input.lenoseedId,
     kind,
     target: input.humanActorRef,
     triggerEventIds: [inputEventId],
@@ -632,15 +632,15 @@ function employmentStartProposition(humanActorRef: EntityId, value: number): Pro
 
 async function appendEvent(
   persistence: PersistencePort,
-  lenoSeedId: EntityId,
-  event: Omit<Event, "lenoSeedId" | "sequence" | "payloadSchemaVersion"> & {
+  lenoseedId: EntityId,
+  event: Omit<Event, "lenoseedId" | "sequence" | "payloadSchemaVersion"> & {
     readonly payloadSchemaVersion?: number;
   },
 ): Promise<Event> {
-  const events = await persistence.readEventsInSequence(lenoSeedId);
+  const events = await persistence.readEventsInSequence(lenoseedId);
   const complete: Event = {
     ...event,
-    lenoSeedId,
+    lenoseedId,
     sequence: (events.at(-1)?.sequence ?? 0) + 1,
     payloadSchemaVersion: event.payloadSchemaVersion ?? 1,
   };
@@ -661,13 +661,13 @@ async function recordFailureIfAbsent(
   causedByEventIds: readonly EntityId[],
   error: unknown,
 ): Promise<void> {
-  const events = await persistence.readEventsByTurn(input.lenoSeedId, input.turnId);
+  const events = await persistence.readEventsByTurn(input.lenoseedId, input.turnId);
   const alreadyRecorded = events.some(
     (event) => event.type === "processing_failure_recorded" && event.payload.stage === stage,
   );
   if (alreadyRecorded) return;
   try {
-    await appendEvent(persistence, input.lenoSeedId, {
+    await appendEvent(persistence, input.lenoseedId, {
       id: `E-${input.turnId}-failure-${stage.replaceAll("_", "-")}`,
       type: "processing_failure_recorded",
       occurredAt: input.occurredAt,
@@ -675,7 +675,7 @@ async function recordFailureIfAbsent(
       sourceId: input.systemSourceId,
       actorRef: null,
       causedByEventIds,
-      observedStateVersion: await persistence.getStateVersion(input.lenoSeedId),
+      observedStateVersion: await persistence.getStateVersion(input.lenoseedId),
       payload: {
         stage,
         errorClass: error instanceof Error ? error.name : "UnknownError",
@@ -707,7 +707,7 @@ function reconstructHistoricalIntention(
   }
   return {
     id: intentionId,
-    lenoSeedId: input.lenoSeedId,
+    lenoseedId: input.lenoseedId,
     kind,
     target: input.humanActorRef,
     triggerEventIds: [inputEventId],

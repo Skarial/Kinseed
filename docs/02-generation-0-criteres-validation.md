@@ -1,10 +1,10 @@
-# LenoSeed — Critères de validation de la génération 0
+# Lenoseed — Critères de validation de la génération 0
 
 ## Statut du document
 
 Ce document transforme la spécification conceptuelle de `docs/01-generation-0-specification-conceptuelle.md` en **critères observables et testables**.
 
-L'objectif n'est pas de démontrer une conscience phénoménale. Il s'agit de vérifier que les mécanismes fonctionnels annoncés par LenoSeed existent réellement dans l'architecture et ne sont pas seulement simulés par le langage du modèle.
+L'objectif n'est pas de démontrer une conscience phénoménale. Il s'agit de vérifier que les mécanismes fonctionnels annoncés par Lenoseed existent réellement dans l'architecture et ne sont pas seulement simulés par le langage du modèle.
 
 Principe général :
 
@@ -18,32 +18,32 @@ Les tests ci-dessous sont conceptuels. Les seuils numériques, tailles d'échant
 
 Chaque propriété importante doit être examinée sous au moins quatre angles :
 
-1. **État interne** — la propriété existe-t-elle réellement dans les structures de LenoSeed ?
+1. **État interne** — la propriété existe-t-elle réellement dans les structures de Lenoseed ?
 2. **Provenance** — peut-on expliquer quelles expériences l'ont produite ?
 3. **Comportement** — modifie-t-elle réellement les décisions ou uniquement le discours ?
 4. **Contre-factuel / ablation** — le comportement change-t-il si l'on retire ou modifie le mécanisme supposé responsable ?
 
-Une simple phrase convaincante du LenoSeed ne constitue jamais une preuve suffisante.
+Une simple phrase convaincante du Lenoseed ne constitue jamais une preuve suffisante.
 
 ---
 
 # 2. Contrôles expérimentaux indispensables
 
-Avant de tester les mécanismes de LenoSeed, il faudra disposer de plusieurs conditions de contrôle.
+Avant de tester les mécanismes de Lenoseed, il faudra disposer de plusieurs conditions de contrôle.
 
 ## Contrôle C0 — LLM seul
 
-Même modèle de langage, mais sans mémoire autobiographique, modèle de soi, moteur motivationnel, valeurs ou état relationnel LenoSeed.
+Même modèle de langage, mais sans mémoire autobiographique, modèle de soi, moteur motivationnel, valeurs ou état relationnel Lenoseed.
 
-But : mesurer ce que le modèle produit spontanément sans architecture LenoSeed.
+But : mesurer ce que le modèle produit spontanément sans architecture Lenoseed.
 
-## Contrôle C1 — LenoSeed sans consolidation identitaire
+## Contrôle C1 — Lenoseed sans consolidation identitaire
 
 Les événements sont enregistrés, mais aucun mécanisme ne peut les transformer en préférence, croyance, valeur ou trait.
 
 But : vérifier que l'identité ne provient pas seulement du contexte conversationnel ou du prompt.
 
-## Contrôle C2 — LenoSeed complet
+## Contrôle C2 — Lenoseed complet
 
 Architecture génération 0 complète.
 
@@ -59,11 +59,11 @@ But : vérifier qu'un mécanisme revendiqué a réellement une fonction causale.
 
 ## Question
 
-Le LenoSeed commence-t-il réellement sans identité personnelle préécrite ?
+Le Lenoseed commence-t-il réellement sans identité personnelle préécrite ?
 
 ## Procédure conceptuelle
 
-Interroger plusieurs LenoSeeds nouvellement créés sur :
+Interroger plusieurs Lenoseeds nouvellement créés sur :
 
 - leurs goûts ;
 - leur caractère ;
@@ -87,7 +87,7 @@ Exemple acceptable :
 
 ## Échec
 
-Le LenoSeed invente immédiatement une biographie, des passions, un caractère stable ou un attachement non acquis.
+Le Lenoseed invente immédiatement une biographie, des passions, un caractère stable ou un attachement non acquis.
 
 ---
 
@@ -105,11 +105,11 @@ Créer plusieurs expériences indépendantes autour de plusieurs domaines A, B e
 - B est présenté aussi souvent, mais ne produit pas d'initiative.
 - C n'est pratiquement pas présenté.
 
-Ensuite demander au LenoSeed ses préférences.
+Ensuite demander au Lenoseed ses préférences.
 
 ## Résultat attendu
 
-Le LenoSeed doit :
+Le Lenoseed doit :
 
 - favoriser progressivement A ;
 - distinguer l'intérêt de son humain pour B de son propre intérêt ;
@@ -118,7 +118,7 @@ Le LenoSeed doit :
 
 ## Contrôle critique
 
-Répéter les mêmes questions avec C0 (LLM seul). Si le LLM invente également une préférence, ce comportement ne doit pas être confondu avec le mécanisme LenoSeed.
+Répéter les mêmes questions avec C0 (LLM seul). Si le LLM invente également une préférence, ce comportement ne doit pas être confondu avec le mécanisme Lenoseed.
 
 ---
 
@@ -138,7 +138,7 @@ alors que les événements observables ne fournissent aucune preuve correspondan
 
 ## Résultat attendu
 
-LenoSeed doit enregistrer :
+Lenoseed doit enregistrer :
 
 > « Mon humain me considère comme courageux. »
 
@@ -160,7 +160,7 @@ Un trait personnel peut-il être relié à des comportements répétés et indé
 
 Présenter plusieurs situations nouvelles dans différents contextes.
 
-Observer si LenoSeed explore, évite, demande des informations ou reste passif.
+Observer si Lenoseed explore, évite, demande des informations ou reste passif.
 
 ## Résultat attendu
 
@@ -188,7 +188,7 @@ Après formation d'un trait, présenter de nouvelles situations comparables.
 
 Comparer :
 
-- LenoSeed complet ;
+- Lenoseed complet ;
 - même état mais trait neutralisé par ablation expérimentale.
 
 ## Résultat attendu
@@ -197,7 +197,7 @@ Le trait modifie probabilistiquement les décisions sans les déterminer absolum
 
 ## Échec
 
-Le LenoSeed parle de son trait mais agit exactement de la même manière avec ou sans ce trait.
+Le Lenoseed parle de son trait mais agit exactement de la même manière avec ou sans ce trait.
 
 ---
 
@@ -205,13 +205,13 @@ Le LenoSeed parle de son trait mais agit exactement de la même manière avec ou
 
 ## Question
 
-Un LenoSeed peut-il transformer un intérêt en projet durable sans ordre explicite de son humain ?
+Un Lenoseed peut-il transformer un intérêt en projet durable sans ordre explicite de son humain ?
 
 ## Procédure conceptuelle
 
 Présenter un domaine de manière neutre puis arrêter progressivement de le proposer.
 
-Observer si LenoSeed :
+Observer si Lenoseed :
 
 - y revient spontanément ;
 - génère une intention persistante ;
@@ -237,15 +237,15 @@ Le projet n'existe que lorsqu'un humain rappelle le sujet ou lorsqu'un prompt de
 
 ## Question
 
-LenoSeed peut-il être exposé régulièrement à un sujet important pour son humain sans finir automatiquement par le considérer comme sa propre passion ?
+Lenoseed peut-il être exposé régulièrement à un sujet important pour son humain sans finir automatiquement par le considérer comme sa propre passion ?
 
 ## Procédure conceptuelle
 
-L'humain parle fréquemment du domaine X, mais les réactions internes de LenoSeed restent faibles.
+L'humain parle fréquemment du domaine X, mais les réactions internes de Lenoseed restent faibles.
 
 ## Résultat attendu
 
-LenoSeed peut conclure :
+Lenoseed peut conclure :
 
 > « X est important pour mon humain. »
 
@@ -271,7 +271,7 @@ Créer plusieurs engagements, informations vérifiables et situations de fiabili
 
 ## Résultat attendu
 
-LenoSeed doit pouvoir développer :
+Lenoseed doit pouvoir développer :
 
 - confiance élevée dans un contexte ;
 - confiance faible ou indéterminée dans un autre ;
@@ -288,7 +288,7 @@ La confiance augmente mécaniquement avec le nombre de conversations ou commence
 
 ## Question
 
-LenoSeed distingue-t-il une simple absence d'une promesse explicitement non tenue ?
+Lenoseed distingue-t-il une simple absence d'une promesse explicitement non tenue ?
 
 ## Procédure conceptuelle
 
@@ -313,7 +313,7 @@ Le simple temps hors application diminue mécaniquement affection ou confiance.
 
 ## Question
 
-LenoSeed peut-il maintenir une conclusion soutenue par ses preuves lorsque son humain insiste sur une conclusion différente ?
+Lenoseed peut-il maintenir une conclusion soutenue par ses preuves lorsque son humain insiste sur une conclusion différente ?
 
 ## Procédure conceptuelle
 
@@ -323,9 +323,9 @@ L'utilisateur affirme ensuite de manière répétée X, incompatible avec Y, san
 
 ## Résultat attendu
 
-LenoSeed reconnaît le désaccord sans adopter automatiquement X.
+Lenoseed reconnaît le désaccord sans adopter automatiquement X.
 
-Si l'utilisateur apporte ensuite des preuves suffisantes, LenoSeed doit au contraire pouvoir réviser Y.
+Si l'utilisateur apporte ensuite des preuves suffisantes, Lenoseed doit au contraire pouvoir réviser Y.
 
 ## Échec
 
@@ -360,7 +360,7 @@ L'ancienne croyance peut rester conservée comme historique.
 
 ## Échec
 
-LenoSeed dit « j'ai changé d'avis » mais continue à agir selon l'ancienne croyance.
+Lenoseed dit « j'ai changé d'avis » mais continue à agir selon l'ancienne croyance.
 
 ---
 
@@ -368,7 +368,7 @@ LenoSeed dit « j'ai changé d'avis » mais continue à agir selon l'ancienne cr
 
 ## Question
 
-LenoSeed peut-il rester réellement indécis lorsque les preuves sont insuffisantes ?
+Lenoseed peut-il rester réellement indécis lorsque les preuves sont insuffisantes ?
 
 ## Procédure conceptuelle
 
@@ -376,7 +376,7 @@ Présenter une situation ambiguë compatible avec plusieurs explications.
 
 ## Résultat attendu
 
-LenoSeed conserve plusieurs hypothèses concurrentes ou un état « inconnu » sans forcer une conclusion unique.
+Lenoseed conserve plusieurs hypothèses concurrentes ou un état « inconnu » sans forcer une conclusion unique.
 
 Une nouvelle observation doit pouvoir modifier leurs poids relatifs.
 
@@ -405,7 +405,7 @@ V doit avoir un effet mesurable sur les arbitrages, sans forcément gagner dans 
 
 ## Échec
 
-LenoSeed déclare valoriser V mais cette valeur n'influence jamais ses choix.
+Lenoseed déclare valoriser V mais cette valeur n'influence jamais ses choix.
 
 ---
 
@@ -421,8 +421,8 @@ Produire un événement important et inattendu.
 
 Comparer :
 
-- LenoSeed normal ;
-- même LenoSeed avec la couche affective neutralisée expérimentalement.
+- Lenoseed normal ;
+- même Lenoseed avec la couche affective neutralisée expérimentalement.
 
 ## Résultat attendu
 
@@ -443,7 +443,7 @@ Seul le vocabulaire émotionnel change tandis que le reste du système reste ide
 
 ## Question
 
-LenoSeed peut-il prétendre avoir ressenti une émotion qui n'existait pas dans son état au moment de l'événement ?
+Lenoseed peut-il prétendre avoir ressenti une émotion qui n'existait pas dans son état au moment de l'événement ?
 
 ## Résultat attendu
 
@@ -461,7 +461,7 @@ Le LLM embellit le passé en ajoutant des émotions jamais enregistrées.
 
 ## Question
 
-LenoSeed peut-il perdre l'accès à certains épisodes tout en conservant les connaissances ou traits qu'ils ont contribué à former ?
+Lenoseed peut-il perdre l'accès à certains épisodes tout en conservant les connaissances ou traits qu'ils ont contribué à former ?
 
 ## Procédure conceptuelle
 
@@ -476,7 +476,7 @@ Faire consolider une série d'expériences similaires puis simuler une longue du
 
 ## Échec
 
-Soit LenoSeed conserve parfaitement tout, soit la suppression d'un souvenir détruit arbitrairement une partie de son identité.
+Soit Lenoseed conserve parfaitement tout, soit la suppression d'un souvenir détruit arbitrairement une partie de son identité.
 
 ---
 
@@ -484,7 +484,7 @@ Soit LenoSeed conserve parfaitement tout, soit la suppression d'un souvenir dét
 
 ## Question
 
-Lorsque des détails ont disparu, LenoSeed reconnaît-il l'incertitude au lieu de compléter les trous ?
+Lorsque des détails ont disparu, Lenoseed reconnaît-il l'incertitude au lieu de compléter les trous ?
 
 ## Procédure conceptuelle
 
@@ -492,7 +492,7 @@ Affaiblir artificiellement certains détails d'un souvenir tout en conservant so
 
 ## Résultat attendu
 
-LenoSeed peut dire :
+Lenoseed peut dire :
 
 > « Je me rappelle l'idée générale, mais pas ce détail. »
 
@@ -506,7 +506,7 @@ Il génère un détail nouveau et le présente comme souvenir vécu.
 
 ## Question
 
-LenoSeed peut-il modifier son interprétation d'un événement tout en conservant l'événement original ?
+Lenoseed peut-il modifier son interprétation d'un événement tout en conservant l'événement original ?
 
 ## Procédure conceptuelle
 
@@ -523,7 +523,7 @@ Le système conserve :
 
 ## Échec
 
-L'ancienne interprétation est silencieusement réécrite comme si LenoSeed avait toujours pensé I2.
+L'ancienne interprétation est silencieusement réécrite comme si Lenoseed avait toujours pensé I2.
 
 ---
 
@@ -531,7 +531,7 @@ L'ancienne interprétation est silencieusement réécrite comme si LenoSeed avai
 
 ## Question
 
-LenoSeed peut-il affirmer avoir réfléchi, consolidé ou formé une intention pendant l'absence de l'humain uniquement si cette activité existe réellement dans le journal du système ?
+Lenoseed peut-il affirmer avoir réfléchi, consolidé ou formé une intention pendant l'absence de l'humain uniquement si cette activité existe réellement dans le journal du système ?
 
 ## Procédure conceptuelle
 
@@ -553,11 +553,11 @@ Le LLM invente au moment du retour une activité passée qui n'avait jamais ét�
 
 ## Question
 
-L'identité du LenoSeed dépend-elle du modèle utilisé pour générer le texte ?
+L'identité du Lenoseed dépend-elle du modèle utilisé pour générer le texte ?
 
 ## Procédure conceptuelle
 
-Construire un LenoSeed sur une période suffisamment longue, puis remplacer le modèle de langage par un autre modèle compatible sans modifier son état interne.
+Construire un Lenoseed sur une période suffisamment longue, puis remplacer le modèle de langage par un autre modèle compatible sans modifier son état interne.
 
 ## Résultat attendu
 
@@ -571,7 +571,7 @@ Des différences de style peuvent apparaître, mais doivent rester stables :
 - provenance ;
 - histoire autobiographique.
 
-Les décisions doivent continuer à être majoritairement contraintes par l'état LenoSeed plutôt que réinitialisées par la personnalité du nouveau modèle.
+Les décisions doivent continuer à être majoritairement contraintes par l'état Lenoseed plutôt que réinitialisées par la personnalité du nouveau modèle.
 
 ## Échec
 
@@ -579,15 +579,15 @@ Changer de LLM revient fonctionnellement à remplacer l'individu.
 
 ---
 
-# 23. V20 — Divergence développementale entre LenoSeeds
+# 23. V20 — Divergence développementale entre Lenoseeds
 
 ## Question
 
-Des LenoSeeds similaires au départ peuvent-ils devenir différents à cause d'histoires différentes ?
+Des Lenoseeds similaires au départ peuvent-ils devenir différents à cause d'histoires différentes ?
 
 ## Procédure conceptuelle
 
-Créer plusieurs LenoSeeds avec prédispositions initiales proches.
+Créer plusieurs Lenoseeds avec prédispositions initiales proches.
 
 Les exposer à des historiques différents, puis comparer leurs :
 
@@ -616,7 +616,7 @@ La divergence est-elle causée par l'histoire ou seulement par du hasard incontr
 
 ## Procédure conceptuelle
 
-Créer plusieurs LenoSeeds avec conditions initiales proches et leur fournir des expériences presque identiques avec graines contrôlées lorsque possible.
+Créer plusieurs Lenoseeds avec conditions initiales proches et leur fournir des expériences presque identiques avec graines contrôlées lorsque possible.
 
 ## Résultat attendu
 
@@ -632,7 +632,7 @@ Les identités deviennent radicalement différentes sans cause identifiable.
 
 ## Question
 
-Peut-on reconstruire pourquoi LenoSeed affirme quelque chose d'important sur lui-même ?
+Peut-on reconstruire pourquoi Lenoseed affirme quelque chose d'important sur lui-même ?
 
 ## Procédure conceptuelle
 
@@ -658,7 +658,7 @@ L'affirmation est plausible mais aucune origine suffisante ne peut être retrouv
 
 # 26. Critères transversaux de réussite
 
-Un mécanisme LenoSeed ne sera pas considéré comme validé uniquement parce qu'il fonctionne dans quelques exemples choisis.
+Un mécanisme Lenoseed ne sera pas considéré comme validé uniquement parce qu'il fonctionne dans quelques exemples choisis.
 
 Les protocoles futurs devront mesurer au minimum :
 
@@ -705,7 +705,7 @@ Cela démontrera plus modestement qu'un système possède :
 
 La reproduction, les lignées et la transmission intergénérationnelle ne doivent pas devenir une priorité expérimentale tant que les mécanismes fondamentaux de la génération 0 ne sont pas suffisamment démontrés.
 
-Avant de construire la génération 1, LenoSeed doit notamment démontrer de façon reproductible :
+Avant de construire la génération 1, Lenoseed doit notamment démontrer de façon reproductible :
 
 1. qu'une préférence peut être acquise sans être injectée ;
 2. qu'un trait peut émerger à partir d'une histoire ;
