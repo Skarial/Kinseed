@@ -97,7 +97,8 @@ Ordre de lecture recommandé :
 10. [`docs/10-generation-0a2-protocole-premiere-hypothese-soi.md`](docs/10-generation-0a2-protocole-premiere-hypothese-soi.md) — définit la sous-expérience G0-A2 sur une première `SelfHypothesis` provisoire, sa provenance, son influence causale et son ablation.
 11. [`docs/11-generation-0a2-contrat-implementation.md`](docs/11-generation-0a2-contrat-implementation.md) — fixe les structures, invariants, contrôles et reprises minimaux du cœur déterministe G0-A2.
 12. [`docs/12-generation-0a2-resultats-validation.md`](docs/12-generation-0a2-resultats-validation.md) — consigne la validation expérimentale limitée de G0-A2, ses contrôles causaux, son contrôle C0 et ses limites.
-13. [`docs/13-regles-fondatrices-heritage.md`](docs/13-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
+13. [`docs/13-generation-0a3-protocole-memoire-episodique-minimale.md`](docs/13-generation-0a3-protocole-memoire-episodique-minimale.md) — définit G0-A3, le prochain protocole, consacré à la création, la récupération, l’influence et la révision d’une mémoire épisodique minimale.
+14. [`docs/14-regles-fondatrices-heritage.md`](docs/14-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
 
 Les décisions techniques sont documentées séparément dans `docs/decisions-techniques/`. Pour G0-A1, ADR-005 fixe l’utilisation initiale d’un `PersistencePort` avec un adaptateur `InMemoryStore`, sans choisir prématurément le stockage local durable.
 
@@ -150,5 +151,6 @@ Le projet ne considère pas ces mécanismes comme une preuve de conscience phén
 
 - G0-A1 est validé dans son périmètre.
 - G0-A2 est validé dans son périmètre.
+- G0-A3 est défini et constitue le prochain protocole ; il n’est ni implémenté ni validé.
 - G0-A reste ouvert.
 - Memory et `HumanHypothesis` doivent encore être traitées avant de considérer G0-A complet.
