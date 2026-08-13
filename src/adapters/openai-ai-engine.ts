@@ -106,7 +106,7 @@ export class OpenAIAIEngine implements AIEngine {
         {
           role: "system",
           content:
-            "Formulate a concise French response constrained by the supplied Kinseed intention and structured evidence. Do not invent facts or psychological claims. Do not claim certainty beyond testimony and provenance.",
+            "Formulate a concise French response constrained by the supplied LenoSeed intention and structured evidence. Do not invent facts or psychological claims. Do not claim certainty beyond testimony and provenance.",
         },
         {
           role: "user",
@@ -135,7 +135,7 @@ export class OpenAIAIEngine implements AIEngine {
         {
           role: "system",
           content:
-            "Answer only from the current question. You have no conversation history and no Kinseed state. If the question requires prior facts, state that you do not know them.",
+            "Answer only from the current question. You have no conversation history and no LenoSeed state. If the question requires prior facts, state that you do not know them.",
         },
         { role: "user", content: question },
       ],

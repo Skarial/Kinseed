@@ -5,7 +5,7 @@ import { OpenAIAIEngine } from "../../dist/adapters/openai-ai-engine.js";
 import { processTurn } from "../../dist/application/process-turn.js";
 import { buildBeliefKey } from "../../dist/domain/proposition.js";
 
-const kinseedId = "K-TEST-001";
+const lenoSeedId = "K-TEST-001";
 const humanId = "H-TEST-001";
 const humanSourceId = "SRC-HUMAN-001";
 const systemSourceId = "SRC-SYSTEM-001";
@@ -60,7 +60,7 @@ async function executeRun(run) {
     assert.match(responses[6], /2021/);
     assert.match(responses[6], /2022/);
 
-    const history = await store.readBeliefHistoryByKey(kinseedId, key);
+    const history = await store.readBeliefHistoryByKey(lenoSeedId, key);
     assert.deepEqual(
       history.map((belief) => [belief.status, belief.proposition.value]),
       [["superseded", 2022], ["active", 2021]],
@@ -125,7 +125,7 @@ async function createStore() {
   await store.registerSource({ id: systemSourceId, kind: "system", actorRef: null, channel: "internal", createdAt: "2026-08-11T08:00:00.000Z" });
   await store.registerSource({ id: humanSourceId, kind: "human", actorRef: humanId, channel: "test", createdAt: "2026-08-11T08:00:00.000Z" });
   await store.appendEvent({
-    id: "E-000", kinseedId, sequence: 1, type: "kinseed_created",
+    id: "E-000", lenoSeedId, sequence: 1, type: "lenoseed_created",
     occurredAt: "2026-08-11T08:00:01.000Z", turnId: null, sourceId: systemSourceId,
     actorRef: null, causedByEventIds: [], observedStateVersion: 0, payload: { generation: 0 },
     payloadSchemaVersion: 1, engineVersion, idempotencyKey: "create:K-TEST-001",
@@ -135,7 +135,7 @@ async function createStore() {
 
 function runTurn(store, engine, turnId, message, second) {
   return processTurn({
-    kinseedId, turnId, humanSourceId, humanActorRef: humanId, systemSourceId, message,
+    lenoSeedId, turnId, humanSourceId, humanActorRef: humanId, systemSourceId, message,
     occurredAt: `2026-08-11T08:${String(second).padStart(2, "0")}:00.000Z`, engineVersion,
   }, store, engine);
 }

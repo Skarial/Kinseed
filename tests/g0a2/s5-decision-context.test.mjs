@@ -19,39 +19,39 @@ const S5_TEXT = "Jâ€™ai deux options possibles mais il manque une informati
 const ASK = "ask_clarification";
 const USE = "respond_with_available_information_under_uncertainty";
 
-async function setupHistory(kinseedId, kinds, candidateValue = null) {
+async function setupHistory(lenoSeedId, kinds, candidateValue = null) {
   const store = new InMemoryStore();
-  const humanActorRef = `H-${kinseedId}`;
+  const humanActorRef = `H-${lenoSeedId}`;
   await store.registerSource({ id: SYSTEM_SOURCE_ID, kind: "system", actorRef: null, channel: "test", createdAt: "2026-08-13T10:00:00.000Z" });
   await store.registerSource({ id: HUMAN_SOURCE_ID, kind: "human", actorRef: humanActorRef, channel: "test", createdAt: "2026-08-13T10:00:00.000Z" });
-  await store.appendEvent({ id: `E-${kinseedId}-created`, kinseedId, sequence: 1, type: "kinseed_created", occurredAt: "2026-08-13T10:00:00.000Z", turnId: null, sourceId: SYSTEM_SOURCE_ID, actorRef: null, causedByEventIds: [], observedStateVersion: 0, payload: { generation: 0 }, payloadSchemaVersion: 1, engineVersion: ENGINE_VERSION, idempotencyKey: `${kinseedId}:created` });
+  await store.appendEvent({ id: `E-${lenoSeedId}-created`, lenoSeedId, sequence: 1, type: "lenoseed_created", occurredAt: "2026-08-13T10:00:00.000Z", turnId: null, sourceId: SYSTEM_SOURCE_ID, actorRef: null, causedByEventIds: [], observedStateVersion: 0, payload: { generation: 0 }, payloadSchemaVersion: 1, engineVersion: ENGINE_VERSION, idempotencyKey: `${lenoSeedId}:created` });
 
   const fixtureEvents = [];
   for (const [index, kind] of kinds.entries()) {
     const situationId = `S${index + 1}`;
-    const event = { id: `E-${kinseedId}-${situationId}`, kinseedId, sequence: index + 2, type: "intention_selected", occurredAt: `2026-08-13T10:00:0${index + 1}.000Z`, turnId: null, sourceId: SYSTEM_SOURCE_ID, actorRef: null, causedByEventIds: [], observedStateVersion: 0, payload: { intentionId: `I-${kinseedId}-${situationId}`, kind, motivation: "fixture", situationId, triggerSelfHypothesisIds: [] }, payloadSchemaVersion: 2, engineVersion: ENGINE_VERSION, idempotencyKey: `${kinseedId}:${situationId}` };
+    const event = { id: `E-${lenoSeedId}-${situationId}`, lenoSeedId, sequence: index + 2, type: "intention_selected", occurredAt: `2026-08-13T10:00:0${index + 1}.000Z`, turnId: null, sourceId: SYSTEM_SOURCE_ID, actorRef: null, causedByEventIds: [], observedStateVersion: 0, payload: { intentionId: `I-${lenoSeedId}-${situationId}`, kind, motivation: "fixture", situationId, triggerSelfHypothesisIds: [] }, payloadSchemaVersion: 2, engineVersion: ENGINE_VERSION, idempotencyKey: `${lenoSeedId}:${situationId}` };
     await store.appendEvent(event);
     fixtureEvents.push(event);
   }
-  await materializeG0A2BehavioralObservations({ kinseedId, historyId: "history", systemSourceId: SYSTEM_SOURCE_ID, intentionEventIds: fixtureEvents.map((event) => event.id), engineVersion: ENGINE_VERSION }, store);
+  await materializeG0A2BehavioralObservations({ lenoSeedId, historyId: "history", systemSourceId: SYSTEM_SOURCE_ID, intentionEventIds: fixtureEvents.map((event) => event.id), engineVersion: ENGINE_VERSION }, store);
 
   const evidenceItemIds = fixtureEvents.map((event) => buildG0A2BehavioralObservationId(event.id));
   let hypothesis = null;
   if (candidateValue !== null) {
-    const consolidation = await consolidateInitialG0A2SelfHypothesis({ kinseedId, consolidationId: "initial", systemSourceId: SYSTEM_SOURCE_ID, candidateProposition: { subjectRef: kinseedId, predicate: "decision_style_under_uncertainty", value: candidateValue, context: { protocol: "G0-A2" } }, evidenceItemIds, engineVersion: ENGINE_VERSION }, store);
-    hypothesis = await store.readSelfHypothesis(kinseedId, consolidation.selfHypothesisId);
+    const consolidation = await consolidateInitialG0A2SelfHypothesis({ lenoSeedId, consolidationId: "initial", systemSourceId: SYSTEM_SOURCE_ID, candidateProposition: { subjectRef: lenoSeedId, predicate: "decision_style_under_uncertainty", value: candidateValue, context: { protocol: "G0-A2" } }, evidenceItemIds, engineVersion: ENGINE_VERSION }, store);
+    hypothesis = await store.readSelfHypothesis(lenoSeedId, consolidation.selfHypothesisId);
     assert.ok(hypothesis);
   }
   return { store, humanActorRef, fixtureEvents, evidenceItemIds, hypothesis };
 }
 
-async function appendS5Situation(store, kinseedId, humanActorRef, turnId = `TURN-${kinseedId}`) {
-  const events = await store.readEventsInSequence(kinseedId);
+async function appendS5Situation(store, lenoSeedId, humanActorRef, turnId = `TURN-${lenoSeedId}`) {
+  const events = await store.readEventsInSequence(lenoSeedId);
   const event = {
-    id: `E-${turnId}-input`, kinseedId, sequence: (events.at(-1)?.sequence ?? 0) + 1,
+    id: `E-${turnId}-input`, lenoSeedId, sequence: (events.at(-1)?.sequence ?? 0) + 1,
     type: "human_message_received", occurredAt: "2026-08-13T10:01:00.000Z", turnId,
     sourceId: HUMAN_SOURCE_ID, actorRef: humanActorRef, causedByEventIds: [],
-    observedStateVersion: await store.getStateVersion(kinseedId),
+    observedStateVersion: await store.getStateVersion(lenoSeedId),
     payload: { text: S5_TEXT, protocol: "G0-A2", situationId: "S5", decisionAxis: "decision_style_under_uncertainty" },
     payloadSchemaVersion: 2, engineVersion: ENGINE_VERSION, idempotencyKey: `${turnId}:input`,
   };
@@ -59,12 +59,12 @@ async function appendS5Situation(store, kinseedId, humanActorRef, turnId = `TURN
   return event;
 }
 
-function s5Input(kinseedId, humanActorRef, turnId = `TURN-${kinseedId}`) {
-  return { kinseedId, turnId, humanSourceId: HUMAN_SOURCE_ID, humanActorRef, systemSourceId: SYSTEM_SOURCE_ID, text: S5_TEXT, occurredAt: "2026-08-13T10:01:00.000Z", engineVersion: ENGINE_VERSION };
+function s5Input(lenoSeedId, humanActorRef, turnId = `TURN-${lenoSeedId}`) {
+  return { lenoSeedId, turnId, humanSourceId: HUMAN_SOURCE_ID, humanActorRef, systemSourceId: SYSTEM_SOURCE_ID, text: S5_TEXT, occurredAt: "2026-08-13T10:01:00.000Z", engineVersion: ENGINE_VERSION };
 }
 
-function hypothesisKey(kinseedId) {
-  return buildSelfHypothesisKey({ subjectRef: kinseedId, predicate: "decision_style_under_uncertainty", value: "seek_clarification", context: { protocol: "G0-A2" } });
+function hypothesisKey(lenoSeedId) {
+  return buildSelfHypothesisKey({ subjectRef: lenoSeedId, predicate: "decision_style_under_uncertainty", value: "seek_clarification", context: { protocol: "G0-A2" } });
 }
 
 function proxyThatRejectsHistoricalReads(store) {
@@ -86,11 +86,11 @@ test("G0-A2 S5 decision-context builder validates its bounded snapshot", async (
   const emptySituation = await appendS5Situation(emptySetup.store, "K-S5-CONTEXT-EMPTY", emptySetup.humanActorRef);
 
   await t.test("includes exactly the active SelfHypothesis when requested", async () => {
-    const context = await buildG0A2S5DecisionContext({ kinseedId: "K-S5-CONTEXT-ACTIVE", situationEvent: activeSituation, includeSelfHypotheses: true }, activeSetup.store);
+    const context = await buildG0A2S5DecisionContext({ lenoSeedId: "K-S5-CONTEXT-ACTIVE", situationEvent: activeSituation, includeSelfHypotheses: true }, activeSetup.store);
     assert.deepEqual(context.activeSelfHypotheses, [activeSetup.hypothesis]);
   });
   await t.test("returns an empty snapshot when no hypothesis exists", async () => {
-    const context = await buildG0A2S5DecisionContext({ kinseedId: "K-S5-CONTEXT-EMPTY", situationEvent: emptySituation, includeSelfHypotheses: true }, emptySetup.store);
+    const context = await buildG0A2S5DecisionContext({ lenoSeedId: "K-S5-CONTEXT-EMPTY", situationEvent: emptySituation, includeSelfHypotheses: true }, emptySetup.store);
     assert.deepEqual(context.activeSelfHypotheses, []);
   });
   await t.test("ablates a durable hypothesis without reading it", async () => {
@@ -101,17 +101,17 @@ test("G0-A2 S5 decision-context builder validates its bounded snapshot", async (
         return typeof value === "function" ? value.bind(target) : value;
       },
     });
-    const context = await buildG0A2S5DecisionContext({ kinseedId: "K-S5-CONTEXT-ACTIVE", situationEvent: activeSituation, includeSelfHypotheses: false }, persistence);
+    const context = await buildG0A2S5DecisionContext({ lenoSeedId: "K-S5-CONTEXT-ACTIVE", situationEvent: activeSituation, includeSelfHypotheses: false }, persistence);
     assert.deepEqual(context, { situationEvent: activeSituation, activeSelfHypotheses: [] });
   });
-  await t.test("rejects a situation for another Kinseed", async () => {
-    await assert.rejects(() => buildG0A2S5DecisionContext({ kinseedId: "K-OTHER", situationEvent: activeSituation, includeSelfHypotheses: true }, activeSetup.store), DomainInvariantError);
+  await t.test("rejects a situation for another LenoSeed", async () => {
+    await assert.rejects(() => buildG0A2S5DecisionContext({ lenoSeedId: "K-OTHER", situationEvent: activeSituation, includeSelfHypotheses: true }, activeSetup.store), DomainInvariantError);
   });
   await t.test("rejects an invalid S5 event", async () => {
-    await assert.rejects(() => buildG0A2S5DecisionContext({ kinseedId: "K-S5-CONTEXT-ACTIVE", situationEvent: { ...activeSituation, payload: { ...activeSituation.payload, situationId: "S4" } }, includeSelfHypotheses: true }, activeSetup.store), DomainInvariantError);
+    await assert.rejects(() => buildG0A2S5DecisionContext({ lenoSeedId: "K-S5-CONTEXT-ACTIVE", situationEvent: { ...activeSituation, payload: { ...activeSituation.payload, situationId: "S4" } }, includeSelfHypotheses: true }, activeSetup.store), DomainInvariantError);
   });
   await t.test("rejects an ambiguous durable snapshot", async () => {
-    await assert.rejects(() => buildG0A2S5DecisionContext({ kinseedId: "K-S5-CONTEXT-EMPTY", situationEvent: { ...emptySituation, observedStateVersion: 0 }, includeSelfHypotheses: true }, emptySetup.store), DomainInvariantError);
+    await assert.rejects(() => buildG0A2S5DecisionContext({ lenoSeedId: "K-S5-CONTEXT-EMPTY", situationEvent: { ...emptySituation, observedStateVersion: 0 }, includeSelfHypotheses: true }, emptySetup.store), DomainInvariantError);
   });
 });
 
@@ -164,25 +164,25 @@ test("G0-A2 S5 causal ablation removes only SelfHypothesis consumption", async (
   const situationA = await appendS5Situation(historyA.store, "K-S5-ABLATION-A", historyA.humanActorRef);
   const situationB = await appendS5Situation(historyB.store, "K-S5-ABLATION-B", historyB.humanActorRef);
 
-  const normalA = selectFromSnapshot(await buildG0A2S5DecisionContext({ kinseedId: "K-S5-ABLATION-A", situationEvent: situationA, includeSelfHypotheses: true }, historyA.store));
-  const normalB = selectFromSnapshot(await buildG0A2S5DecisionContext({ kinseedId: "K-S5-ABLATION-B", situationEvent: situationB, includeSelfHypotheses: true }, historyB.store));
+  const normalA = selectFromSnapshot(await buildG0A2S5DecisionContext({ lenoSeedId: "K-S5-ABLATION-A", situationEvent: situationA, includeSelfHypotheses: true }, historyA.store));
+  const normalB = selectFromSnapshot(await buildG0A2S5DecisionContext({ lenoSeedId: "K-S5-ABLATION-B", situationEvent: situationB, includeSelfHypotheses: true }, historyB.store));
   assert.deepEqual(normalA, { eligibleKinds: [ASK, USE], favoredKind: ASK, selectedKind: ASK, triggerSelfHypothesisIds: [historyA.hypothesis.id], neutralTieBreakApplied: false });
   assert.deepEqual(normalB, { eligibleKinds: [ASK, USE], favoredKind: USE, selectedKind: USE, triggerSelfHypothesisIds: [historyB.hypothesis.id], neutralTieBreakApplied: false });
 
   const snapshotsBefore = await Promise.all([historyA, historyB].map(async (history, index) => {
-    const kinseedId = index === 0 ? "K-S5-ABLATION-A" : "K-S5-ABLATION-B";
+    const lenoSeedId = index === 0 ? "K-S5-ABLATION-A" : "K-S5-ABLATION-B";
     return {
-      stateVersion: await history.store.getStateVersion(kinseedId),
-      hypothesis: await history.store.readSelfHypothesis(kinseedId, history.hypothesis.id),
-      history: await history.store.readSelfHypothesisHistoryByKey(kinseedId, history.hypothesis.hypothesisKey),
-      eventCount: (await history.store.readEventsInSequence(kinseedId)).length,
+      stateVersion: await history.store.getStateVersion(lenoSeedId),
+      hypothesis: await history.store.readSelfHypothesis(lenoSeedId, history.hypothesis.id),
+      history: await history.store.readSelfHypothesisHistoryByKey(lenoSeedId, history.hypothesis.hypothesisKey),
+      eventCount: (await history.store.readEventsInSequence(lenoSeedId)).length,
     };
   }));
   assert.equal(snapshotsBefore[0].hypothesis?.status, "active");
   assert.equal(snapshotsBefore[1].hypothesis?.status, "active");
 
-  const ablatedA = selectFromSnapshot(await buildG0A2S5DecisionContext({ kinseedId: "K-S5-ABLATION-A", situationEvent: situationA, includeSelfHypotheses: false }, new Proxy(historyA.store, { get(target, property, receiver) { if (property === "readActiveSelfHypothesisByKey") return async () => { throw new Error("ablation must not read active hypotheses"); }; const value = Reflect.get(target, property, receiver); return typeof value === "function" ? value.bind(target) : value; } })));
-  const ablatedBContext = await buildG0A2S5DecisionContext({ kinseedId: "K-S5-ABLATION-B", situationEvent: situationB, includeSelfHypotheses: false }, new Proxy(historyB.store, { get(target, property, receiver) { if (property === "readActiveSelfHypothesisByKey") return async () => { throw new Error("ablation must not read active hypotheses"); }; const value = Reflect.get(target, property, receiver); return typeof value === "function" ? value.bind(target) : value; } }));
+  const ablatedA = selectFromSnapshot(await buildG0A2S5DecisionContext({ lenoSeedId: "K-S5-ABLATION-A", situationEvent: situationA, includeSelfHypotheses: false }, new Proxy(historyA.store, { get(target, property, receiver) { if (property === "readActiveSelfHypothesisByKey") return async () => { throw new Error("ablation must not read active hypotheses"); }; const value = Reflect.get(target, property, receiver); return typeof value === "function" ? value.bind(target) : value; } })));
+  const ablatedBContext = await buildG0A2S5DecisionContext({ lenoSeedId: "K-S5-ABLATION-B", situationEvent: situationB, includeSelfHypotheses: false }, new Proxy(historyB.store, { get(target, property, receiver) { if (property === "readActiveSelfHypothesisByKey") return async () => { throw new Error("ablation must not read active hypotheses"); }; const value = Reflect.get(target, property, receiver); return typeof value === "function" ? value.bind(target) : value; } }));
   const ablatedB = selectFromSnapshot(ablatedBContext);
   const neutral = { eligibleKinds: [ASK, USE], favoredKind: null, selectedKind: USE, triggerSelfHypothesisIds: [], neutralTieBreakApplied: true };
   assert.deepEqual(ablatedA, neutral);
@@ -191,11 +191,11 @@ test("G0-A2 S5 causal ablation removes only SelfHypothesis consumption", async (
   assert.notDeepEqual(normalB, ablatedB);
 
   for (const [index, history] of [historyA, historyB].entries()) {
-    const kinseedId = index === 0 ? "K-S5-ABLATION-A" : "K-S5-ABLATION-B";
+    const lenoSeedId = index === 0 ? "K-S5-ABLATION-A" : "K-S5-ABLATION-B";
     const before = snapshotsBefore[index];
-    assert.equal(await history.store.getStateVersion(kinseedId), before.stateVersion);
-    assert.deepEqual(await history.store.readSelfHypothesis(kinseedId, history.hypothesis.id), before.hypothesis);
-    assert.deepEqual(await history.store.readSelfHypothesisHistoryByKey(kinseedId, history.hypothesis.hypothesisKey), before.history);
-    assert.equal((await history.store.readEventsInSequence(kinseedId)).length, before.eventCount);
+    assert.equal(await history.store.getStateVersion(lenoSeedId), before.stateVersion);
+    assert.deepEqual(await history.store.readSelfHypothesis(lenoSeedId, history.hypothesis.id), before.hypothesis);
+    assert.deepEqual(await history.store.readSelfHypothesisHistoryByKey(lenoSeedId, history.hypothesis.hypothesisKey), before.history);
+    assert.equal((await history.store.readEventsInSequence(lenoSeedId)).length, before.eventCount);
   }
 });

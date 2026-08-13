@@ -74,7 +74,7 @@ export function validateBehavioralObservationGrounding(
       `Behavioral observation ${evidenceItem.id} must ground exactly one event`,
     );
   }
-  if (event.id !== grounding.eventId || event.kinseedId !== evidenceItem.kinseedId) {
+  if (event.id !== grounding.eventId || event.lenoSeedId !== evidenceItem.lenoSeedId) {
     throw new DomainInvariantError(
       `Behavioral observation ${evidenceItem.id} grounding event is inconsistent`,
     );
@@ -113,7 +113,7 @@ export function validateBehavioralObservationGrounding(
     );
   }
   if (
-    evidenceItem.proposition.subjectRef !== evidenceItem.kinseedId ||
+    evidenceItem.proposition.subjectRef !== evidenceItem.lenoSeedId ||
     evidenceItem.proposition.predicate !== "selected_decision_style_under_uncertainty" ||
     evidenceItem.proposition.context.protocol !== "G0-A2" ||
     evidenceItem.proposition.context.situationId !== situationId ||

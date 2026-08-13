@@ -231,10 +231,10 @@ idempotency_key
 Types réellement nécessaires à G0-A1 :
 
 ```text
-kinseed_created
+lenoseed_created
 human_message_received
 intention_selected
-kinseed_message_emitted
+lenoseed_message_emitted
 validation_decision_recorded
 state_commit_completed
 processing_failure_recorded
@@ -627,7 +627,7 @@ checkpoint présent, `extractEvidence()` ne doit plus être appelé pour ce tour
 Les candidats acceptés sont reconstruits exclusivement depuis leurs snapshots ;
 LenoSeed leur rattache l'Event et la source du message courant.
 
-Une `intention_selected` ou un `kinseed_message_emitted` sans checkpoint complet
+Une `intention_selected` ou un `lenoseed_message_emitted` sans checkpoint complet
 est une anomalie interne. La reprise échoue fermée au lieu de relancer
 silencieusement l'extracteur.
 

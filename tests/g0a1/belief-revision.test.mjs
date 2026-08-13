@@ -11,7 +11,7 @@ import {
 } from "../../dist/domain/errors.js";
 import { validateEvidenceItem } from "../../dist/application/validate-evidence.js";
 
-const kinseedId = "K-TEST-001";
+const lenoSeedId = "K-TEST-001";
 const humanId = "H-TEST-001";
 const humanSourceId = "SRC-HUMAN-001";
 const systemSourceId = "SRC-SYSTEM-001";
@@ -28,7 +28,7 @@ function proposition(year) {
 function event(overrides) {
   return {
     id: overrides.id,
-    kinseedId,
+    lenoSeedId,
     sequence: overrides.sequence,
     type: overrides.type,
     occurredAt: overrides.occurredAt,
@@ -64,7 +64,7 @@ async function createStore() {
     event({
       id: "E-001",
       sequence: 1,
-      type: "kinseed_created",
+      type: "lenoseed_created",
       occurredAt: "2026-08-11T08:00:01.000Z",
       sourceId: systemSourceId,
       payload: { generation: 0 },
@@ -91,7 +91,7 @@ test("G0-A1: a testimony becomes a traceable active belief", async () => {
 
   const evidence2022 = {
     id: "EV-001",
-    kinseedId,
+    lenoSeedId,
     kind: "testimony",
     proposition: proposition(2022),
     sourceId: humanSourceId,
@@ -107,7 +107,7 @@ test("G0-A1: a testimony becomes a traceable active belief", async () => {
 
   const support2022 = {
     id: "EL-001",
-    kinseedId,
+    lenoSeedId,
     evidenceItemId: evidence2022.id,
     targetType: "belief", targetId: "B-001",
     relation: "supports",
@@ -119,7 +119,7 @@ test("G0-A1: a testimony becomes a traceable active belief", async () => {
   };
   const belief2022 = createInitialBelief({
     id: "B-001",
-    kinseedId,
+    lenoSeedId,
     proposition: proposition(2022),
     evidenceForLinkId: support2022.id,
     confidence: "high",
@@ -127,7 +127,7 @@ test("G0-A1: a testimony becomes a traceable active belief", async () => {
   });
 
   const commit = await store.atomicCommit(
-    kinseedId,
+    lenoSeedId,
     0,
     {
       evidenceItems: [evidence2022],
@@ -139,12 +139,12 @@ test("G0-A1: a testimony becomes a traceable active belief", async () => {
   );
 
   assert.equal(commit.newStateVersion, 1);
-  const active = await store.readActiveBeliefByKey(kinseedId, buildBeliefKey(proposition(2022)));
+  const active = await store.readActiveBeliefByKey(lenoSeedId, buildBeliefKey(proposition(2022)));
   assert.equal(active?.proposition.value, 2022);
 
-  const link = await store.readEvidenceLink(kinseedId, active.evidenceForLinkIds[0]);
-  const evidence = await store.readEvidenceItem(kinseedId, link.evidenceItemId);
-  const sourceEvent = await store.readEventById(kinseedId, evidence.eventIds[0]);
+  const link = await store.readEvidenceLink(lenoSeedId, active.evidenceForLinkIds[0]);
+  const evidence = await store.readEvidenceItem(lenoSeedId, link.evidenceItemId);
+  const sourceEvent = await store.readEventById(lenoSeedId, evidence.eventIds[0]);
   const source = await store.readSource(evidence.sourceId);
 
   assert.equal(sourceEvent.id, "E-002");
@@ -169,7 +169,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
 
   const evidence2022 = {
     id: "EV-001",
-    kinseedId,
+    lenoSeedId,
     kind: "testimony",
     proposition: proposition(2022),
     sourceId: humanSourceId,
@@ -184,7 +184,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
   await validateEvidenceItem(evidence2022, store);
   const support2022 = {
     id: "EL-001",
-    kinseedId,
+    lenoSeedId,
     evidenceItemId: evidence2022.id,
     targetType: "belief", targetId: "B-001",
     relation: "supports",
@@ -196,14 +196,14 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
   };
   const belief2022 = createInitialBelief({
     id: "B-001",
-    kinseedId,
+    lenoSeedId,
     proposition: proposition(2022),
     evidenceForLinkId: support2022.id,
     confidence: "high",
     now: "2026-08-11T08:01:02.000Z",
   });
   await store.atomicCommit(
-    kinseedId,
+    lenoSeedId,
     0,
     { evidenceItems: [evidence2022], evidenceLinks: [support2022], beliefs: [belief2022], selfHypotheses: [] },
     "T-001:commit",
@@ -225,7 +225,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
 
   const evidence2021 = {
     id: "EV-002",
-    kinseedId,
+    lenoSeedId,
     kind: "testimony",
     proposition: proposition(2021),
     sourceId: humanSourceId,
@@ -241,7 +241,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
 
   const contradictPrevious = {
     id: "EL-002",
-    kinseedId,
+    lenoSeedId,
     evidenceItemId: evidence2021.id,
     targetType: "belief", targetId: belief2022.id,
     relation: "contradicts",
@@ -253,7 +253,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
   };
   const support2021 = {
     id: "EL-003",
-    kinseedId,
+    lenoSeedId,
     evidenceItemId: evidence2021.id,
     targetType: "belief", targetId: "B-002",
     relation: "supports",
@@ -275,7 +275,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
   });
 
   const commit = await store.atomicCommit(
-    kinseedId,
+    lenoSeedId,
     1,
     {
       evidenceItems: [evidence2021],
@@ -288,11 +288,11 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
 
   assert.equal(commit.newStateVersion, 2);
   const key = buildBeliefKey(proposition(2021));
-  const active = await store.readActiveBeliefByKey(kinseedId, key);
+  const active = await store.readActiveBeliefByKey(lenoSeedId, key);
   assert.equal(active?.id, "B-002");
   assert.equal(active?.proposition.value, 2021);
 
-  const history = await store.readBeliefHistoryByKey(kinseedId, key);
+  const history = await store.readBeliefHistoryByKey(lenoSeedId, key);
   assert.deepEqual(
     history.map((belief) => [belief.id, belief.version, belief.status, belief.proposition.value]),
     [
@@ -301,7 +301,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
     ],
   );
 
-  const events = await store.readEventsInSequence(kinseedId);
+  const events = await store.readEventsInSequence(lenoSeedId);
   assert.equal(events.find((entry) => entry.id === "E-002")?.payload.text, "J'ai commencé chez Atelier Nova en 2022.");
   assert.equal(events.find((entry) => entry.id === "E-003")?.payload.text, "Je me suis trompé : c'était en 2021, pas en 2022.");
 });
@@ -323,7 +323,7 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
 
   const evidence2022 = {
     id: "EV-001",
-    kinseedId,
+    lenoSeedId,
     kind: "testimony",
     proposition: proposition(2022),
     sourceId: humanSourceId,
@@ -337,7 +337,7 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
   };
   const link = {
     id: "EL-001",
-    kinseedId,
+    lenoSeedId,
     evidenceItemId: evidence2022.id,
     targetType: "belief", targetId: "B-001",
     relation: "supports",
@@ -349,7 +349,7 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
   };
   const belief = createInitialBelief({
     id: "B-001",
-    kinseedId,
+    lenoSeedId,
     proposition: proposition(2022),
     evidenceForLinkId: link.id,
     confidence: "high",
@@ -357,14 +357,14 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
   });
 
   const mutations = { evidenceItems: [evidence2022], evidenceLinks: [link], beliefs: [belief], selfHypotheses: [] };
-  const first = await store.atomicCommit(kinseedId, 0, mutations, "T-001:commit");
-  const retry = await store.atomicCommit(kinseedId, 0, mutations, "T-001:commit");
+  const first = await store.atomicCommit(lenoSeedId, 0, mutations, "T-001:commit");
+  const retry = await store.atomicCommit(lenoSeedId, 0, mutations, "T-001:commit");
 
   assert.deepEqual(retry, first);
-  assert.equal(await store.getStateVersion(kinseedId), 1);
+  assert.equal(await store.getStateVersion(lenoSeedId), 1);
 
   await assert.rejects(
-    () => store.atomicCommit(kinseedId, 0, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [] }, "T-002:commit"),
+    () => store.atomicCommit(lenoSeedId, 0, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [] }, "T-002:commit"),
     StateVersionConflictError,
   );
 });
@@ -373,7 +373,7 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
   const store = await createStore();
   const invalidEvidence = {
     id: "EV-BAD",
-    kinseedId,
+    lenoSeedId,
     kind: "testimony",
     proposition: proposition(2022),
     sourceId: humanSourceId,
@@ -387,7 +387,7 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
   };
   const link = {
     id: "EL-BAD",
-    kinseedId,
+    lenoSeedId,
     evidenceItemId: invalidEvidence.id,
     targetType: "belief", targetId: "B-BAD",
     relation: "supports",
@@ -399,7 +399,7 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
   };
   const belief = createInitialBelief({
     id: "B-BAD",
-    kinseedId,
+    lenoSeedId,
     proposition: proposition(2022),
     evidenceForLinkId: link.id,
     confidence: "high",
@@ -409,14 +409,14 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
   await assert.rejects(
     () =>
       store.atomicCommit(
-        kinseedId,
+        lenoSeedId,
         0,
         { evidenceItems: [invalidEvidence], evidenceLinks: [link], beliefs: [belief], selfHypotheses: [] },
         "T-BAD:commit",
       ),
     DomainInvariantError,
   );
-  assert.equal(await store.getStateVersion(kinseedId), 0);
+  assert.equal(await store.getStateVersion(lenoSeedId), 0);
 });
 
 test("G0-A1: the store rejects testimony without valid lexical grounding", async () => {
@@ -445,12 +445,12 @@ test("G0-A1: the store rejects testimony without valid lexical grounding", async
     await assert.rejects(
       () =>
         store.atomicCommit(
-          kinseedId,
+          lenoSeedId,
           0,
           {
             evidenceItems: [{
               id,
-              kinseedId,
+              lenoSeedId,
               kind: "testimony",
               proposition: proposition(2022),
               sourceId: humanSourceId,
@@ -471,16 +471,16 @@ test("G0-A1: the store rejects testimony without valid lexical grounding", async
       DomainInvariantError,
     );
   }
-  assert.equal(await store.getStateVersion(kinseedId), 0);
-  assert.equal(await store.readEvidenceItem(kinseedId, "EV-NO-GROUNDING"), null);
-  assert.equal(await store.readEvidenceItem(kinseedId, "EV-BAD-GROUNDING"), null);
+  assert.equal(await store.getStateVersion(lenoSeedId), 0);
+  assert.equal(await store.readEvidenceItem(lenoSeedId, "EV-NO-GROUNDING"), null);
+  assert.equal(await store.readEvidenceItem(lenoSeedId, "EV-BAD-GROUNDING"), null);
 });
 
 test("G0-A1: the store rejects an active belief without supporting provenance", async () => {
   const store = await createStore();
   const unsupportedActiveBelief = {
     id: "B-UNSUPPORTED",
-    kinseedId,
+    lenoSeedId,
     beliefKey: buildBeliefKey(proposition(2022)),
     version: 1,
     proposition: proposition(2022),
@@ -496,14 +496,14 @@ test("G0-A1: the store rejects an active belief without supporting provenance", 
   await assert.rejects(
     () =>
       store.atomicCommit(
-        kinseedId,
+        lenoSeedId,
         0,
         { evidenceItems: [], evidenceLinks: [], beliefs: [unsupportedActiveBelief], selfHypotheses: [] },
         "T-UNSUPPORTED:commit",
       ),
     DomainInvariantError,
   );
-  assert.equal(await store.getStateVersion(kinseedId), 0);
+  assert.equal(await store.getStateVersion(lenoSeedId), 0);
 });
 
 test("G0-A1: reusing an idempotency key with different content is rejected", async () => {

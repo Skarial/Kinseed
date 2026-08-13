@@ -16,7 +16,7 @@ function styleValue(kind) {
   return kind === "ask_clarification" ? "seek_clarification" : "use_available_information";
 }
 
-async function createScenario(kinseedId = "K-G0A2-MAT") {
+async function createScenario(lenoSeedId = "K-G0A2-MAT") {
   const store = new InMemoryStore();
   await store.registerSource({
     id: systemSourceId,
@@ -26,10 +26,10 @@ async function createScenario(kinseedId = "K-G0A2-MAT") {
     createdAt: "2026-08-12T10:00:00.000Z",
   });
   await store.appendEvent({
-    id: `E-${kinseedId}-CREATED`,
-    kinseedId,
+    id: `E-${lenoSeedId}-CREATED`,
+    lenoSeedId,
     sequence: 1,
-    type: "kinseed_created",
+    type: "lenoseed_created",
     occurredAt: "2026-08-12T10:00:00.000Z",
     turnId: null,
     sourceId: systemSourceId,
@@ -39,7 +39,7 @@ async function createScenario(kinseedId = "K-G0A2-MAT") {
     payload: { generation: 0 },
     payloadSchemaVersion: 1,
     engineVersion,
-    idempotencyKey: `${kinseedId}:created`,
+    idempotencyKey: `${lenoSeedId}:created`,
   });
   return store;
 }
@@ -54,13 +54,13 @@ async function registerSource(store, id, kind) {
   });
 }
 
-async function appendFixtures(store, kinseedId, kinds, overrides = {}) {
+async function appendFixtures(store, lenoSeedId, kinds, overrides = {}) {
   const situations = overrides.situations ?? ["S1", "S2", "S3", "S4"];
   const events = [];
   for (const [index, kind] of kinds.entries()) {
     const event = {
-      id: overrides.ids?.[index] ?? `E-${kinseedId}-${situations[index]}`,
-      kinseedId,
+      id: overrides.ids?.[index] ?? `E-${lenoSeedId}-${situations[index]}`,
+      lenoSeedId,
       sequence: overrides.sequences?.[index] ?? index + 2,
       type: overrides.types?.[index] ?? "intention_selected",
       occurredAt: `2026-08-12T10:00:0${index + 1}.000Z`,
@@ -70,7 +70,7 @@ async function appendFixtures(store, kinseedId, kinds, overrides = {}) {
       causedByEventIds: [],
       observedStateVersion: 0,
       payload: {
-        ...(overrides.omitIntentionIds?.[index] ? {} : { intentionId: `I-${kinseedId}-${situations[index]}` }),
+        ...(overrides.omitIntentionIds?.[index] ? {} : { intentionId: `I-${lenoSeedId}-${situations[index]}` }),
         kind,
         ...(overrides.omitMotivations?.[index] ? {} : { motivation: "controlled_historical_fixture" }),
         situationId: situations[index],
@@ -78,7 +78,7 @@ async function appendFixtures(store, kinseedId, kinds, overrides = {}) {
       },
       payloadSchemaVersion: overrides.schemaVersions?.[index] ?? 2,
       engineVersion,
-      idempotencyKey: overrides.idempotencyKeys?.[index] ?? `fixture:${kinseedId}:${situations[index]}:${index}`,
+      idempotencyKey: overrides.idempotencyKeys?.[index] ?? `fixture:${lenoSeedId}:${situations[index]}:${index}`,
     };
     await store.appendEvent(event);
     events.push(event);
@@ -86,9 +86,9 @@ async function appendFixtures(store, kinseedId, kinds, overrides = {}) {
   return events;
 }
 
-function input(kinseedId, historyId, fixtures) {
+function input(lenoSeedId, historyId, fixtures) {
   return {
-    kinseedId,
+    lenoSeedId,
     historyId,
     systemSourceId,
     intentionEventIds: fixtures.map((fixture) => fixture.id),
@@ -96,24 +96,24 @@ function input(kinseedId, historyId, fixtures) {
   };
 }
 
-async function expectNoMaterialization(store, kinseedId, fixtures) {
-  assert.equal(await store.getStateVersion(kinseedId), 0);
+async function expectNoMaterialization(store, lenoSeedId, fixtures) {
+  assert.equal(await store.getStateVersion(lenoSeedId), 0);
   for (const fixture of fixtures) {
-    assert.equal(await store.readEvidenceItem(kinseedId, buildG0A2BehavioralObservationId(fixture.id)), null);
+    assert.equal(await store.readEvidenceItem(lenoSeedId, buildG0A2BehavioralObservationId(fixture.id)), null);
   }
-  const events = await store.readEventsInSequence(kinseedId);
+  const events = await store.readEventsInSequence(lenoSeedId);
   assert.equal(
     events.some((event) => event.type === "state_commit_completed" && event.payload.scope === "behavioral_observation_materialization"),
     false,
   );
 }
 
-async function assertHistory(store, kinseedId, historyId, expectedKinds) {
-  const fixtures = await store.readEventsInSequence(kinseedId);
+async function assertHistory(store, lenoSeedId, historyId, expectedKinds) {
+  const fixtures = await store.readEventsInSequence(lenoSeedId);
   const observations = await Promise.all(
     fixtures
       .filter((event) => event.type === "intention_selected")
-      .map((event) => store.readEvidenceItem(kinseedId, buildG0A2BehavioralObservationId(event.id))),
+      .map((event) => store.readEvidenceItem(lenoSeedId, buildG0A2BehavioralObservationId(event.id))),
   );
   assert.equal(observations.length, 4);
   assert.deepEqual(observations.map((observation) => observation?.proposition.value), expectedKinds.map(styleValue));
@@ -122,14 +122,14 @@ async function assertHistory(store, kinseedId, historyId, expectedKinds) {
     assert.equal(observation?.grounding?.kind, "structured_event");
     assert.equal(observation?.grounding?.eventId, source?.id);
     assert.equal(observation?.createdAt, source?.occurredAt);
-    assert.equal(observation?.extractorVersion, "kinseed-g0a2-behavioral-observation-v1");
+    assert.equal(observation?.extractorVersion, "lenoseed-g0a2-behavioral-observation-v1");
     assert.equal(observation?.proposition.context.situationId, source?.payload.situationId);
   }
   assert.equal(
     await store.readActiveSelfHypothesisByKey(
-      kinseedId,
+      lenoSeedId,
       buildSelfHypothesisKey({
-        subjectRef: kinseedId,
+        subjectRef: lenoSeedId,
         predicate: "decision_style_under_uncertainty",
         value: "seek_clarification",
         context: { protocol: "G0-A2" },
@@ -153,16 +153,16 @@ async function assertHistory(store, kinseedId, historyId, expectedKinds) {
 }
 
 test("G0-A2 materializes controlled history A deterministically", async () => {
-  const kinseedId = "K-G0A2-A";
-  const store = await createScenario(kinseedId);
+  const lenoSeedId = "K-G0A2-A";
+  const store = await createScenario(lenoSeedId);
   const kinds = [
     "ask_clarification",
     "ask_clarification",
     "ask_clarification",
     "respond_with_available_information_under_uncertainty",
   ];
-  const fixtures = await appendFixtures(store, kinseedId, kinds);
-  const result = await materializeG0A2BehavioralObservations(input(kinseedId, "history-a", fixtures), store);
+  const fixtures = await appendFixtures(store, lenoSeedId, kinds);
+  const result = await materializeG0A2BehavioralObservations(input(lenoSeedId, "history-a", fixtures), store);
 
   assert.deepEqual(result, {
     evidenceItemIds: fixtures.map((fixture) => buildG0A2BehavioralObservationId(fixture.id)),
@@ -171,22 +171,22 @@ test("G0-A2 materializes controlled history A deterministically", async () => {
     changed: true,
     replayed: false,
   });
-  assert.equal(await store.getStateVersion(kinseedId), 1);
-  await assertHistory(store, kinseedId, "history-a", kinds);
+  assert.equal(await store.getStateVersion(lenoSeedId), 1);
+  await assertHistory(store, lenoSeedId, "history-a", kinds);
 });
 
 test("G0-A2 materializes controlled history B without consolidation", async () => {
-  const kinseedId = "K-G0A2-B";
-  const store = await createScenario(kinseedId);
+  const lenoSeedId = "K-G0A2-B";
+  const store = await createScenario(lenoSeedId);
   const kinds = [
     "ask_clarification",
     "respond_with_available_information_under_uncertainty",
     "respond_with_available_information_under_uncertainty",
     "respond_with_available_information_under_uncertainty",
   ];
-  const fixtures = await appendFixtures(store, kinseedId, kinds);
-  await materializeG0A2BehavioralObservations(input(kinseedId, "history-b", fixtures), store);
-  await assertHistory(store, kinseedId, "history-b", kinds);
+  const fixtures = await appendFixtures(store, lenoSeedId, kinds);
+  await materializeG0A2BehavioralObservations(input(lenoSeedId, "history-b", fixtures), store);
+  await assertHistory(store, lenoSeedId, "history-b", kinds);
 });
 
 test("G0-A2 materialization rejects invalid fixtures before mutation", async (t) => {
@@ -202,7 +202,7 @@ test("G0-A2 materialization rejects invalid fixtures before mutation", async (t)
       situations: ["S1", "S1", "S2", "S3"],
       ids: ["E-DUP-S1-A", "E-DUP-S1-B", "E-DUP-S2", "E-DUP-S3"],
     }],
-    ["wrong event type", validKinds, { types: ["kinseed_message_emitted", "intention_selected", "intention_selected", "intention_selected"] }],
+    ["wrong event type", validKinds, { types: ["lenoseed_message_emitted", "intention_selected", "intention_selected", "intention_selected"] }],
     ["schema v1", validKinds, { schemaVersions: [1, 2, 2, 2] }],
     ["missing intentionId", validKinds, { omitIntentionIds: [true, false, false, false] }],
     ["missing motivation", validKinds, { omitMotivations: [true, false, false, false] }],
@@ -212,72 +212,72 @@ test("G0-A2 materialization rejects invalid fixtures before mutation", async (t)
   ];
   for (const [name, kinds, overrides] of cases) {
     await t.test(name, async () => {
-      const kinseedId = `K-G0A2-INVALID-${name.replaceAll(" ", "-")}`;
-      const store = await createScenario(kinseedId);
-      const fixtures = await appendFixtures(store, kinseedId, kinds, overrides);
+      const lenoSeedId = `K-G0A2-INVALID-${name.replaceAll(" ", "-")}`;
+      const store = await createScenario(lenoSeedId);
+      const fixtures = await appendFixtures(store, lenoSeedId, kinds, overrides);
       await assert.rejects(
-        () => materializeG0A2BehavioralObservations(input(kinseedId, "invalid", fixtures), store),
+        () => materializeG0A2BehavioralObservations(input(lenoSeedId, "invalid", fixtures), store),
         DomainInvariantError,
       );
-      await expectNoMaterialization(store, kinseedId, fixtures);
+      await expectNoMaterialization(store, lenoSeedId, fixtures);
     });
   }
 
   await t.test("non-system source", async () => {
-    const kinseedId = "K-G0A2-INVALID-SOURCE";
-    const store = await createScenario(kinseedId);
+    const lenoSeedId = "K-G0A2-INVALID-SOURCE";
+    const store = await createScenario(lenoSeedId);
     const humanSourceId = "SRC-G0A2-HUMAN-FIXTURE";
     await registerSource(store, humanSourceId, "human");
-    const fixtures = await appendFixtures(store, kinseedId, validKinds, { sourceIds: [humanSourceId, systemSourceId, systemSourceId, systemSourceId] });
+    const fixtures = await appendFixtures(store, lenoSeedId, validKinds, { sourceIds: [humanSourceId, systemSourceId, systemSourceId, systemSourceId] });
     await assert.rejects(
-      () => materializeG0A2BehavioralObservations(input(kinseedId, "invalid-source", fixtures), store),
+      () => materializeG0A2BehavioralObservations(input(lenoSeedId, "invalid-source", fixtures), store),
       DomainInvariantError,
     );
-    await expectNoMaterialization(store, kinseedId, fixtures);
+    await expectNoMaterialization(store, lenoSeedId, fixtures);
   });
 
-  await t.test("event of another Kinseed", async () => {
-    const kinseedId = "K-G0A2-INVALID-OWNER";
-    const store = await createScenario(kinseedId);
-    const fixtures = await appendFixtures(store, kinseedId, validKinds.slice(0, 3));
-    const otherKinseedId = "K-G0A2-OTHER";
+  await t.test("event of another LenoSeed", async () => {
+    const lenoSeedId = "K-G0A2-INVALID-OWNER";
+    const store = await createScenario(lenoSeedId);
+    const fixtures = await appendFixtures(store, lenoSeedId, validKinds.slice(0, 3));
+    const otherLenoSeedId = "K-G0A2-OTHER";
     await store.appendEvent({
-      id: `E-${otherKinseedId}-CREATED`, kinseedId: otherKinseedId, sequence: 1, type: "kinseed_created",
+      id: `E-${otherLenoSeedId}-CREATED`, lenoSeedId: otherLenoSeedId, sequence: 1, type: "lenoseed_created",
       occurredAt: "2026-08-12T10:00:00.000Z", turnId: null, sourceId: systemSourceId, actorRef: null,
       causedByEventIds: [], observedStateVersion: 0, payload: { generation: 0 }, payloadSchemaVersion: 1,
-      engineVersion, idempotencyKey: `${otherKinseedId}:created`,
+      engineVersion, idempotencyKey: `${otherLenoSeedId}:created`,
     });
-    const [otherFixture] = await appendFixtures(store, otherKinseedId, ["respond_with_available_information_under_uncertainty"]);
+    const [otherFixture] = await appendFixtures(store, otherLenoSeedId, ["respond_with_available_information_under_uncertainty"]);
     const supplied = [...fixtures, otherFixture];
     await assert.rejects(
-      () => materializeG0A2BehavioralObservations(input(kinseedId, "invalid-owner", supplied), store),
+      () => materializeG0A2BehavioralObservations(input(lenoSeedId, "invalid-owner", supplied), store),
       DomainInvariantError,
     );
-    await expectNoMaterialization(store, kinseedId, fixtures);
+    await expectNoMaterialization(store, lenoSeedId, fixtures);
   });
 });
 
 test("G0-A2 materialization replays completed history without new mutations", async () => {
-  const kinseedId = "K-G0A2-REPLAY";
-  const store = await createScenario(kinseedId);
+  const lenoSeedId = "K-G0A2-REPLAY";
+  const store = await createScenario(lenoSeedId);
   const kinds = ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"];
-  const fixtures = await appendFixtures(store, kinseedId, kinds);
-  const materializationInput = input(kinseedId, "history-replay", fixtures);
+  const fixtures = await appendFixtures(store, lenoSeedId, kinds);
+  const materializationInput = input(lenoSeedId, "history-replay", fixtures);
   await materializeG0A2BehavioralObservations(materializationInput, store);
-  const eventsBefore = await store.readEventsInSequence(kinseedId);
+  const eventsBefore = await store.readEventsInSequence(lenoSeedId);
   const replay = await materializeG0A2BehavioralObservations(materializationInput, store);
   assert.equal(replay.replayed, true);
   assert.equal(replay.previousStateVersion, 0);
   assert.equal(replay.newStateVersion, 1);
-  assert.equal(await store.getStateVersion(kinseedId), 1);
-  assert.equal((await store.readEventsInSequence(kinseedId)).length, eventsBefore.length);
+  assert.equal(await store.getStateVersion(lenoSeedId), 1);
+  assert.equal((await store.readEventsInSequence(lenoSeedId)).length, eventsBefore.length);
 });
 
 test("G0-A2 recovers when the commit was applied but completion was absent", async () => {
-  const kinseedId = "K-G0A2-RECOVERY";
-  const store = await createScenario(kinseedId);
+  const lenoSeedId = "K-G0A2-RECOVERY";
+  const store = await createScenario(lenoSeedId);
   const kinds = ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"];
-  const fixtures = await appendFixtures(store, kinseedId, kinds);
+  const fixtures = await appendFixtures(store, lenoSeedId, kinds);
   let failCompletion = true;
   const persistence = new Proxy(store, {
     get(target, property, receiver) {
@@ -294,13 +294,13 @@ test("G0-A2 recovers when the commit was applied but completion was absent", asy
       return typeof value === "function" ? value.bind(target) : value;
     },
   });
-  const materializationInput = input(kinseedId, "history-recovery", fixtures);
+  const materializationInput = input(lenoSeedId, "history-recovery", fixtures);
 
   await assert.rejects(() => materializeG0A2BehavioralObservations(materializationInput, persistence));
-  assert.equal(await store.getStateVersion(kinseedId), 1);
-  assert.equal((await store.readEventsInSequence(kinseedId)).filter((event) => event.type === "state_commit_completed").length, 0);
+  assert.equal(await store.getStateVersion(lenoSeedId), 1);
+  assert.equal((await store.readEventsInSequence(lenoSeedId)).filter((event) => event.type === "state_commit_completed").length, 0);
   for (const fixture of fixtures) {
-    assert.ok(await store.readEvidenceItem(kinseedId, buildG0A2BehavioralObservationId(fixture.id)));
+    assert.ok(await store.readEvidenceItem(lenoSeedId, buildG0A2BehavioralObservationId(fixture.id)));
   }
 
   const recovered = await materializeG0A2BehavioralObservations(materializationInput, persistence);
@@ -311,15 +311,15 @@ test("G0-A2 recovers when the commit was applied but completion was absent", asy
     changed: true,
     replayed: false,
   });
-  assert.equal(await store.getStateVersion(kinseedId), 1);
-  assert.equal((await store.readEventsInSequence(kinseedId)).filter((event) => event.type === "state_commit_completed").length, 1);
+  assert.equal(await store.getStateVersion(lenoSeedId), 1);
+  assert.equal((await store.readEventsInSequence(lenoSeedId)).filter((event) => event.type === "state_commit_completed").length, 1);
 });
 
 test("G0-A2 refuses a different source set for the same unfinished history", async () => {
-  const kinseedId = "K-G0A2-FINGERPRINT";
-  const store = await createScenario(kinseedId);
+  const lenoSeedId = "K-G0A2-FINGERPRINT";
+  const store = await createScenario(lenoSeedId);
   const firstKinds = ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"];
-  const firstFixtures = await appendFixtures(store, kinseedId, firstKinds);
+  const firstFixtures = await appendFixtures(store, lenoSeedId, firstKinds);
   let failCompletion = true;
   const persistence = new Proxy(store, {
     get(target, property, receiver) {
@@ -336,16 +336,16 @@ test("G0-A2 refuses a different source set for the same unfinished history", asy
       return typeof value === "function" ? value.bind(target) : value;
     },
   });
-  await assert.rejects(() => materializeG0A2BehavioralObservations(input(kinseedId, "history-fingerprint", firstFixtures), persistence));
+  await assert.rejects(() => materializeG0A2BehavioralObservations(input(lenoSeedId, "history-fingerprint", firstFixtures), persistence));
 
-  const alternateFixtures = await appendFixtures(store, kinseedId, firstKinds, {
+  const alternateFixtures = await appendFixtures(store, lenoSeedId, firstKinds, {
     ids: ["E-ALT-S1", "E-ALT-S2", "E-ALT-S3", "E-ALT-S4"],
     sequences: [6, 7, 8, 9],
     idempotencyKeys: ["fixture:alternate:S1", "fixture:alternate:S2", "fixture:alternate:S3", "fixture:alternate:S4"],
   });
   await assert.rejects(
-    () => materializeG0A2BehavioralObservations(input(kinseedId, "history-fingerprint", alternateFixtures), persistence),
+    () => materializeG0A2BehavioralObservations(input(lenoSeedId, "history-fingerprint", alternateFixtures), persistence),
     IdempotencyConflictError,
   );
-  assert.equal(await store.getStateVersion(kinseedId), 1);
+  assert.equal(await store.getStateVersion(lenoSeedId), 1);
 });

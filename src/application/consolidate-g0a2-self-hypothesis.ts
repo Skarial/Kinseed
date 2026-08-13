@@ -21,7 +21,7 @@ const INITIAL_INDEPENDENCE_GROUPS = INITIAL_SITUATION_IDS.map(
 );
 
 export interface ConsolidateG0A2SelfHypothesisInput {
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly consolidationId: string;
   readonly systemSourceId: EntityId;
   readonly candidateProposition: Proposition;
@@ -44,7 +44,7 @@ export async function consolidateInitialG0A2SelfHypothesis(
 ): Promise<ConsolidateG0A2SelfHypothesisResult> {
   const source = await persistence.readSource(input.systemSourceId);
   if (source?.kind !== "system") throw new DomainInvariantError("G0-A2 consolidation requires a system source");
-  const events = await persistence.readEventsInSequence(input.kinseedId);
+  const events = await persistence.readEventsInSequence(input.lenoSeedId);
   const checkpoint = findCheckpoint(events, input);
   const completion = findCompletion(events, input.consolidationId);
   if (completion !== null && checkpoint === null) {
@@ -59,14 +59,14 @@ export async function consolidateInitialG0A2SelfHypothesis(
   } else {
     const observations = await readObservations(input, persistence);
     const existing = await persistence.readSelfHypothesisHistoryByKey(
-      input.kinseedId,
+      input.lenoSeedId,
       buildSelfHypothesisKey(input.candidateProposition),
     );
     if (existing.length !== 0) {
       throw new DomainInvariantError("G0-A2 initial consolidation cannot follow existing SelfHypothesis history");
     }
     plan = planInitialG0A2SelfHypothesisConsolidation({
-      kinseedId: input.kinseedId,
+      lenoSeedId: input.lenoSeedId,
       consolidationId: input.consolidationId,
       candidateProposition: input.candidateProposition,
       observations,
@@ -76,7 +76,7 @@ export async function consolidateInitialG0A2SelfHypothesis(
 
   if (completion !== null) {
     const result = validateCompletion(completion, checkpointEvent, plan, input);
-    await validateDurableSnapshots(input.kinseedId, plan, persistence);
+    await validateDurableSnapshots(input.lenoSeedId, plan, persistence);
     return {
       outcome: plan.outcome,
       selfHypothesisId: plan.nextHypothesisSnapshot?.id ?? null,
@@ -86,7 +86,7 @@ export async function consolidateInitialG0A2SelfHypothesis(
   }
 
   const commit = await persistence.atomicCommit(
-    input.kinseedId,
+    input.lenoSeedId,
     checkpointEvent.observedStateVersion,
     {
       evidenceItems: [],
@@ -116,15 +116,15 @@ async function readObservations(
   }
   const observations = [];
   for (const evidenceId of input.evidenceItemIds) {
-    const evidenceItem = await persistence.readEvidenceItem(input.kinseedId, evidenceId);
-    if (evidenceItem === null || evidenceItem.kinseedId !== input.kinseedId || evidenceItem.kind !== "behavioral_observation" || evidenceItem.status !== "active") {
+    const evidenceItem = await persistence.readEvidenceItem(input.lenoSeedId, evidenceId);
+    if (evidenceItem === null || evidenceItem.lenoSeedId !== input.lenoSeedId || evidenceItem.kind !== "behavioral_observation" || evidenceItem.status !== "active") {
       throw new DomainInvariantError(`G0-A2 consolidation has invalid observation ${evidenceId}`);
     }
     await validateEvidenceItem(evidenceItem, persistence);
     if (evidenceItem.grounding?.kind !== "structured_event") {
       throw new DomainInvariantError(`G0-A2 consolidation observation ${evidenceId} has invalid grounding`);
     }
-    const sourceEvent = await persistence.readEventById(input.kinseedId, evidenceItem.grounding.eventId);
+    const sourceEvent = await persistence.readEventById(input.lenoSeedId, evidenceItem.grounding.eventId);
     if (
       sourceEvent === null ||
       sourceEvent.type !== "intention_selected" ||
@@ -157,15 +157,15 @@ async function appendCheckpoint(
   sourceEvents: readonly Event[],
   persistence: PersistencePort,
 ): Promise<Event> {
-  const events = await persistence.readEventsInSequence(input.kinseedId);
+  const events = await persistence.readEventsInSequence(input.lenoSeedId);
   const orderedSources = [...sourceEvents].sort((left, right) => left.sequence - right.sequence);
   const event: Event = {
-    id: checkpointId(input), kinseedId: input.kinseedId,
+    id: checkpointId(input), lenoSeedId: input.lenoSeedId,
     sequence: (events.at(-1)?.sequence ?? 0) + 1,
     type: "validation_decision_recorded", occurredAt: plan.timestamp, turnId: null,
     sourceId: input.systemSourceId, actorRef: null,
     causedByEventIds: orderedSources.map((source) => source.id),
-    observedStateVersion: await persistence.getStateVersion(input.kinseedId),
+    observedStateVersion: await persistence.getStateVersion(input.lenoSeedId),
     payload: serializePlan(input, plan), payloadSchemaVersion: 3,
     engineVersion: input.engineVersion, idempotencyKey: decisionKey(input),
   };
@@ -180,9 +180,9 @@ async function appendCompletion(
   commit: AtomicCommitResult,
   persistence: PersistencePort,
 ): Promise<void> {
-  const events = await persistence.readEventsInSequence(input.kinseedId);
+  const events = await persistence.readEventsInSequence(input.lenoSeedId);
   await persistence.appendEvent({
-    id: completionId(input), kinseedId: input.kinseedId,
+    id: completionId(input), lenoSeedId: input.lenoSeedId,
     sequence: (events.at(-1)?.sequence ?? 0) + 1,
     type: "state_commit_completed", occurredAt: plan.timestamp, turnId: null,
     sourceId: input.systemSourceId, actorRef: null, causedByEventIds: [checkpoint.id],
@@ -221,7 +221,7 @@ async function parseCheckpoint(
 ): Promise<G0A2InitialConsolidationPlan> {
   if (
     event.id !== checkpointId(input) ||
-    event.kinseedId !== input.kinseedId ||
+    event.lenoSeedId !== input.lenoSeedId ||
     event.type !== "validation_decision_recorded" ||
     event.payloadSchemaVersion !== 3 ||
     event.idempotencyKey !== decisionKey(input) ||
@@ -322,7 +322,7 @@ function parseLinks(value: SerializableValue | undefined): readonly EvidenceLink
     const targetType = string(link.targetType, "targetType");
     const contamination = string(link.causalContamination, "causalContamination");
     if ((relation !== "supports" && relation !== "contradicts") || targetType !== "self_hypothesis" || (contamination !== "none" && contamination !== "influenced_by_target")) throw new DomainInvariantError("G0-A2 consolidation linkSnapshot is invalid");
-    return { id: string(link.id, "id"), kinseedId: string(link.kinseedId, "kinseedId"), evidenceItemId: string(link.evidenceItemId, "evidenceItemId"), targetType, targetId: string(link.targetId, "targetId"), relation, sourceAuthority: weight(link.sourceAuthority), independenceGroup: string(link.independenceGroup, "independenceGroup"), causalContamination: contamination, weightClass: weight(link.weightClass), createdAt: string(link.createdAt, "createdAt") };
+    return { id: string(link.id, "id"), lenoSeedId: string(link.lenoSeedId, "lenoSeedId"), evidenceItemId: string(link.evidenceItemId, "evidenceItemId"), targetType, targetId: string(link.targetId, "targetId"), relation, sourceAuthority: weight(link.sourceAuthority), independenceGroup: string(link.independenceGroup, "independenceGroup"), causalContamination: contamination, weightClass: weight(link.weightClass), createdAt: string(link.createdAt, "createdAt") };
   });
 }
 
@@ -330,7 +330,7 @@ function parseHypothesis(value: SerializableValue | undefined): SelfHypothesis {
   const h = record(value, "nextHypothesisSnapshot");
   const status = string(h.status, "status"); const confidence = string(h.confidence, "confidence");
   if (status !== "active" || confidence !== "moderate" || h.version !== 1 || h.previousVersionId !== null || h.stage !== "hypothesis") throw new DomainInvariantError("G0-A2 consolidation hypothesis snapshot is invalid");
-  return { id: string(h.id, "id"), kinseedId: string(h.kinseedId, "kinseedId"), hypothesisKey: string(h.hypothesisKey, "hypothesisKey"), version: 1, proposition: parseProposition(h.proposition), stage: "hypothesis", supportLinkIds: strings(h.supportLinkIds, "supportLinkIds"), againstLinkIds: strings(h.againstLinkIds, "againstLinkIds"), confidence: "moderate", status: "active", previousVersionId: null, createdAt: string(h.createdAt, "createdAt"), updatedAt: string(h.updatedAt, "updatedAt") };
+  return { id: string(h.id, "id"), lenoSeedId: string(h.lenoSeedId, "lenoSeedId"), hypothesisKey: string(h.hypothesisKey, "hypothesisKey"), version: 1, proposition: parseProposition(h.proposition), stage: "hypothesis", supportLinkIds: strings(h.supportLinkIds, "supportLinkIds"), againstLinkIds: strings(h.againstLinkIds, "againstLinkIds"), confidence: "moderate", status: "active", previousVersionId: null, createdAt: string(h.createdAt, "createdAt"), updatedAt: string(h.updatedAt, "updatedAt") };
 }
 
 function validateCreateSnapshots(
@@ -345,13 +345,13 @@ function validateCreateSnapshots(
   againstGroups: readonly string[],
 ): void {
   const expectedHypothesisId = buildInitialG0A2SelfHypothesisId(
-    input.kinseedId,
+    input.lenoSeedId,
     input.consolidationId,
   );
   if (
     hypothesis === null ||
     hypothesis.id !== expectedHypothesisId ||
-    hypothesis.kinseedId !== input.kinseedId ||
+    hypothesis.lenoSeedId !== input.lenoSeedId ||
     hypothesis.hypothesisKey !== hypothesisKey ||
     !propositionEquals(hypothesis.proposition, candidate) ||
     hypothesis.version !== 1 ||
@@ -388,7 +388,7 @@ function validateCreateSnapshots(
       link === undefined ||
       seenEvidenceIds.has(link.evidenceItemId) ||
       link.id !== expectedLinkId ||
-      link.kinseedId !== input.kinseedId ||
+      link.lenoSeedId !== input.lenoSeedId ||
       link.evidenceItemId !== observation.evidenceItem.id ||
       link.targetType !== "self_hypothesis" ||
       link.targetId !== expectedHypothesisId ||
@@ -452,9 +452,9 @@ function validateCompletion(event: Event, checkpoint: Event, plan: G0A2InitialCo
   const p = event.payload; if (typeof p.previousStateVersion !== "number" || typeof p.newStateVersion !== "number" || typeof p.changed !== "boolean" || event.observedStateVersion !== p.previousStateVersion || p.changed !== (plan.outcome === "create") || p.newStateVersion !== p.previousStateVersion + (p.changed ? 1 : 0)) throw new DomainInvariantError("G0-A2 consolidation completion result is incoherent");
   return { previousStateVersion: p.previousStateVersion, newStateVersion: p.newStateVersion, changed: p.changed };
 }
-async function validateDurableSnapshots(kinseedId: EntityId, plan: G0A2InitialConsolidationPlan, persistence: PersistencePort): Promise<void> {
-  if (plan.nextHypothesisSnapshot !== null) { const actual = await persistence.readSelfHypothesis(kinseedId, plan.nextHypothesisSnapshot.id); if (JSON.stringify(actual) !== JSON.stringify(plan.nextHypothesisSnapshot)) throw new DomainInvariantError("G0-A2 consolidation durable hypothesis is incoherent"); }
-  for (const link of plan.linkSnapshots) { const actual = await persistence.readEvidenceLink(kinseedId, link.id); if (JSON.stringify(actual) !== JSON.stringify(link)) throw new DomainInvariantError("G0-A2 consolidation durable link is incoherent"); }
+async function validateDurableSnapshots(lenoSeedId: EntityId, plan: G0A2InitialConsolidationPlan, persistence: PersistencePort): Promise<void> {
+  if (plan.nextHypothesisSnapshot !== null) { const actual = await persistence.readSelfHypothesis(lenoSeedId, plan.nextHypothesisSnapshot.id); if (JSON.stringify(actual) !== JSON.stringify(plan.nextHypothesisSnapshot)) throw new DomainInvariantError("G0-A2 consolidation durable hypothesis is incoherent"); }
+  for (const link of plan.linkSnapshots) { const actual = await persistence.readEvidenceLink(lenoSeedId, link.id); if (JSON.stringify(actual) !== JSON.stringify(link)) throw new DomainInvariantError("G0-A2 consolidation durable link is incoherent"); }
 }
 function record(value: SerializableValue | undefined, label: string): Readonly<Record<string, SerializableValue>> { if (value === null || typeof value !== "object" || Array.isArray(value)) throw new DomainInvariantError(`G0-A2 consolidation ${label} is malformed`); return value as Readonly<Record<string, SerializableValue>>; }
 function string(value: SerializableValue | undefined, label: string): string { if (typeof value !== "string") throw new DomainInvariantError(`G0-A2 consolidation ${label} is malformed`); return value; }
@@ -463,8 +463,8 @@ function scalar(value: SerializableValue | undefined): value is ScalarValue { re
 function weight(value: SerializableValue | undefined): "low" | "medium" | "high" { const result = string(value, "weight"); if (result !== "low" && result !== "medium" && result !== "high") throw new DomainInvariantError("G0-A2 consolidation weight is invalid"); return result; }
 function sameSet(left: readonly string[], right: readonly string[]): boolean { return left.length === right.length && new Set(left).size === left.length && left.every((item) => right.includes(item)); }
 function sameList(left: readonly string[], right: readonly string[]): boolean { return left.length === right.length && left.every((item, index) => item === right[index]); }
-function checkpointId(input: ConsolidateG0A2SelfHypothesisInput): EntityId { return `E-G0A2-${input.kinseedId}-${input.consolidationId}-decision`; }
-function completionId(input: ConsolidateG0A2SelfHypothesisInput): EntityId { return `E-G0A2-${input.kinseedId}-${input.consolidationId}-completed`; }
-function decisionKey(input: ConsolidateG0A2SelfHypothesisInput): string { return `g0a2:${input.kinseedId}:${input.consolidationId}:decision`; }
-function commitKey(input: ConsolidateG0A2SelfHypothesisInput): string { return `g0a2:${input.kinseedId}:${input.consolidationId}:commit`; }
-function completedKey(input: ConsolidateG0A2SelfHypothesisInput): string { return `g0a2:${input.kinseedId}:${input.consolidationId}:completed`; }
+function checkpointId(input: ConsolidateG0A2SelfHypothesisInput): EntityId { return `E-G0A2-${input.lenoSeedId}-${input.consolidationId}-decision`; }
+function completionId(input: ConsolidateG0A2SelfHypothesisInput): EntityId { return `E-G0A2-${input.lenoSeedId}-${input.consolidationId}-completed`; }
+function decisionKey(input: ConsolidateG0A2SelfHypothesisInput): string { return `g0a2:${input.lenoSeedId}:${input.consolidationId}:decision`; }
+function commitKey(input: ConsolidateG0A2SelfHypothesisInput): string { return `g0a2:${input.lenoSeedId}:${input.consolidationId}:commit`; }
+function completedKey(input: ConsolidateG0A2SelfHypothesisInput): string { return `g0a2:${input.lenoSeedId}:${input.consolidationId}:completed`; }

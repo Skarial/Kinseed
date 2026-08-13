@@ -42,7 +42,7 @@ Exemples :
 
 ```text
 E-000001
-kind: kinseed_created
+kind: lenoseed_created
 occurred_at: ...
 
 E-000002
@@ -56,7 +56,7 @@ intention_id: I-001
 state_version: 42
 
 E-000004
-kind: kinseed_message_emitted
+kind: lenoseed_message_emitted
 intention_id: I-001
 content_ref: ...
 ```
@@ -314,7 +314,7 @@ Il contient plusieurs types d’éléments :
 ```text
 human_fact
 human_claim
-kinseed_hypothesis_about_human
+lenoseed_hypothesis_about_human
 relationship_observation
 ```
 
@@ -324,7 +324,7 @@ Exemple :
 human_claim:
 "Jordan dit aimer X"
 
-kinseed_hypothesis:
+lenoseed_hypothesis:
 "Jordan semble accorder une importance particulière à X"
 ```
 
@@ -535,7 +535,7 @@ Cela permet de reconstruire ultérieurement ce que LenoSeed savait ou croyait au
 Chaque décision importante doit conserver les versions techniques qui y ont participé :
 
 ```text
-kinseed_engine_version
+lenoseed_engine_version
 memory_policy_version
 decision_policy_version
 llm_provider

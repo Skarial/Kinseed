@@ -49,6 +49,8 @@ La v3 ajoute un `supportingExcerpt` exact et une validation lexicale déterminis
 
 # 3. Sources de résultats disponibles
 
+> **Note de renommage technique :** les noms de rapports et identifiants `kinseed-*` / `kinseed_*` mentionnés dans ce document sont conservés lorsqu’ils décrivent une campagne déjà exécutée avant le renommage en LenoSeed. Ils constituent des libellés historiques et ne définissent pas les identifiants techniques courants du projet.
+
 Les résultats consignés proviennent des rapports locaux complets suivants :
 
 | Condition | Rapports | Échantillons exploitables |

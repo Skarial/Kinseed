@@ -3,12 +3,12 @@ import assert from "node:assert/strict";
 import { selectG0A2S5Intention } from "../../dist/domain/g0a2-s5-selector.js";
 import { DomainInvariantError } from "../../dist/domain/errors.js";
 
-const kinseedId = "K-S5-SELECTOR";
+const lenoSeedId = "K-S5-SELECTOR";
 
 function situation(overrides = {}) {
   return {
     id: "E-S5-input",
-    kinseedId,
+    lenoSeedId,
     sequence: 1,
     type: "human_message_received",
     occurredAt: "2026-08-13T11:00:00.000Z",
@@ -33,11 +33,11 @@ function situation(overrides = {}) {
 function hypothesis(id, value, overrides = {}) {
   return {
     id,
-    kinseedId,
+    lenoSeedId,
     hypothesisKey: "decision-key",
     version: 1,
     proposition: {
-      subjectRef: kinseedId,
+      subjectRef: lenoSeedId,
       predicate: "decision_style_under_uncertainty",
       value,
       context: { protocol: "G0-A2" },
@@ -99,10 +99,10 @@ test("G0-A2 S5 selector ignores disputed and superseded hypotheses", () => {
 });
 
 test("G0-A2 S5 selector rejects invalid snapshots and situations", async (t) => {
-  await t.test("another Kinseed", () => assert.throws(
+  await t.test("another LenoSeed", () => assert.throws(
     () => selectG0A2S5Intention({
       situationEvent: situation(),
-      activeSelfHypotheses: [hypothesis("SH-OTHER", "seek_clarification", { kinseedId: "K-OTHER" })],
+      activeSelfHypotheses: [hypothesis("SH-OTHER", "seek_clarification", { lenoSeedId: "K-OTHER" })],
     }),
     DomainInvariantError,
   ));

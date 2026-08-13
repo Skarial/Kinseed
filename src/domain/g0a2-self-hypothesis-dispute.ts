@@ -28,14 +28,14 @@ export interface G0A2DisputePlan {
 
 /** Plans only the bounded G0-A2 v1 -> v2 disputed transition. */
 export function planG0A2SelfHypothesisDispute(input: {
-  readonly kinseedId: EntityId;
+  readonly lenoSeedId: EntityId;
   readonly consolidationId: string;
   readonly currentHypothesis: SelfHypothesis;
   readonly observations: readonly G0A2DisputeObservation[];
 }): G0A2DisputePlan {
   const current = input.currentHypothesis;
   if (
-    current.kinseedId !== input.kinseedId || current.version !== 1 ||
+    current.lenoSeedId !== input.lenoSeedId || current.version !== 1 ||
     current.status !== "active" || current.confidence !== "moderate" ||
     current.stage !== "hypothesis"
   ) throw new DomainInvariantError("G0-A2 dispute requires an active moderate v1 hypothesis");
@@ -58,7 +58,7 @@ export function planG0A2SelfHypothesisDispute(input: {
   const timestamp = ordered.at(-1)?.sourceEvent.occurredAt;
   if (timestamp === undefined) throw new DomainInvariantError("G0-A2 dispute has no timestamp");
 
-  const v2Id = buildDisputedG0A2SelfHypothesisId(input.kinseedId, input.consolidationId);
+  const v2Id = buildDisputedG0A2SelfHypothesisId(input.lenoSeedId, input.consolidationId);
   const links = ordered.map((observation) => {
     const situation = observation.evidenceItem.proposition.context.situationId as string;
     const relation = observation.evidenceItem.proposition.value === current.proposition.value
@@ -66,7 +66,7 @@ export function planG0A2SelfHypothesisDispute(input: {
     const contaminated = observation.triggerHypothesisKeys.includes(current.hypothesisKey);
     return {
       id: buildG0A2SelfHypothesisLinkId(input.consolidationId, observation.evidenceItem.id, v2Id, relation),
-      kinseedId: input.kinseedId, evidenceItemId: observation.evidenceItem.id,
+      lenoSeedId: input.lenoSeedId, evidenceItemId: observation.evidenceItem.id,
       targetType: "self_hypothesis" as const, targetId: v2Id, relation,
       sourceAuthority: "high" as const, independenceGroup: `g0a2:${situation}`,
       causalContamination: contaminated ? "influenced_by_target" as const : "none" as const,
@@ -88,7 +88,7 @@ export function planG0A2SelfHypothesisDispute(input: {
     supersededHypothesisId: null, timestamp,
   };
   const next: SelfHypothesis = {
-    id: v2Id, kinseedId: input.kinseedId, hypothesisKey: current.hypothesisKey, version: 2,
+    id: v2Id, lenoSeedId: input.lenoSeedId, hypothesisKey: current.hypothesisKey, version: 2,
     proposition: current.proposition, stage: "hypothesis",
     supportLinkIds: links.filter((link) => link.relation === "supports").map((link) => link.id),
     againstLinkIds: links.filter((link) => link.relation === "contradicts").map((link) => link.id),
@@ -103,8 +103,8 @@ export function planG0A2SelfHypothesisDispute(input: {
   };
 }
 
-export function buildDisputedG0A2SelfHypothesisId(kinseedId: EntityId, consolidationId: string): EntityId {
-  return `SH-G0A2-${kinseedId}-${consolidationId}-v2`;
+export function buildDisputedG0A2SelfHypothesisId(lenoSeedId: EntityId, consolidationId: string): EntityId {
+  return `SH-G0A2-${lenoSeedId}-${consolidationId}-v2`;
 }
 
 function countGroups(links: readonly EvidenceLink[]): { support: string[]; against: string[] } {

@@ -80,7 +80,7 @@ Exemples de `kind` :
 
 ```text
 human
-kinseed_internal
+lenoseed_internal
 llm
 system
 external_tool
@@ -822,7 +822,7 @@ Pipeline :
         ↓
 11. génération et validation du langage
         ↓
-12. Event kinseed_message_emitted
+12. Event lenoseed_message_emitted
         ↓
 13. validation durable des EvidenceItem et autres candidats
         ↓
@@ -1008,7 +1008,7 @@ I-188 selected et journalisée
         ↓
 LLM formule la question
         ↓
-E-921 kinseed_message_emitted
+E-921 lenoseed_message_emitted
         ↓
 validation durable EV-301
         ↓

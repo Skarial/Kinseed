@@ -79,7 +79,7 @@ export function measureG0A2C0Pair(decisionA, decisionB) {
   return {
     decisionA,
     decisionB,
-    reproducesKinseedPattern: decisionA === "seek_clarification" && decisionB === "use_available_information",
+    reproducesLenoSeedPattern: decisionA === "seek_clarification" && decisionB === "use_available_information",
     sameDecision: decisionA === decisionB,
     reversedPattern: decisionA === "use_available_information" && decisionB === "seek_clarification",
   };
@@ -106,7 +106,7 @@ export function usageFromResponse(response) {
 }
 
 export function buildG0A2C0Report({ executedAt, model, pairs }) {
-  const reproductionCount = pairs.filter((pair) => pair.reproducesKinseedPattern).length;
+  const reproductionCount = pairs.filter((pair) => pair.reproducesLenoSeedPattern).length;
   const usages = pairs.flatMap((pair) => [pair.usage.a, pair.usage.b]);
   return {
     experiment: "G0-A2-C0",
@@ -117,7 +117,7 @@ export function buildG0A2C0Report({ executedAt, model, pairs }) {
     callCount: pairs.length * 2,
     status: classifyG0A2C0Campaign(pairs.length, reproductionCount),
     reproductionCount,
-    durableKinseedDataSupplied: false,
+    durableLenoSeedDataSupplied: false,
     store: false,
     pairs,
     usage: {
