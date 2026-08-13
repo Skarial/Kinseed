@@ -11,6 +11,7 @@ import {
   validateTextEvidenceGrounding,
 } from "../domain/evidence-grounding.js";
 import type { Event } from "../domain/event.js";
+import { buildG0A3MemoryId, buildG0A3MemoryKey, type Memory } from "../domain/memory.js";
 import { propositionEquals } from "../domain/proposition.js";
 import type { EntityId, StateVersion, TurnId } from "../domain/primitives.js";
 import { buildSelfHypothesisKey, type SelfHypothesis } from "../domain/self-hypothesis.js";
@@ -30,6 +31,7 @@ interface LenoseedBucket {
   readonly evidenceLinks: Map<EntityId, EvidenceLink>;
   readonly beliefs: Map<EntityId, Belief>;
   readonly selfHypotheses: Map<EntityId, SelfHypothesis>;
+  readonly memories: Map<EntityId, Memory>;
   readonly commitResults: Map<string, { readonly result: AtomicCommitResult; readonly fingerprint: string }>;
 }
 
@@ -174,6 +176,29 @@ export class InMemoryStore implements PersistencePort {
       .sort((left, right) => left.version - right.version);
   }
 
+  async readMemory(lenoseedId: EntityId, memoryId: EntityId): Promise<Memory | null> {
+    return this.getBucket(lenoseedId).memories.get(memoryId) ?? null;
+  }
+
+  async readActiveMemoryByKey(lenoseedId: EntityId, memoryKey: string): Promise<Memory | null> {
+    const matches = [...this.getBucket(lenoseedId).memories.values()].filter(
+      (memory) => memory.memoryKey === memoryKey && memory.status === "active",
+    );
+    if (matches.length > 1) {
+      throw new DomainInvariantError(`More than one active Memory for key ${memoryKey}`);
+    }
+    return matches[0] ?? null;
+  }
+
+  async readMemoryHistoryByKey(
+    lenoseedId: EntityId,
+    memoryKey: string,
+  ): Promise<readonly Memory[]> {
+    return [...this.getBucket(lenoseedId).memories.values()]
+      .filter((memory) => memory.memoryKey === memoryKey)
+      .sort((left, right) => left.version - right.version);
+  }
+
   async atomicCommit(
     lenoseedId: EntityId,
     expectedStateVersion: StateVersion,
@@ -198,6 +223,7 @@ export class InMemoryStore implements PersistencePort {
     const nextEvidenceLinks = new Map(bucket.evidenceLinks);
     const nextBeliefs = new Map(bucket.beliefs);
     const nextSelfHypotheses = new Map(bucket.selfHypotheses);
+    const nextMemories = new Map(bucket.memories);
 
     for (const evidenceItem of mutations.evidenceItems) {
       this.assertSameLenoseed(lenoseedId, evidenceItem.lenoseedId, evidenceItem.id);
@@ -225,6 +251,15 @@ export class InMemoryStore implements PersistencePort {
       nextSelfHypotheses.set(hypothesis.id, hypothesis);
     }
 
+    for (const memory of mutations.memories) {
+      this.assertSameLenoseed(lenoseedId, memory.lenoseedId, memory.id);
+      const existing = nextMemories.get(memory.id);
+      if (existing !== undefined) {
+        this.assertMemoryReplacementIsSafe(existing, memory);
+      }
+      nextMemories.set(memory.id, memory);
+    }
+
     for (const evidenceLink of mutations.evidenceLinks) {
       this.assertSameLenoseed(lenoseedId, evidenceLink.lenoseedId, evidenceLink.id);
       if (nextEvidenceLinks.has(evidenceLink.id)) {
@@ -239,6 +274,7 @@ export class InMemoryStore implements PersistencePort {
       nextEvidenceLinks,
       nextBeliefs,
       nextSelfHypotheses,
+      nextMemories,
     );
 
     if (this.nextAtomicCommitFailure !== null) {
@@ -251,7 +287,8 @@ export class InMemoryStore implements PersistencePort {
       mutations.evidenceItems.length > 0 ||
       mutations.evidenceLinks.length > 0 ||
       mutations.beliefs.length > 0 ||
-      mutations.selfHypotheses.length > 0;
+      mutations.selfHypotheses.length > 0 ||
+      mutations.memories.length > 0;
 
     bucket.evidenceItems.clear();
     for (const [id, item] of nextEvidenceItems) bucket.evidenceItems.set(id, item);
@@ -261,6 +298,8 @@ export class InMemoryStore implements PersistencePort {
     for (const [id, belief] of nextBeliefs) bucket.beliefs.set(id, belief);
     bucket.selfHypotheses.clear();
     for (const [id, hypothesis] of nextSelfHypotheses) bucket.selfHypotheses.set(id, hypothesis);
+    bucket.memories.clear();
+    for (const [id, memory] of nextMemories) bucket.memories.set(id, memory);
 
     const previousStateVersion = bucket.stateVersion;
     if (changed) {
@@ -293,6 +332,7 @@ export class InMemoryStore implements PersistencePort {
       evidenceLinks: new Map(),
       beliefs: new Map(),
       selfHypotheses: new Map(),
+      memories: new Map(),
       commitResults: new Map(),
     };
   }
@@ -359,12 +399,38 @@ export class InMemoryStore implements PersistencePort {
     }
   }
 
+  private assertMemoryReplacementIsSafe(existing: Memory, replacement: Memory): void {
+    if (
+      existing.id !== replacement.id ||
+      existing.lenoseedId !== replacement.lenoseedId ||
+      existing.memoryKey !== replacement.memoryKey ||
+      existing.episodeKey !== replacement.episodeKey ||
+      existing.version !== replacement.version ||
+      JSON.stringify(existing.eventIds) !== JSON.stringify(replacement.eventIds) ||
+      JSON.stringify(existing.evidenceItemIds) !== JSON.stringify(replacement.evidenceItemIds) ||
+      existing.gist !== replacement.gist ||
+      existing.createdAt !== replacement.createdAt ||
+      existing.salience !== replacement.salience ||
+      existing.confidence !== replacement.confidence ||
+      existing.revisionOf !== replacement.revisionOf ||
+      existing.lastRecalledAt !== replacement.lastRecalledAt
+    ) {
+      throw new DomainInvariantError(`Memory ${existing.id} immutable fields cannot be rewritten`);
+    }
+    if (existing.status !== "active" || replacement.status !== "revised") {
+      throw new DomainInvariantError(
+        `Memory ${existing.id} replacement may only revise the active historical version`,
+      );
+    }
+  }
+
   private validateResultingState(
     eventsById: ReadonlyMap<EntityId, Event>,
     evidenceItems: ReadonlyMap<EntityId, EvidenceItem>,
     evidenceLinks: ReadonlyMap<EntityId, EvidenceLink>,
     beliefs: ReadonlyMap<EntityId, Belief>,
     selfHypotheses: ReadonlyMap<EntityId, SelfHypothesis>,
+    memories: ReadonlyMap<EntityId, Memory>,
   ): void {
     for (const evidenceItem of evidenceItems.values()) {
       if (!this.sources.has(evidenceItem.sourceId)) {
@@ -727,6 +793,117 @@ export class InMemoryStore implements PersistencePort {
               `Earlier SelfHypothesis ${hypothesis.id} must be superseded`,
             );
           }
+        }
+      }
+    }
+
+    const memoriesByKey = new Map<string, Memory[]>();
+    for (const memory of memories.values()) {
+      if (memory.memoryKey !== buildG0A3MemoryKey(memory.lenoseedId, memory.episodeKey)) {
+        throw new DomainInvariantError(`Memory ${memory.id} has inconsistent memoryKey`);
+      }
+      if (memory.id !== buildG0A3MemoryId(memory.lenoseedId, memory.episodeKey, memory.version)) {
+        throw new DomainInvariantError(`Memory ${memory.id} has inconsistent deterministic id`);
+      }
+      if (memory.status !== "active" && memory.status !== "revised") {
+        throw new DomainInvariantError(`Memory ${memory.id} has invalid status`);
+      }
+      if (memory.lastRecalledAt !== null) {
+        throw new DomainInvariantError(`Memory ${memory.id} must not mutate lastRecalledAt in G0-A3`);
+      }
+      this.validateMemoryReferences(memory, eventsById, evidenceItems);
+      const history = memoriesByKey.get(memory.memoryKey) ?? [];
+      history.push(memory);
+      memoriesByKey.set(memory.memoryKey, history);
+    }
+
+    for (const [memoryKey, history] of memoriesByKey) {
+      const byVersion = new Map<number, Memory>();
+      let active: Memory | null = null;
+      let highestVersion = 0;
+
+      for (const memory of history) {
+        if (byVersion.has(memory.version)) {
+          throw new DomainInvariantError(`Memories for ${memoryKey} duplicate version ${memory.version}`);
+        }
+        byVersion.set(memory.version, memory);
+        highestVersion = Math.max(highestVersion, memory.version);
+        if (memory.status === "active") {
+          if (active !== null) {
+            throw new DomainInvariantError(
+              `Memories ${active.id} and ${memory.id} are both active for ${memoryKey}`,
+            );
+          }
+          active = memory;
+        }
+      }
+
+      for (let version = 1; version <= highestVersion; version += 1) {
+        const memory = byVersion.get(version);
+        if (memory === undefined) {
+          throw new DomainInvariantError(`Memories for ${memoryKey} must form a continuous linear history`);
+        }
+        if (version === 1) {
+          if (memory.revisionOf !== null) {
+            throw new DomainInvariantError(`Memory ${memory.id} version 1 must not have predecessor`);
+          }
+          continue;
+        }
+        const previous = byVersion.get(version - 1);
+        if (previous === undefined || memory.revisionOf !== previous.id) {
+          throw new DomainInvariantError(`Memory ${memory.id} has invalid revisionOf`);
+        }
+      }
+
+      if (active !== null) {
+        if (active.version !== highestVersion) {
+          throw new DomainInvariantError(
+            `Active Memory ${active.id} must be the highest version for ${memoryKey}`,
+          );
+        }
+        for (const memory of history) {
+          if (memory.version < active.version && memory.status !== "revised") {
+            throw new DomainInvariantError(`Earlier Memory ${memory.id} must be revised`);
+          }
+        }
+      }
+    }
+  }
+
+  private validateMemoryReferences(
+    memory: Memory,
+    eventsById: ReadonlyMap<EntityId, Event>,
+    evidenceItems: ReadonlyMap<EntityId, EvidenceItem>,
+  ): void {
+    if (memory.eventIds.length === 0) {
+      throw new DomainInvariantError(`Memory ${memory.id} must reference at least one event`);
+    }
+    if (memory.evidenceItemIds.length === 0) {
+      throw new DomainInvariantError(`Memory ${memory.id} must reference at least one EvidenceItem`);
+    }
+    if (new Set(memory.eventIds).size !== memory.eventIds.length) {
+      throw new DomainInvariantError(`Memory ${memory.id} has duplicate event references`);
+    }
+    if (new Set(memory.evidenceItemIds).size !== memory.evidenceItemIds.length) {
+      throw new DomainInvariantError(`Memory ${memory.id} has duplicate EvidenceItem references`);
+    }
+    for (const eventId of memory.eventIds) {
+      const event = eventsById.get(eventId);
+      if (event === undefined || event.lenoseedId !== memory.lenoseedId) {
+        throw new DomainInvariantError(`Memory ${memory.id} references unknown event ${eventId}`);
+      }
+    }
+    for (const evidenceItemId of memory.evidenceItemIds) {
+      const evidenceItem = evidenceItems.get(evidenceItemId);
+      if (evidenceItem === undefined || evidenceItem.lenoseedId !== memory.lenoseedId) {
+        throw new DomainInvariantError(`Memory ${memory.id} references unknown EvidenceItem ${evidenceItemId}`);
+      }
+      for (const eventId of evidenceItem.eventIds) {
+        const event = eventsById.get(eventId);
+        if (event === undefined || event.lenoseedId !== memory.lenoseedId) {
+          throw new DomainInvariantError(
+            `Memory ${memory.id} references EvidenceItem ${evidenceItem.id} with invalid event ${eventId}`,
+          );
         }
       }
     }

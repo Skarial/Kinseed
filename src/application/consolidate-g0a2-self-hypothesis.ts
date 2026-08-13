@@ -93,6 +93,7 @@ export async function consolidateInitialG0A2SelfHypothesis(
       evidenceLinks: plan.linkSnapshots,
       beliefs: [],
       selfHypotheses: plan.nextHypothesisSnapshot === null ? [] : [plan.nextHypothesisSnapshot],
+      memories: [],
     },
     commitKey(input),
   );

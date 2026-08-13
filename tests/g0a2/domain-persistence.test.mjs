@@ -148,6 +148,7 @@ function mutations(overrides = {}) {
     evidenceLinks: overrides.evidenceLinks ?? [],
     beliefs: overrides.beliefs ?? [],
     selfHypotheses: overrides.selfHypotheses ?? [],
+    memories: overrides.memories ?? [],
   };
 }
 

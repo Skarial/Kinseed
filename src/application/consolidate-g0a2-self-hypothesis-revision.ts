@@ -27,7 +27,7 @@ export async function consolidateG0A2SelfHypothesisRevision(input: ConsolidateG0
   const completion = findCompletion(await persistence.readEventsInSequence(input.lenoseedId), input);
   if (completion !== null) { const result = validateCompletion(completion, checkpoint, plan, input); await validateDurable(plan, v2, input, persistence); return { outcome: plan.outcome, selfHypothesisId: plan.nextHypothesisSnapshot?.id ?? null, ...result, replayed: true }; }
   const superseded = plan.outcome === "revise" ? { ...v2, status: "superseded" as const, updatedAt: plan.timestamp } : null;
-  const commit = await persistence.atomicCommit(input.lenoseedId, checkpoint.observedStateVersion, { evidenceItems: [], evidenceLinks: plan.linkSnapshots, beliefs: [], selfHypotheses: superseded === null || plan.nextHypothesisSnapshot === null ? [] : [superseded, plan.nextHypothesisSnapshot] }, key(input, "commit"));
+  const commit = await persistence.atomicCommit(input.lenoseedId, checkpoint.observedStateVersion, { evidenceItems: [], evidenceLinks: plan.linkSnapshots, beliefs: [], selfHypotheses: superseded === null || plan.nextHypothesisSnapshot === null ? [] : [superseded, plan.nextHypothesisSnapshot], memories: [] }, key(input, "commit"));
   await appendCompletion(input, checkpoint, plan, commit, persistence);
   return { outcome: plan.outcome, selfHypothesisId: plan.nextHypothesisSnapshot?.id ?? null, previousStateVersion: commit.previousStateVersion, newStateVersion: commit.newStateVersion, changed: commit.applied, replayed: false };
 }

@@ -1,6 +1,7 @@
 import type { Belief } from "../domain/belief.js";
 import type { EvidenceItem, EvidenceLink } from "../domain/evidence.js";
 import type { Event } from "../domain/event.js";
+import type { Memory } from "../domain/memory.js";
 import type { SelfHypothesis } from "../domain/self-hypothesis.js";
 import type { EntityId, StateVersion, TurnId } from "../domain/primitives.js";
 import type { Source } from "../domain/source.js";
@@ -10,6 +11,7 @@ export interface CommitMutations {
   readonly evidenceLinks: readonly EvidenceLink[];
   readonly beliefs: readonly Belief[];
   readonly selfHypotheses: readonly SelfHypothesis[];
+  readonly memories: readonly Memory[];
 }
 
 export interface AtomicCommitResult {
@@ -43,6 +45,9 @@ export interface PersistencePort {
     lenoseedId: EntityId,
     hypothesisKey: string,
   ): Promise<readonly SelfHypothesis[]>;
+  readMemory(lenoseedId: EntityId, memoryId: EntityId): Promise<Memory | null>;
+  readActiveMemoryByKey(lenoseedId: EntityId, memoryKey: string): Promise<Memory | null>;
+  readMemoryHistoryByKey(lenoseedId: EntityId, memoryKey: string): Promise<readonly Memory[]>;
 
   atomicCommit(
     lenoseedId: EntityId,

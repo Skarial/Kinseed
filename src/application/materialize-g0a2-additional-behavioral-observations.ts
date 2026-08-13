@@ -57,7 +57,7 @@ export async function materializeG0A2AdditionalBehavioralObservations(
   const commit = await persistence.atomicCommit(
     input.lenoseedId,
     await persistence.getStateVersion(input.lenoseedId),
-    { evidenceItems: observations, evidenceLinks: [], beliefs: [], selfHypotheses: [] },
+    { evidenceItems: observations, evidenceLinks: [], beliefs: [], selfHypotheses: [], memories: [] },
     commitKey(input),
   );
   await appendCompletion(input, intentions, commit, persistence);

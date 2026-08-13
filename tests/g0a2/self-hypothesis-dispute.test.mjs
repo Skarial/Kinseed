@@ -115,14 +115,14 @@ test("G0-A2 S5 is neutral after dispute while an earlier influenced S5 replays c
 test("G0-A2 store rejects unsafe SelfHypothesis replacements and disputed moderate confidence", async () => {
   const lenoseedId = "K-DISPUTE-STORE"; const { store, v1 } = await setup(lenoseedId);
   for (const [name, replacement] of [["confidence", { ...v1, confidence: "low" }], ["support", { ...v1, supportLinkIds: [] }], ["against", { ...v1, againstLinkIds: [] }], ["in-place disputed", { ...v1, status: "disputed", confidence: "low" }]]) {
-    await assert.rejects(() => store.atomicCommit(lenoseedId, 2, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [replacement] }, `forged:${name}`), DomainInvariantError);
+    await assert.rejects(() => store.atomicCommit(lenoseedId, 2, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [replacement], memories: [] }, `forged:${name}`), DomainInvariantError);
   }
   const superseded = { ...v1, status: "superseded", updatedAt: "2026-08-13T12:00:00.000Z" };
-  await store.atomicCommit(lenoseedId, 2, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [superseded] }, "valid:supersede");
-  await assert.rejects(() => store.atomicCommit(lenoseedId, 3, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [{ ...superseded, updatedAt: "2026-08-13T12:00:01.000Z" }] }, "forged:resupersede"), DomainInvariantError);
+  await store.atomicCommit(lenoseedId, 2, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [superseded], memories: [] }, "valid:supersede");
+  await assert.rejects(() => store.atomicCommit(lenoseedId, 3, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [{ ...superseded, updatedAt: "2026-08-13T12:00:01.000Z" }], memories: [] }, "forged:resupersede"), DomainInvariantError);
   const fresh = await setup("K-DISPUTE-STORE-LOW");
   const forged = { ...fresh.v1, id: "SH-FORGED-DISPUTED", version: 1, status: "disputed", confidence: "moderate", supportLinkIds: [], againstLinkIds: [], previousVersionId: null };
-  await assert.rejects(() => fresh.store.atomicCommit("K-DISPUTE-STORE-LOW", 2, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [forged] }, "forged:moderate-disputed"), DomainInvariantError);
+  await assert.rejects(() => fresh.store.atomicCommit("K-DISPUTE-STORE-LOW", 2, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [forged], memories: [] }, "forged:moderate-disputed"), DomainInvariantError);
 });
 
 test("G0-A2 dispute recovers both durable commit boundaries without a second state change", async () => {

@@ -150,6 +150,7 @@ export async function consolidateG0A2SelfHypothesisDispute(
     selfHypotheses: superseded === null || plan.nextHypothesisSnapshot === null
       ? []
       : [superseded, plan.nextHypothesisSnapshot],
+    memories: [],
   }, commitKey(input));
   await appendCompletion(input, checkpoint, plan, commit, persistence);
   return {

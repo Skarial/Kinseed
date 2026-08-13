@@ -134,6 +134,7 @@ test("G0-A1: a testimony becomes a traceable active belief", async () => {
       evidenceLinks: [support2022],
       beliefs: [belief2022],
       selfHypotheses: [],
+      memories: [],
     },
     "T-001:commit",
   );
@@ -205,7 +206,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
   await store.atomicCommit(
     lenoseedId,
     0,
-    { evidenceItems: [evidence2022], evidenceLinks: [support2022], beliefs: [belief2022], selfHypotheses: [] },
+    { evidenceItems: [evidence2022], evidenceLinks: [support2022], beliefs: [belief2022], selfHypotheses: [], memories: [] },
     "T-001:commit",
   );
 
@@ -282,6 +283,7 @@ test("G0-A1: an explicit correction creates a new belief version without erasing
       evidenceLinks: [contradictPrevious, support2021],
       beliefs: [revision.supersededPrevious, revision.next],
       selfHypotheses: [],
+      memories: [],
     },
     "T-002:commit",
   );
@@ -356,7 +358,7 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
     now: "2026-08-11T08:01:02.000Z",
   });
 
-  const mutations = { evidenceItems: [evidence2022], evidenceLinks: [link], beliefs: [belief], selfHypotheses: [] };
+  const mutations = { evidenceItems: [evidence2022], evidenceLinks: [link], beliefs: [belief], selfHypotheses: [], memories: [] };
   const first = await store.atomicCommit(lenoseedId, 0, mutations, "T-001:commit");
   const retry = await store.atomicCommit(lenoseedId, 0, mutations, "T-001:commit");
 
@@ -364,7 +366,7 @@ test("G0-A1: commit retries are idempotent and stale state versions are rejected
   assert.equal(await store.getStateVersion(lenoseedId), 1);
 
   await assert.rejects(
-    () => store.atomicCommit(lenoseedId, 0, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [] }, "T-002:commit"),
+    () => store.atomicCommit(lenoseedId, 0, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [], memories: [] }, "T-002:commit"),
     StateVersionConflictError,
   );
 });
@@ -411,7 +413,7 @@ test("G0-A1: the store rejects evidence whose provenance event does not exist", 
       store.atomicCommit(
         lenoseedId,
         0,
-        { evidenceItems: [invalidEvidence], evidenceLinks: [link], beliefs: [belief], selfHypotheses: [] },
+        { evidenceItems: [invalidEvidence], evidenceLinks: [link], beliefs: [belief], selfHypotheses: [], memories: [] },
         "T-BAD:commit",
       ),
     DomainInvariantError,
@@ -465,6 +467,7 @@ test("G0-A1: the store rejects testimony without valid lexical grounding", async
             evidenceLinks: [],
             beliefs: [],
             selfHypotheses: [],
+            memories: [],
           },
           `${id}:commit`,
         ),
@@ -498,7 +501,7 @@ test("G0-A1: the store rejects an active belief without supporting provenance", 
       store.atomicCommit(
         lenoseedId,
         0,
-        { evidenceItems: [], evidenceLinks: [], beliefs: [unsupportedActiveBelief], selfHypotheses: [] },
+        { evidenceItems: [], evidenceLinks: [], beliefs: [unsupportedActiveBelief], selfHypotheses: [], memories: [] },
         "T-UNSUPPORTED:commit",
       ),
     DomainInvariantError,

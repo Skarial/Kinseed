@@ -258,21 +258,21 @@ test("G0-A2 store rejects forged initial active-hypothesis structures", async (t
     const lenoseedId = "K-CONS-STORE-21"; const { store, evidenceItemIds } = await scenario(lenoseedId, ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"]);
     const result = await consolidateInitialG0A2SelfHypothesis(input(lenoseedId, evidenceItemIds), store);
     const hypothesis = await store.readSelfHypothesis(lenoseedId, result.selfHypothesisId);
-    await assert.rejects(() => store.atomicCommit(lenoseedId, 2, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [{ ...hypothesis, supportLinkIds: hypothesis.supportLinkIds.slice(0, 2) }] }, "forged:2:1"), DomainInvariantError);
+    await assert.rejects(() => store.atomicCommit(lenoseedId, 2, { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [{ ...hypothesis, supportLinkIds: hypothesis.supportLinkIds.slice(0, 2) }], memories: [] }, "forged:2:1"), DomainInvariantError);
   });
   await t.test("four supports and no counter-proof", async () => {
     const lenoseedId = "K-CONS-STORE-40"; const { store, evidenceItemIds } = await scenario(lenoseedId, ["ask_clarification", "ask_clarification", "ask_clarification", "ask_clarification"]);
     const links = evidenceItemIds.map((evidenceItemId, index) => ({ id: `EL-40-${index}`, lenoseedId, evidenceItemId, targetType: "self_hypothesis", targetId: "SH-40", relation: "supports", sourceAuthority: "high", independenceGroup: `g0a2:S${index + 1}`, causalContamination: "none", weightClass: "high", createdAt: `2026-08-13T10:00:0${index + 1}.000Z` }));
     const hypothesis = { id: "SH-40", lenoseedId, hypothesisKey: JSON.stringify([lenoseedId, "decision_style_under_uncertainty", [["protocol", "G0-A2"]]]), version: 1, proposition: { subjectRef: lenoseedId, predicate: "decision_style_under_uncertainty", value: "seek_clarification", context: { protocol: "G0-A2" } }, stage: "hypothesis", supportLinkIds: links.map((link) => link.id), againstLinkIds: [], confidence: "moderate", status: "active", previousVersionId: null, createdAt: "2026-08-13T10:00:04.000Z", updatedAt: "2026-08-13T10:00:04.000Z" };
-    await assert.rejects(() => store.atomicCommit(lenoseedId, 1, { evidenceItems: [], evidenceLinks: links, beliefs: [], selfHypotheses: [hypothesis] }, "forged:4:0"), DomainInvariantError);
+    await assert.rejects(() => store.atomicCommit(lenoseedId, 1, { evidenceItems: [], evidenceLinks: links, beliefs: [], selfHypotheses: [hypothesis], memories: [] }, "forged:4:0"), DomainInvariantError);
   });
   await t.test("system record and forged group cannot target the hypothesis", async () => {
     const lenoseedId = "K-CONS-STORE-LINK"; const { store, evidenceItemIds } = await scenario(lenoseedId, ["ask_clarification", "ask_clarification", "ask_clarification", "respond_with_available_information_under_uncertainty"]);
     const result = await consolidateInitialG0A2SelfHypothesis(input(lenoseedId, evidenceItemIds), store); const hypothesis = await store.readSelfHypothesis(lenoseedId, result.selfHypothesisId);
     const systemEvidence = { id: "EV-SYSTEM-FORGED", lenoseedId, kind: "system_record", proposition: hypothesis.proposition, sourceId: systemSourceId, eventIds: [`E-${lenoseedId}-created`], grounding: null, extractionConfidence: "high", status: "active", supersedesId: null, extractorVersion: "test", createdAt: "2026-08-13T10:00:00.000Z" };
     const forgedSystemLink = { id: "EL-SYSTEM-FORGED", lenoseedId, evidenceItemId: systemEvidence.id, targetType: "self_hypothesis", targetId: hypothesis.id, relation: "supports", sourceAuthority: "high", independenceGroup: "g0a2:S1", causalContamination: "none", weightClass: "high", createdAt: systemEvidence.createdAt };
-    await assert.rejects(() => store.atomicCommit(lenoseedId, 2, { evidenceItems: [systemEvidence], evidenceLinks: [forgedSystemLink], beliefs: [], selfHypotheses: [] }, "forged:system"), DomainInvariantError);
+    await assert.rejects(() => store.atomicCommit(lenoseedId, 2, { evidenceItems: [systemEvidence], evidenceLinks: [forgedSystemLink], beliefs: [], selfHypotheses: [], memories: [] }, "forged:system"), DomainInvariantError);
     const forgedGroup = { id: "EL-GROUP-FORGED", lenoseedId, evidenceItemId: evidenceItemIds[0], targetType: "self_hypothesis", targetId: hypothesis.id, relation: "supports", sourceAuthority: "high", independenceGroup: "forged", causalContamination: "none", weightClass: "high", createdAt: "2026-08-13T10:00:01.000Z" };
-    await assert.rejects(() => store.atomicCommit(lenoseedId, 2, { evidenceItems: [], evidenceLinks: [forgedGroup], beliefs: [], selfHypotheses: [] }, "forged:group"), DomainInvariantError);
+    await assert.rejects(() => store.atomicCommit(lenoseedId, 2, { evidenceItems: [], evidenceLinks: [forgedGroup], beliefs: [], selfHypotheses: [], memories: [] }, "forged:group"), DomainInvariantError);
   });
 });

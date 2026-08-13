@@ -414,7 +414,7 @@ async function commitTurn(
     }
   }
 
-  const mutations: CommitMutations = { evidenceItems, evidenceLinks, beliefs, selfHypotheses: [] };
+  const mutations: CommitMutations = { evidenceItems, evidenceLinks, beliefs, selfHypotheses: [], memories: [] };
   return persistence.atomicCommit(input.lenoseedId, stateVersion, mutations, commitKey);
 }
 
