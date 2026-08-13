@@ -84,6 +84,25 @@ export function validateBehavioralObservationGrounding(
       `Behavioral observation ${evidenceItem.id} source does not match grounding event`,
     );
   }
+
+  const protocol = evidenceItem.proposition.context.protocol;
+  if (protocol === "G0-A2") {
+    validateG0A2BehavioralObservationGrounding(evidenceItem, event);
+    return;
+  }
+  if (protocol === "G0-A3") {
+    validateG0A3BehavioralObservationGrounding(evidenceItem, event);
+    return;
+  }
+  throw new DomainInvariantError(
+    `Behavioral observation ${evidenceItem.id} has unsupported protocol`,
+  );
+}
+
+function validateG0A2BehavioralObservationGrounding(
+  evidenceItem: EvidenceItem,
+  event: Event,
+): void {
   if (event.type !== "intention_selected" || event.payloadSchemaVersion !== 2) {
     throw new DomainInvariantError(
       `Behavioral observation ${evidenceItem.id} must originate from intention_selected schema v2`,
@@ -130,6 +149,61 @@ export function validateBehavioralObservationGrounding(
   }
 }
 
+function validateG0A3BehavioralObservationGrounding(
+  evidenceItem: EvidenceItem,
+  event: Event,
+): void {
+  if (event.type !== "intention_selected" || event.payloadSchemaVersion !== 3) {
+    throw new DomainInvariantError(
+      `G0-A3 behavioral observation ${evidenceItem.id} must originate from intention_selected schema v3`,
+    );
+  }
+  if (
+    typeof event.payload.intentionId !== "string" ||
+    event.payload.protocol !== "G0-A3" ||
+    event.payload.episodeKey !== "EP-G0A3-CALIBRATION-01" ||
+    event.payload.kind !== "run_calibration_with_configuration_a" ||
+    event.payload.motivation !== "execute_requested_calibration_configuration"
+  ) {
+    throw new DomainInvariantError(
+      `G0-A3 behavioral observation ${evidenceItem.id} source intention is invalid`,
+    );
+  }
+  if (!hasExactStringList(event.payload.triggerMemoryIds, [])) {
+    throw new DomainInvariantError(
+      `G0-A3 behavioral observation ${evidenceItem.id} source intention has invalid triggerMemoryIds`,
+    );
+  }
+  if (!hasOneString(event.payload.triggerEventIds)) {
+    throw new DomainInvariantError(
+      `G0-A3 behavioral observation ${evidenceItem.id} source intention has invalid triggerEventIds`,
+    );
+  }
+  if (!hasExactStringList(event.causedByEventIds, event.payload.triggerEventIds)) {
+    throw new DomainInvariantError(
+      `G0-A3 behavioral observation ${evidenceItem.id} source intention has incoherent causes`,
+    );
+  }
+  if (
+    evidenceItem.proposition.subjectRef !== evidenceItem.lenoseedId ||
+    evidenceItem.proposition.predicate !== "selected_calibration_configuration" ||
+    evidenceItem.proposition.value !== "A" ||
+    !hasExactContext(evidenceItem.proposition.context, {
+      protocol: "G0-A3",
+      episodeKey: "EP-G0A3-CALIBRATION-01",
+    })
+  ) {
+    throw new DomainInvariantError(
+      `G0-A3 behavioral observation ${evidenceItem.id} proposition does not match source intention`,
+    );
+  }
+  if (evidenceItem.createdAt !== event.occurredAt) {
+    throw new DomainInvariantError(
+      `G0-A3 behavioral observation ${evidenceItem.id} createdAt must equal source event occurredAt`,
+    );
+  }
+}
+
 export function decisionStyleForIntentionKind(value: unknown): string | null {
   if (value === "ask_clarification") return "seek_clarification";
   if (value === "respond_with_available_information_under_uncertainty") {
@@ -141,4 +215,25 @@ export function decisionStyleForIntentionKind(value: unknown): string | null {
 function containsDistinctDecimal(text: string, value: number): boolean {
   const decimal = String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`(?<!\\d)${decimal}(?!\\d)`).test(text);
+}
+
+function hasOneString(value: unknown): value is readonly [string] {
+  return Array.isArray(value) && value.length === 1 && typeof value[0] === "string";
+}
+
+function hasExactStringList(value: unknown, expected: readonly string[]): boolean {
+  return (
+    Array.isArray(value) &&
+    value.length === expected.length &&
+    value.every((item, index) => item === expected[index])
+  );
+}
+
+function hasExactContext(
+  context: Readonly<Record<string, unknown>>,
+  expected: Readonly<Record<string, unknown>>,
+): boolean {
+  const contextEntries = Object.entries(context).sort(([left], [right]) => left.localeCompare(right));
+  const expectedEntries = Object.entries(expected).sort(([left], [right]) => left.localeCompare(right));
+  return JSON.stringify(contextEntries) === JSON.stringify(expectedEntries);
 }
