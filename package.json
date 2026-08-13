@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test",
-    "test:ai": "npm run build && node tests/g0a1/openai-ai-runner.mjs"
+    "test:ai": "npm run build && node tests/g0a1/openai-ai-runner.mjs",
+    "test:g0a2-c0": "npm run build && node tests/g0a2/openai-c0-runner.mjs"
   },
   "devDependencies": {
     "typescript": "^6.0.0"
