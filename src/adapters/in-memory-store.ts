@@ -855,16 +855,20 @@ export class InMemoryStore implements PersistencePort {
         }
       }
 
-      if (active !== null) {
-        if (active.version !== highestVersion) {
-          throw new DomainInvariantError(
-            `Active Memory ${active.id} must be the highest version for ${memoryKey}`,
-          );
-        }
-        for (const memory of history) {
-          if (memory.version < active.version && memory.status !== "revised") {
-            throw new DomainInvariantError(`Earlier Memory ${memory.id} must be revised`);
-          }
+      if (active === null) {
+        throw new DomainInvariantError(
+          `Memories for ${memoryKey} must have exactly one active version`,
+        );
+      }
+
+      if (active.version !== highestVersion) {
+        throw new DomainInvariantError(
+          `Active Memory ${active.id} must be the highest version for ${memoryKey}`,
+        );
+      }
+      for (const memory of history) {
+        if (memory.version < active.version && memory.status !== "revised") {
+          throw new DomainInvariantError(`Earlier Memory ${memory.id} must be revised`);
         }
       }
     }

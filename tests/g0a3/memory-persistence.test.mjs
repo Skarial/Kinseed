@@ -166,6 +166,52 @@ test("G0-A3 Memory rejects impossible histories", async (t) => {
   }
 });
 
+test("G0-A3 Memory rejects a persisted history without an active version", async () => {
+  const store = await createStore();
+  const revisedV1 = memory(1, { status: "revised" });
+
+  await assert.rejects(
+    () =>
+      store.atomicCommit(
+        lenoseedId,
+        0,
+        mutations([revisedV1], [evidence()]),
+        "memory:no-active-version",
+      ),
+    DomainInvariantError,
+  );
+
+  assert.equal(await store.getStateVersion(lenoseedId), 0);
+});
+
+test("G0-A3 Memory rejects an incomplete active-to-revised transition", async () => {
+  const store = await createStore();
+  const { candidate: v1 } = await commitV1(store);
+  const stateVersion = await store.getStateVersion(lenoseedId);
+
+  await assert.rejects(
+    () =>
+      store.atomicCommit(
+        lenoseedId,
+        stateVersion,
+        mutations([{ ...v1, status: "revised" }]),
+        "memory:incomplete-revision",
+      ),
+    DomainInvariantError,
+  );
+
+  assert.equal(await store.getStateVersion(lenoseedId), stateVersion);
+  assert.deepEqual(await store.readMemory(lenoseedId, v1.id), v1);
+  assert.deepEqual(
+    await store.readActiveMemoryByKey(lenoseedId, v1.memoryKey),
+    v1,
+  );
+  assert.deepEqual(
+    await store.readMemoryHistoryByKey(lenoseedId, v1.memoryKey),
+    [v1],
+  );
+});
+
 test("G0-A3 Memory accepts atomic active-to-revised v1 to active v2", async () => {
   const store = await createStore();
   const { candidate: v1 } = await commitV1(store);
