@@ -345,6 +345,18 @@ export class InMemoryStore implements PersistencePort {
         `SelfHypothesis ${existing.id} immutable fields cannot be rewritten`,
       );
     }
+    if (
+      existing.confidence !== replacement.confidence ||
+      JSON.stringify(existing.supportLinkIds) !== JSON.stringify(replacement.supportLinkIds) ||
+      JSON.stringify(existing.againstLinkIds) !== JSON.stringify(replacement.againstLinkIds) ||
+      existing.status === "superseded" ||
+      (existing.status !== "active" && existing.status !== "disputed") ||
+      replacement.status !== "superseded"
+    ) {
+      throw new DomainInvariantError(
+        `SelfHypothesis ${existing.id} replacement may only supersede the current historical version`,
+      );
+    }
   }
 
   private validateResultingState(
@@ -656,6 +668,9 @@ export class InMemoryStore implements PersistencePort {
         if (supportGroups.size < 3 || againstGroups.size < 1) {
           throw new DomainInvariantError(`Active SelfHypothesis ${hypothesis.id} does not satisfy G0-A2 threshold`);
         }
+      }
+      if (hypothesis.status === "disputed" && hypothesis.confidence !== "low") {
+        throw new DomainInvariantError(`Disputed SelfHypothesis ${hypothesis.id} must have low confidence`);
       }
       const history = selfHypothesesByKey.get(hypothesis.hypothesisKey) ?? [];
       history.push(hypothesis);
