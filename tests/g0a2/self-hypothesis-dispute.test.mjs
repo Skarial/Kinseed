@@ -31,6 +31,35 @@ async function append(store, kinseedId, situationId, kind) {
 async function materializeR(store, kinseedId, events, id = "rs") { await materializeG0A2AdditionalBehavioralObservations({ kinseedId, materializationId: id, systemSourceId: SYSTEM, intentionEventIds: events.map((event) => event.id), engineVersion: ENGINE }, store); }
 function disputeInput(kinseedId, initial, more, consolidationId = "dispute") { return { kinseedId, consolidationId, systemSourceId: SYSTEM, evidenceItemIds: [...initial, ...more].map((event) => buildG0A2BehavioralObservationId(event.id)), engineVersion: ENGINE }; }
 
+function clone(value) { return JSON.parse(JSON.stringify(value)); }
+function persistenceWithEvents(store, replacements, rejectAppend = false) {
+  return new Proxy(store, { get(target, property, receiver) {
+    if (property === "readEventsInSequence") return async (kinseedId) => (await target.readEventsInSequence(kinseedId)).map((event) => replacements.get(event.id) ?? event);
+    if (property === "appendEvent" && rejectAppend) return async () => { throw new Error("must not append after a conceptual collision"); };
+    const value = Reflect.get(target, property, receiver); return typeof value === "function" ? value.bind(target) : value;
+  } });
+}
+async function completedDispute(kinseedId, includeS5 = false) {
+  const scenario = await setup(kinseedId);
+  const { store, initialEvents } = scenario;
+  const more = [];
+  if (includeS5) {
+    const selected = await selectG0A2S5Intention({ kinseedId, turnId: `${kinseedId}-S5`, humanSourceId: HUMAN, humanActorRef: "H-DISPUTE", systemSourceId: SYSTEM, text: "s5", occurredAt: "2026-08-13T11:00:00.000Z", engineVersion: ENGINE }, store);
+    const event = (await store.readEventsByTurn(kinseedId, `${kinseedId}-S5`)).find((item) => item.type === "intention_selected");
+    await materializeR(store, kinseedId, [event], "s5"); more.push(event);
+    assert.equal(selected.replayed, false);
+  }
+  const r1 = await append(store, kinseedId, "R1", USE); const r2 = await append(store, kinseedId, "R2", USE);
+  await materializeR(store, kinseedId, [r1, r2], "rs"); more.push(r1, r2);
+  const request = disputeInput(kinseedId, initialEvents, more);
+  await consolidateG0A2SelfHypothesisDispute(request, store);
+  const events = await store.readEventsInSequence(kinseedId);
+  const checkpoint = events.find((event) => event.type === "validation_decision_recorded" && event.payload.consolidationId === "dispute");
+  const completion = events.find((event) => event.type === "state_commit_completed" && event.payload.consolidationId === "dispute");
+  assert.ok(checkpoint); assert.ok(completion);
+  return { ...scenario, request, more, checkpoint, completion };
+}
+
 test("G0-A2 dispute supersedes v1 and creates disputed v2 from two clean contradictions", async () => {
   const kinseedId = "K-DISPUTE-MAIN"; const { store, v1, initialEvents } = await setup(kinseedId);
   const r1 = await append(store, kinseedId, "R1", USE); const r2 = await append(store, kinseedId, "R2", USE); await materializeR(store, kinseedId, [r1, r2]);
@@ -49,6 +78,16 @@ test("G0-A2 dispute mirrors the orientation and no_change preserves v1", async (
   const mirrored = await consolidateG0A2SelfHypothesisDispute(disputeInput("K-DISPUTE-MIRROR", mirror.initialEvents, [mr1, mr2]), mirror.store); assert.equal(mirrored.outcome, "dispute"); assert.equal((await mirror.store.readSelfHypothesis("K-DISPUTE-MIRROR", mirrored.selfHypothesisId))?.proposition.value, "use_available_information");
   const no = await setup("K-DISPUTE-NO"); const r1 = await append(no.store, "K-DISPUTE-NO", "R1", USE); await materializeR(no.store, "K-DISPUTE-NO", [r1]); const result = await consolidateG0A2SelfHypothesisDispute(disputeInput("K-DISPUTE-NO", no.initialEvents, [r1], "no-change"), no.store); assert.equal(result.outcome, "no_change"); assert.equal(result.changed, false); assert.equal(await no.store.getStateVersion("K-DISPUTE-NO"), 3); assert.equal((await no.store.readSelfHypothesis("K-DISPUTE-NO", no.v1.id))?.status, "active");
   const mixed = await setup("K-DISPUTE-MIXED"); const xr1 = await append(mixed.store, "K-DISPUTE-MIXED", "R1", USE); const xr2 = await append(mixed.store, "K-DISPUTE-MIXED", "R2", ASK); await materializeR(mixed.store, "K-DISPUTE-MIXED", [xr1, xr2]); const mixedResult = await consolidateG0A2SelfHypothesisDispute(disputeInput("K-DISPUTE-MIXED", mixed.initialEvents, [xr1, xr2], "mixed"), mixed.store); assert.equal(mixedResult.outcome, "no_change"); assert.equal(mixedResult.changed, false);
+});
+
+test("G0-A2 no_change replays its checkpoint without creating deterministic v2", async () => {
+  const kinseedId = "K-DISPUTE-NO-REPLAY"; const state = await setup(kinseedId);
+  const r1 = await append(state.store, kinseedId, "R1", USE); await materializeR(state.store, kinseedId, [r1]);
+  const request = disputeInput(kinseedId, state.initialEvents, [r1], "no-replay");
+  const first = await consolidateG0A2SelfHypothesisDispute(request, state.store);
+  const replay = await consolidateG0A2SelfHypothesisDispute(request, state.store);
+  assert.deepEqual({ outcome: first.outcome, changed: first.changed, replayed: replay.replayed, version: await state.store.getStateVersion(kinseedId) }, { outcome: "no_change", changed: false, replayed: true, version: 3 });
+  assert.equal(await state.store.readSelfHypothesis(kinseedId, `SH-G0A2-${kinseedId}-no-replay-v2`), null);
 });
 
 test("G0-A2 S5 is neutral after dispute while an earlier influenced S5 replays causally", async () => {
@@ -91,4 +130,59 @@ test("G0-A2 dispute recovers both durable commit boundaries without a second sta
     const replay = await consolidateG0A2SelfHypothesisDispute(request, persistence); assert.equal(replay.replayed, true);
     const events = await store.readEventsInSequence(kinseedId); assert.equal(events.filter((event) => event.payload.consolidationId === "dispute" && event.type === "state_commit_completed").length, 1);
   }
+});
+
+test("G0-A2 dispute recovery rejects falsified checkpoint snapshots", async (t) => {
+  const cases = [
+    ["candidate proposition", (checkpoint) => { checkpoint.payload.candidateProposition.value = "use_available_information"; }],
+    ["hypothesis key", (checkpoint) => { checkpoint.payload.hypothesisKey = "forged-key"; }],
+    ["formation cause", (checkpoint) => { checkpoint.causedByEventIds[checkpoint.causedByEventIds.length - 1] = "E-FORGED-FORMATION"; }],
+    ["missing link", (checkpoint) => { checkpoint.payload.linkSnapshots.pop(); }],
+    ["link target", (checkpoint) => { checkpoint.payload.linkSnapshots[0].targetId = "SH-FORGED"; }],
+    ["counted against groups", (checkpoint) => { checkpoint.payload.countedAgainstGroups = ["g0a2:S4"]; }],
+    ["next status", (checkpoint) => { checkpoint.payload.nextHypothesisSnapshot.status = "active"; }],
+    ["support links", (checkpoint) => { checkpoint.payload.nextHypothesisSnapshot.supportLinkIds.pop(); }],
+    ["against links", (checkpoint) => { checkpoint.payload.nextHypothesisSnapshot.againstLinkIds.pop(); }],
+    ["checkpoint timestamp", (checkpoint) => { checkpoint.occurredAt = "2026-08-13T00:00:00.000Z"; }],
+  ];
+  for (const [index, [name, mutate]] of cases.entries()) await t.test(name, async () => {
+    const setup = await completedDispute(`K-DISPUTE-CP-${index}`); const forged = clone(setup.checkpoint); mutate(forged);
+    await assert.rejects(() => consolidateG0A2SelfHypothesisDispute(setup.request, persistenceWithEvents(setup.store, new Map([[setup.checkpoint.id, forged]]))), DomainInvariantError);
+  });
+  await t.test("S5 contamination and ignored links", async () => {
+    const setup = await completedDispute("K-DISPUTE-CP-S5", true); const forged = clone(setup.checkpoint);
+    const s5 = forged.payload.linkSnapshots.find((link) => link.independenceGroup === "g0a2:S5");
+    s5.causalContamination = "none"; s5.weightClass = "high";
+    await assert.rejects(() => consolidateG0A2SelfHypothesisDispute(setup.request, persistenceWithEvents(setup.store, new Map([[setup.checkpoint.id, forged]]))), DomainInvariantError);
+    const ignored = clone(setup.checkpoint); ignored.payload.ignoredContaminatedLinkIds = [];
+    await assert.rejects(() => consolidateG0A2SelfHypothesisDispute(setup.request, persistenceWithEvents(setup.store, new Map([[setup.checkpoint.id, ignored]]))), DomainInvariantError);
+  });
+});
+
+test("G0-A2 dispute recovery rejects falsified completion snapshots", async (t) => {
+  const cases = [
+    ["event type", (completion) => { completion.type = "validation_decision_recorded"; }],
+    ["schema", (completion) => { completion.payloadSchemaVersion = 3; }],
+    ["scope", (completion) => { completion.payload.scope = "forged"; }],
+    ["consolidation", (completion) => { completion.payload.consolidationId = "other"; }],
+    ["causes", (completion) => { completion.causedByEventIds = ["E-FORGED"]; }],
+    ["observed version", (completion) => { completion.observedStateVersion = 99; }],
+    ["timestamp", (completion) => { completion.occurredAt = "2026-08-13T00:00:00.000Z"; }],
+    ["changed", (completion) => { completion.payload.changed = false; }],
+    ["new version", (completion) => { completion.payload.newStateVersion = 99; }],
+    ["idempotency key", (completion) => { completion.idempotencyKey = "forged"; }],
+  ];
+  for (const [index, [name, mutate]] of cases.entries()) await t.test(name, async () => {
+    const setup = await completedDispute(`K-DISPUTE-COM-${index}`); const forged = clone(setup.completion); mutate(forged);
+    await assert.rejects(() => consolidateG0A2SelfHypothesisDispute(setup.request, persistenceWithEvents(setup.store, new Map([[setup.completion.id, forged]]))), DomainInvariantError);
+  });
+});
+
+test("G0-A2 dispute discovers conceptual checkpoint and completion collisions before append", async () => {
+  const checkpointSetup = await completedDispute("K-DISPUTE-CONCEPT-CP"); const forgedCheckpoint = clone(checkpointSetup.checkpoint);
+  forgedCheckpoint.id = "E-WRONG-CHECKPOINT"; forgedCheckpoint.idempotencyKey = "wrong:checkpoint";
+  await assert.rejects(() => consolidateG0A2SelfHypothesisDispute(checkpointSetup.request, persistenceWithEvents(checkpointSetup.store, new Map([[checkpointSetup.checkpoint.id, forgedCheckpoint]]), true)), DomainInvariantError);
+  const completionSetup = await completedDispute("K-DISPUTE-CONCEPT-COM"); const forgedCompletion = clone(completionSetup.completion);
+  forgedCompletion.id = "E-WRONG-COMPLETION"; forgedCompletion.idempotencyKey = "wrong:completion";
+  await assert.rejects(() => consolidateG0A2SelfHypothesisDispute(completionSetup.request, persistenceWithEvents(completionSetup.store, new Map([[completionSetup.completion.id, forgedCompletion]]), true)), DomainInvariantError);
 });
