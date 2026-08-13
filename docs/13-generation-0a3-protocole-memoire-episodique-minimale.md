@@ -4,6 +4,9 @@
 
 Ce document définit ce que doit démontrer **G0-A3 — mémoire épisodique minimale** avant toute décision d’implémentation.
 
+Le contrat technique correspondant est désormais défini dans
+`docs/14-generation-0a3-contrat-implementation.md`.
+
 G0-A3 est une sous-expérience de G0-A. Il ne constitue ni un contrat d’implémentation, ni une validation de G0-A complet, ni une autorisation de commencer G0-B.
 
 ---
@@ -26,9 +29,9 @@ Les documents canoniques imposent déjà les règles suivantes :
 - `InMemoryStore` est un adaptateur expérimental et ne prouve aucune persistance après redémarrage ;
 - `faded`, `latent`, `archived`, l’oubli avancé et la consolidation à long terme appartiennent principalement à G0-F.
 
-## 1.2 Ouvert avant le futur contrat d’implémentation
+## 1.2 Points laissés ouverts par ce protocole
 
-Le futur contrat devra encore fixer :
+Le contrat d’implémentation associé fixe :
 
 - les types TypeScript exacts ;
 - les noms exacts des lectures de `PersistencePort` ;
@@ -39,7 +42,7 @@ Le futur contrat devra encore fixer :
 - la politique de mutation éventuelle de `last_recalled_at` ;
 - la forme générale d’une récupération future hors clé d’épisode contrôlée.
 
-Ces points ne doivent pas être cachés dans du code avant le contrat d’implémentation.
+Ces points ne doivent pas être cachés dans du code hors du contrat d’implémentation.
 
 ---
 

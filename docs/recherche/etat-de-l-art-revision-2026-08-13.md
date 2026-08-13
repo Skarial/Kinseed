@@ -8,7 +8,7 @@
 
 Documents internes liés :
 
-- [`../14-regles-fondatrices-heritage.md`](../14-regles-fondatrices-heritage.md) ;
+- [`../15-regles-fondatrices-heritage.md`](../15-regles-fondatrices-heritage.md) ;
 - [`../produit/03-avatar-monde-et-objets-interactifs.md`](../produit/03-avatar-monde-et-objets-interactifs.md) ;
 - [`../produit/06-boucle-interaction-et-relation.md`](../produit/06-boucle-interaction-et-relation.md) ;
 - [`retours-utilisateurs-proactivite-presence.md`](retours-utilisateurs-proactivite-presence.md).
@@ -352,7 +352,7 @@ Les règles Lenoseed validées distinguent :
 
 Le descendant doit être un nouvel individu et non une fusion. L’héritage doit inclure recombinaison, variations, culture transformable, provenance des souvenirs ancestraux, confidentialité entre utilisateurs et oubli.
 
-Voir [`../14-regles-fondatrices-heritage.md`](../14-regles-fondatrices-heritage.md).
+Voir [`../15-regles-fondatrices-heritage.md`](../15-regles-fondatrices-heritage.md).
 
 **Aucun système réunissant clairement deux compagnons personnels persistants, deux utilisateurs et cet héritage multi-couche dans un descendant commun n’a été identifié à ce stade.**
 
