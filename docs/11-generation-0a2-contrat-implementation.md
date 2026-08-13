@@ -202,6 +202,23 @@ d’une version par son état `superseded` ne peut modifier ces champs.
 
 ---
 
+### Snapshot complet des preuves par version
+
+Chaque version créée par `dispute` ou `revise` possède son propre snapshot complet d’`EvidenceLink` vers l’ensemble des `EvidenceItem` explicitement retenus pour cette consolidation. Les `EvidenceItem` et les `Event` restent uniques, historiques et ne sont jamais copiés ni réécrits.
+
+Un même `EvidenceItem` peut donc être référencé par plusieurs nouveaux liens, chacun ciblant une version différente de la même `hypothesisKey`. Un `EvidenceLink` qui cible v1 ne peut jamais être réutilisé dans les `supportLinkIds` ou `againstLinkIds` de v2 ou v3. Les tableaux de liens d’une ancienne version demeurent son snapshot historique ; ils ne sont pas réécrits pour y refléter des preuves apparues plus tard.
+
+Lors du même `atomicCommit`, seule l’ancienne version courante est remplacée pour devenir `superseded`, avec les seuls champs mutables nécessaires :
+
+```text
+status    -> superseded
+updatedAt -> timestamp de la nouvelle consolidation
+```
+
+Sa confidence historique est conservée : v1 `active` `moderate` devient `superseded` `moderate` ; v2 `disputed` `low` devient `superseded` `low`.
+
+---
+
 # 5. `behavioral_observation` et grounding structuré
 
 `EvidenceKind` est étendu au strict nécessaire :
@@ -323,6 +340,15 @@ la règle prioritaire de contamination.
 
 ---
 
+Pour chaque nouveau lien du snapshot d’une version, la relation est recalculée par rapport à la proposition de cette nouvelle version, et non copiée depuis un lien précédent :
+
+```text
+evidenceItem.proposition.value === newVersion.proposition.value -> supports
+sinon                                                            -> contradicts
+```
+
+---
+
 # 7. Indépendance des preuves
 
 Le champ actuel `independenceGroup` suffit. Aucune nouvelle structure n’est
@@ -377,6 +403,10 @@ annuler son exclusion du comptage G0-A2.
 
 Les fixtures S1–S4 ont obligatoirement `causalContamination: "none"`, puisqu’elles
 précèdent toute hypothèse.
+
+La contamination est elle aussi recalculée pour chaque nouveau `EvidenceLink` depuis l’`intention_selected` source et ses `triggerSelfHypothesisIds`, en comparant la `hypothesisKey` logique. Ainsi, une observation S5 causée par v1 reste `influenced_by_target` lorsqu’elle est reliée ultérieurement à v2 ou v3 de la même clé. La contamination suit la clé logique, non le seul identifiant de version.
+
+Un lien contaminé reste présent dans `supportLinkIds` ou `againstLinkIds` selon sa relation factuelle, visible pour audit, avec `sourceAuthority: "high"` et `weightClass: "low"`, mais compte zéro dans tous les seuils.
 
 ---
 
@@ -435,6 +465,27 @@ confiance.
 
 ---
 
+### Snapshot borné de contestation et de révision
+
+Pour le protocole déterministe actuel :
+
+- v2 `disputed` peut considérer S1–S4, les nouvelles observations R1/R2 et, si elle est explicitement fournie, une observation S5. Les deux nouveaux groupes contraires propres exigés viennent de R1/R2 postérieurs à la formation initiale ; ni les anciennes contre-preuves S1–S4 ni une S5 contaminée ne les remplacent.
+- v3 `active` de valeur opposée considère S1–S4, R1–R3 et, si elle est explicitement fournie, S5. Trois nouveaux groupes propres R1–R3 contraires à l’orientation d’origine restent exigés ; le fait que S4 soutienne déjà l’orientation opposée ne les remplace pas. Au moins une contre-preuve propre contre la nouvelle orientation doit être conservée.
+
+S1–S4 sont les preuves initiales, R1–R3 les groupes de révision nouveaux, et S5 une situation de test auditable. Une S5 contaminée ne peut jamais remplacer les groupes propres R1–R3. Le futur consolidateur doit vérifier dans le journal que les événements R retenus sont réellement postérieurs à la formation initiale de la `SelfHypothesis`. Cette règle ne définit ni fenêtre temporelle générale ni epoch de personnalité.
+
+Exemple normatif borné :
+
+```text
+v1 seek : S1,S2,S3 supports ; S4 contradicts
+v2 disputed, toujours seek, après R1,R2 use : S1,S2,S3 supports ; S4,R1,R2 contradicts
+v3 active use, après R3 use : S4,R1,R2,R3 supports ; S1,S2,S3 contradicts
+```
+
+Les formes de la nouvelle version sont normatives : `dispute` crée `version = previous.version + 1`, `previousVersionId = previous.id`, conserve la même proposition, avec `stage: hypothesis`, `status: disputed`, `confidence: low`. `revise` crée la même continuité de version et de clé, inverse `proposition.value`, avec `stage: hypothesis`, `status: active`, `confidence: moderate`.
+
+---
+
 # 10. Consolidation déterministe
 
 Le premier consolidateur G0-A2 est une fonction métier pure. Il ne dépend ni de
@@ -463,6 +514,14 @@ Algorithme borné :
 9. checkpoint-er cette décision avant le commit ;
 10. committer atomiquement les nouveaux liens, la nouvelle version et le statut
     `superseded` de l’ancienne version, le cas échéant.
+
+L’identifiant de toute nouvelle version est déterministe et peut être dérivé du `kinseedId`, du `consolidationId` stable et du numéro de version, par exemple :
+
+```text
+SH-G0A2-<kinseedId>-<consolidationId>-v<version>
+```
+
+La continuité logique repose sur `hypothesisKey`, `version` et `previousVersionId`, non sur un préfixe identique entre tous les identifiants. L’identifiant v1 existant ne change pas.
 
 Pour les histoires initiales, les quatre observations existent avant la
 consolidation. Les liens et l’hypothèse sont créés ensemble afin qu’aucun lien ne
@@ -743,6 +802,8 @@ L’événement est écrit **avant** le commit. Ses snapshots sont suffisants po
 reprendre exactement la décision sans recompter ni réinterpréter les entrées.
 Une clé déjà présente avec un contenu différent provoque un conflit
 d’idempotence.
+
+Pour `dispute` ou `revise`, `linkSnapshots` contient le snapshot complet des nouveaux liens ciblant la nouvelle version ; `supersededHypothesisId` désigne la version courante remplacée. Le checkpoint schema v3 contient ainsi assez de snapshots pour reconstruire exactement le même `atomicCommit` en recovery, sans recompter ni réutiliser les liens ciblant une version antérieure.
 
 Le commit utilise une clé distincte :
 
