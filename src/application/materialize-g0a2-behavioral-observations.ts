@@ -36,7 +36,7 @@ export async function materializeG0A2BehavioralObservations(
   }
 
   const fixtures = await readAndValidateFixtures(input, persistence);
-  const observations = fixtures.map(buildBehavioralObservation);
+  const observations = fixtures.map(buildG0A2BehavioralObservationFromIntention);
   for (const observation of observations) {
     const rejection = await validateEvidenceItem(observation, persistence);
     if (rejection !== null) {
@@ -75,7 +75,7 @@ export function buildG0A2BehavioralObservationId(sourceEventId: EntityId): Entit
   return `EV-G0A2-OBS-${sourceEventId}`;
 }
 
-function buildBehavioralObservation(sourceEvent: Event): EvidenceItem {
+export function buildG0A2BehavioralObservationFromIntention(sourceEvent: Event): EvidenceItem {
   const value = decisionStyleForIntentionKind(sourceEvent.payload.kind);
   if (value === null) {
     throw new DomainInvariantError(`G0-A2 source event ${sourceEvent.id} has invalid intention kind`);
