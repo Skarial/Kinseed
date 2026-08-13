@@ -233,3 +233,34 @@ test("G0-A2 revision recovery rejects falsified historical snapshots", async (t)
     const kinseedId = `K-REV-FORGE-${index}`; const state = await setup(kinseedId); const r1 = await append(state.store, kinseedId, "R1", USE); const r2 = await append(state.store, kinseedId, "R2", USE); await materializeR(state.store, kinseedId, [r1, r2], "r12"); await consolidateG0A2SelfHypothesisDispute(disputeInput(kinseedId, state.initialEvents, [r1, r2]), state.store); const r3 = await append(state.store, kinseedId, "R3", USE); await materializeR(state.store, kinseedId, [r3], "r3"); const request = revisionInput(kinseedId, state.initialEvents, [r1, r2, r3]); await consolidateG0A2SelfHypothesisRevision(request, state.store); const checkpoint = (await state.store.readEventsInSequence(kinseedId)).find((event) => event.type === "validation_decision_recorded" && event.payload.consolidationId === "revision"); const forged = clone(checkpoint); mutate(forged); await assert.rejects(() => consolidateG0A2SelfHypothesisRevision(request, persistenceWithEvents(state.store, new Map([[checkpoint.id, forged]]))), DomainInvariantError);
   });
 });
+
+test("G0-A2 revision rejects falsified dispute predecessor boundaries before v3 checkpoint", async (t) => {
+  const cases = [
+    ["candidate proposition", ({ checkpoint }) => { checkpoint.payload.candidateProposition.value = "use_available_information"; }],
+    ["hypothesis key", ({ checkpoint }) => { checkpoint.payload.hypothesisKey = "forged-key"; }],
+    ["v2 previous version", ({ checkpoint }) => { checkpoint.payload.nextHypothesisSnapshot.previousVersionId = "SH-FORGED"; }],
+    ["link target", ({ checkpoint }) => { checkpoint.payload.linkSnapshots[0].targetId = "SH-FORGED"; }],
+    ["contamination", ({ checkpoint }) => { checkpoint.payload.linkSnapshots[0].causalContamination = "influenced_by_target"; checkpoint.payload.linkSnapshots[0].weightClass = "low"; }],
+    ["formation cause", ({ checkpoint }) => { checkpoint.causedByEventIds[checkpoint.causedByEventIds.length - 1] = "E-FORGED-FORMATION"; }],
+    ["checkpoint timestamp", ({ checkpoint }) => { checkpoint.occurredAt = "2026-08-13T00:00:00.000Z"; }],
+    ["completion scope", ({ completion }) => { completion.payload.scope = "forged"; }],
+    ["completion observed state version", ({ completion }) => { completion.observedStateVersion = 99; }],
+    ["completion changed and new state version", ({ completion }) => { completion.payload.changed = false; completion.payload.newStateVersion = 99; }],
+  ];
+  for (const [index, [name, mutate]] of cases.entries()) await t.test(name, async () => {
+    const kinseedId = `K-REV-PREDECESSOR-${index}`; const state = await setup(kinseedId);
+    const r1 = await append(state.store, kinseedId, "R1", USE); const r2 = await append(state.store, kinseedId, "R2", USE); await materializeR(state.store, kinseedId, [r1, r2], "r12");
+    await consolidateG0A2SelfHypothesisDispute(disputeInput(kinseedId, state.initialEvents, [r1, r2]), state.store);
+    const r3 = await append(state.store, kinseedId, "R3", USE); await materializeR(state.store, kinseedId, [r3], "r3");
+    const events = await state.store.readEventsInSequence(kinseedId);
+    const checkpoint = clone(events.find((event) => event.type === "validation_decision_recorded" && event.payload.consolidationId === "dispute"));
+    const completion = clone(events.find((event) => event.type === "state_commit_completed" && event.payload.consolidationId === "dispute"));
+    mutate({ checkpoint, completion });
+    await assert.rejects(() => consolidateG0A2SelfHypothesisRevision(
+      revisionInput(kinseedId, state.initialEvents, [r1, r2, r3]),
+      persistenceWithEvents(state.store, new Map([[checkpoint.id, checkpoint], [completion.id, completion]])),
+    ), DomainInvariantError);
+    assert.equal(await state.store.getStateVersion(kinseedId), 5);
+    assert.equal((await state.store.readEventsInSequence(kinseedId)).filter((event) => event.type === "validation_decision_recorded" && event.payload.consolidationId === "revision").length, 0);
+  });
+});

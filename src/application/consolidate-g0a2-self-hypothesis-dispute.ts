@@ -38,6 +38,66 @@ export interface ConsolidateG0A2SelfHypothesisDisputeResult {
   readonly replayed: boolean;
 }
 
+/** A read-only, fully validated historical boundary for a disputed v2. */
+export interface ValidatedG0A2DisputeBoundary {
+  readonly v1: SelfHypothesis;
+  readonly v2: SelfHypothesis;
+  readonly checkpoint: Event;
+  readonly completion: Event;
+}
+
+/**
+ * Validates the historical dispute that formed a specific v2 without
+ * re-deciding its outcome. Consumers can safely use the returned boundary as
+ * a causal predecessor.
+ */
+export async function readValidatedG0A2DisputeBoundary(
+  kinseedId: EntityId,
+  v2: SelfHypothesis,
+  persistence: PersistencePort,
+): Promise<ValidatedG0A2DisputeBoundary> {
+  if (v2.kinseedId !== kinseedId) {
+    throw new DomainInvariantError("G0-A2 dispute boundary v2 belongs to another Kinseed");
+  }
+  const events = await persistence.readEventsInSequence(kinseedId);
+  const checkpoints = events.filter((event) =>
+    event.type === "validation_decision_recorded" &&
+    event.payloadSchemaVersion === 3 &&
+    event.payload.scope === SCOPE &&
+    event.payload.outcome === "dispute" &&
+    snapshotId(event.payload.nextHypothesisSnapshot) === v2.id,
+  );
+  if (checkpoints.length !== 1) {
+    throw new DomainInvariantError("G0-A2 revision cannot identify a unique dispute checkpoint");
+  }
+  const checkpoint = checkpoints[0] as Event;
+  if (typeof checkpoint.engineVersion !== "string" || (await persistence.readSource(checkpoint.sourceId))?.kind !== "system") {
+    throw new DomainInvariantError("G0-A2 dispute boundary checkpoint source is incoherent");
+  }
+  const payload = record(checkpoint.payload, "historical checkpoint");
+  const input: ConsolidateG0A2SelfHypothesisDisputeInput = {
+    kinseedId,
+    consolidationId: string(payload.consolidationId, "historical consolidationId"),
+    systemSourceId: checkpoint.sourceId,
+    evidenceItemIds: strings(payload.inputEvidenceItemIds, "historical inputEvidenceItemIds"),
+    engineVersion: checkpoint.engineVersion,
+  };
+  const { plan, prior } = await parseCheckpoint(checkpoint, input, persistence);
+  if (
+    plan.outcome !== "dispute" ||
+    plan.nextHypothesisSnapshot === null ||
+    !sameHypothesisImmutable(v2, plan.nextHypothesisSnapshot)
+  ) {
+    throw new DomainInvariantError("G0-A2 dispute boundary v2 snapshot is incoherent");
+  }
+  const completion = findCompletion(events, input);
+  if (completion === null) {
+    throw new DomainInvariantError("G0-A2 revision cannot identify dispute completion");
+  }
+  validateCompletion(completion, checkpoint, plan, input);
+  return { v1: prior, v2, checkpoint, completion };
+}
+
 /** Executes the bounded v1 active -> v2 disputed transition. */
 export async function consolidateG0A2SelfHypothesisDispute(
   input: ConsolidateG0A2SelfHypothesisDisputeInput,

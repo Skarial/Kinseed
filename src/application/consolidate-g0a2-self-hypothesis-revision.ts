@@ -1,6 +1,7 @@
 import { DomainInvariantError } from "../domain/errors.js";
 import type { EvidenceItem, EvidenceLink } from "../domain/evidence.js";
 import type { Event } from "../domain/event.js";
+import { readValidatedG0A2DisputeBoundary } from "./consolidate-g0a2-self-hypothesis-dispute.js";
 import { buildG0A2SelfHypothesisLinkId } from "../domain/g0a2-self-hypothesis-consolidation.js";
 import { buildRevisedG0A2SelfHypothesisId, planG0A2SelfHypothesisRevision, type G0A2RevisionObservation, type G0A2RevisionPlan } from "../domain/g0a2-self-hypothesis-revision.js";
 import { propositionEquals, type Proposition } from "../domain/proposition.js";
@@ -19,7 +20,7 @@ export async function consolidateG0A2SelfHypothesisRevision(input: ConsolidateG0
   let checkpoint = findCheckpoint(await persistence.readEventsInSequence(input.kinseedId), input); let plan: G0A2RevisionPlan; let v2: SelfHypothesis;
   if (checkpoint !== null) ({ plan, v2 } = await parseCheckpoint(checkpoint, input, persistence));
   else {
-    v2 = await readCurrentV2(input.kinseedId, persistence); const boundary = await disputeBoundary(input.kinseedId, v2, persistence); const observations = await readObservations(input, persistence);
+    v2 = await readCurrentV2(input.kinseedId, persistence); const boundary = await readValidatedG0A2DisputeBoundary(input.kinseedId, v2, persistence); const observations = await readObservations(input, persistence);
     await validateSnapshot(observations, v2, boundary, persistence); plan = planG0A2SelfHypothesisRevision({ kinseedId: input.kinseedId, consolidationId: input.consolidationId, v2, observations });
     checkpoint = await appendCheckpoint(input, plan, observations, boundary.checkpoint, persistence);
   }
@@ -35,12 +36,6 @@ async function readCurrentV2(kinseedId: EntityId, persistence: PersistencePort):
   const keyValue = buildSelfHypothesisKey({ subjectRef: kinseedId, predicate: AXIS, value: "seek_clarification", context: { protocol: "G0-A2" } }); const history = await persistence.readSelfHypothesisHistoryByKey(kinseedId, keyValue);
   if (history.length !== 2) throw new DomainInvariantError("G0-A2 revision requires exactly v1 and v2"); const [v1, v2] = history;
   if (v1 === undefined || v2 === undefined || !coherentV1(v1, keyValue) || v1.status !== "superseded" || !coherentV2(v2, v1, keyValue) || v2.status !== "disputed") throw new DomainInvariantError("G0-A2 revision requires current disputed v2"); return v2;
-}
-async function disputeBoundary(kinseedId: EntityId, v2: SelfHypothesis, persistence: PersistencePort): Promise<{ checkpoint: Event; completion: Event }> {
-  const events = await persistence.readEventsInSequence(kinseedId); const checkpoints = events.filter((e) => e.type === "validation_decision_recorded" && e.payloadSchemaVersion === 3 && e.payload.scope === SCOPE && e.payload.outcome === "dispute" && snapshotId(e.payload.nextHypothesisSnapshot) === v2.id);
-  if (checkpoints.length !== 1) throw new DomainInvariantError("G0-A2 revision cannot identify dispute checkpoint"); const checkpoint = checkpoints[0] as Event;
-  const completions = events.filter((e) => e.type === "state_commit_completed" && e.payloadSchemaVersion === 2 && e.payload.scope === SCOPE && e.payload.consolidationId === checkpoint.payload.consolidationId && sameList(e.causedByEventIds, [checkpoint.id]) && e.payload.changed === true);
-  if (completions.length !== 1) throw new DomainInvariantError("G0-A2 revision cannot identify dispute completion"); return { checkpoint, completion: completions[0] as Event };
 }
 async function readObservations(input: ConsolidateG0A2SelfHypothesisRevisionInput, persistence: PersistencePort): Promise<readonly G0A2RevisionObservation[]> {
   if (input.evidenceItemIds.length < 7 || input.evidenceItemIds.length > 8 || new Set(input.evidenceItemIds).size !== input.evidenceItemIds.length) throw new DomainInvariantError("G0-A2 revision requires seven or eight distinct observations"); const result: G0A2RevisionObservation[] = [];
@@ -62,7 +57,7 @@ async function parseCheckpoint(event: Event, input: ConsolidateG0A2SelfHypothesi
   const candidate = proposition(p.candidateProposition); const hypothesisKey = text(p.hypothesisKey); if (buildSelfHypothesisKey(candidate) !== hypothesisKey) throw new DomainInvariantError("G0-A2 revision checkpoint key incoherent");
   const evidenceIds = texts(p.inputEvidenceItemIds); if (!sameSet(evidenceIds, input.evidenceItemIds)) throw new DomainInvariantError("G0-A2 revision checkpoint input conflicts");
   const supersededId = p.supersededHypothesisId === null ? null : text(p.supersededHypothesisId); const v2 = await historicalV2(input.kinseedId, supersededId, p.outcome, persistence);
-  const boundary = await disputeBoundary(input.kinseedId, v2, persistence); const observations = await readObservations(input, persistence); await validateSnapshot(observations, v2, boundary, persistence);
+  const boundary = await readValidatedG0A2DisputeBoundary(input.kinseedId, v2, persistence); const observations = await readObservations(input, persistence); await validateSnapshot(observations, v2, boundary, persistence);
   const canonical = observations.map((o) => o.evidenceItem.id); const timestamp = observations.at(-1)?.sourceEvent.occurredAt; if (timestamp === undefined || event.occurredAt !== timestamp || !sameList(evidenceIds, canonical) || !sameList(event.causedByEventIds, [...observations.map((o) => o.sourceEvent.id), boundary.checkpoint.id])) throw new DomainInvariantError("G0-A2 revision checkpoint provenance incoherent");
   const links = linksOf(p.linkSnapshots); const support = texts(p.countedSupportGroups); const against = texts(p.countedAgainstGroups); const ignored = texts(p.ignoredContaminatedLinkIds); const next = p.nextHypothesisSnapshot === null ? null : hypothesis(p.nextHypothesisSnapshot);
   const expectedCandidate = { ...v2.proposition, value: v2.proposition.value === "seek_clarification" ? "use_available_information" : "seek_clarification" }; if (!propositionEquals(candidate, expectedCandidate)) throw new DomainInvariantError("G0-A2 revision candidate is not opposite");
