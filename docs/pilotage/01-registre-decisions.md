@@ -57,7 +57,7 @@ Les ADR de `docs/decisions-techniques/` restent les sources canoniques pour les 
 | ID | Domaine | Décision | Statut | Source canonique |
 |---|---|---|---|---|
 | D-001 | Mission | Kinseed vise un individu numérique persistant dont l’état actuel dépend de son histoire. | VALIDÉE | `README.md`, `docs/01-generation-0-specification-conceptuelle.md` |
-| D-002 | Héritage | La transmission intergénérationnelle doit permettre combinaison, transformation, variation et oubli, jamais une simple copie. | VALIDÉE | `docs/12-regles-fondatrices-heritage.md` |
+| D-002 | Héritage | La transmission intergénérationnelle doit permettre combinaison, transformation, variation et oubli, jamais une simple copie. | VALIDÉE | `docs/13-regles-fondatrices-heritage.md` |
 | D-003 | Priorité | La priorité actuelle est le premier Kinseed de génération 0 ; reproduction, société et lignées restent hors priorité immédiate. | VALIDÉE | `README.md`, `docs/04-generation-0-roadmap-experimentale.md` |
 | D-004 | Architecture IA | Le LLM comprend et formule ; l’état Kinseed conserve la continuité, la causalité et les écritures durables. | VALIDÉE | `README.md`, `docs/03-generation-0-architecture-conceptuelle.md`, ADR-004 |
 | D-005 | Événements | L’histoire fiable repose sur un modèle événementiel traçable avec ordre causal et validation des écritures durables. | VALIDÉE | `docs/06-generation-0a-contrat-tour-et-evenements.md`, ADR-003 |

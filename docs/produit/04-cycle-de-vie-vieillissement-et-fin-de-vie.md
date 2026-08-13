@@ -316,7 +316,7 @@ Il faudra notamment décider comment sont consolidés ou sélectionnés les él�
 - objets ou traces familiales ;
 - autres éléments définis par le futur système d’héritage.
 
-Cette transmission devra respecter les règles fondatrices de `docs/12-regles-fondatrices-heritage.md` : le descendant reste un nouvel individu et n’hérite jamais de l’état complet du parent.
+Cette transmission devra respecter les règles fondatrices de `docs/13-regles-fondatrices-heritage.md` : le descendant reste un nouvel individu et n’hérite jamais de l’état complet du parent.
 
 ---
 

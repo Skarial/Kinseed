@@ -96,7 +96,8 @@ Ordre de lecture recommandé :
 9. [`docs/09-generation-0a1-resultats-validation.md`](docs/09-generation-0a1-resultats-validation.md) — consigne la validation expérimentale limitée de G0-A1, ses résultats reproductibles et sa prochaine limite de robustesse.
 10. [`docs/10-generation-0a2-protocole-premiere-hypothese-soi.md`](docs/10-generation-0a2-protocole-premiere-hypothese-soi.md) — définit la sous-expérience G0-A2 sur une première `SelfHypothesis` provisoire, sa provenance, son influence causale et son ablation.
 11. [`docs/11-generation-0a2-contrat-implementation.md`](docs/11-generation-0a2-contrat-implementation.md) — fixe les structures, invariants, contrôles et reprises minimaux du cœur déterministe G0-A2.
-12. [`docs/12-regles-fondatrices-heritage.md`](docs/12-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
+12. [`docs/12-generation-0a2-resultats-validation.md`](docs/12-generation-0a2-resultats-validation.md) — consigne la validation expérimentale limitée de G0-A2, ses contrôles causaux, son contrôle C0 et ses limites.
+13. [`docs/13-regles-fondatrices-heritage.md`](docs/13-regles-fondatrices-heritage.md) — conserve les règles déjà validées pour la future transmission intergénérationnelle.
 
 Les décisions techniques sont documentées séparément dans `docs/decisions-techniques/`. Pour G0-A1, ADR-005 fixe l’utilisation initiale d’un `PersistencePort` avec un adaptateur `InMemoryStore`, sans choisir prématurément le stockage local durable.
 
@@ -147,6 +148,7 @@ Le projet ne considère pas ces mécanismes comme une preuve de conscience phén
 
 ## État actuel
 
-Le sous-protocole **G0-A1 — croyance, provenance et révision** est validé dans les conditions expérimentales définies par son protocole : tests déterministes, reproduction avec `gpt-5.6-terra` et `gpt-5.6-luna`, et contrôle C0 sans état Kinseed. Les résultats et leurs limites sont consignés dans `docs/09-generation-0a1-resultats-validation.md`.
-
-Cette validation ne termine pas G0-A. Le grounding lexical v3 est validé dans le périmètre de G0-A1, tandis qu’une validation sémantique générale des `EvidenceItem` reste ouverte. Cette limite ne bloque pas la prochaine expérience, **G0-A2 — première hypothèse sur soi**, car ses premières observations comportementales doivent être dérivées de manière déterministe d’événements structurés enregistrant des décisions réelles.
+- G0-A1 est validé dans son périmètre.
+- G0-A2 est validé dans son périmètre.
+- G0-A reste ouvert.
+- Memory et `HumanHypothesis` doivent encore être traitées avant de considérer G0-A complet.

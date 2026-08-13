@@ -80,23 +80,25 @@ Deux Kinseeds initialement comparables, soumis à des histoires différentes, do
 
 ## Checklist opérationnelle
 
-- [ ] journal d’événements fiable et causal ;
-- [ ] provenance exploitable ;
-- [ ] extraction/validation d’éléments de preuve suffisamment robuste pour l’expérience ;
-- [ ] mémoire minimale testée ;
-- [ ] croyance ou hypothèse persistante révisable ;
-- [ ] intention sélectionnée avant formulation ;
-- [ ] écriture durable protégée par validation ;
-- [ ] divergence entre histoires démontrée ;
-- [ ] influence future démontrée ;
-- [ ] contrôle sans mécanisme Kinseed ou équivalent exécuté ;
-- [ ] ablation ciblée exécutée ;
-- [ ] résultats et limites documentés ;
+- [x] journal d’événements fiable et causal, dans les périmètres G0-A1 et G0-A2 validés ;
+- [x] provenance exploitable, dans les périmètres G0-A1 et G0-A2 validés ;
+- [x] extraction/validation d’éléments de preuve suffisamment robuste pour les expériences G0-A1 et G0-A2 ;
+- [ ] mémoire minimale testée — Memory reste ouverte ;
+- [x] croyance ou hypothèse persistante révisable — G0-A1 et G0-A2 l’ont démontré dans leurs périmètres ;
+- [x] intention sélectionnée avant formulation — démontrée pour G0-A2 ;
+- [x] écriture durable protégée par validation, dans les périmètres G0-A1 et G0-A2 validés ;
+- [x] divergence entre histoires démontrée — A/B G0-A2 ;
+- [x] influence future démontrée — sélection S5 G0-A2 ;
+- [x] contrôle sans mécanisme Kinseed ou équivalent exécuté — C0 G0-A2 exécuté ;
+- [x] ablation ciblée exécutée — consommation de `SelfHypothesis` G0-A2 ;
+- [x] résultats et limites documentés — G0-A1 et G0-A2 ;
 - [ ] aucun risque critique actuel non compris.
 
 ### Décision actuelle
 
-G0-A1 a validé une partie limitée de la provenance et de la révision, mais **G0-A complet n’est pas encore déclaré terminé**. Le passage à G0-B reste donc soumis aux travaux restants de G0-A.
+G0-A1 et G0-A2 ont validé leurs périmètres respectifs, y compris la divergence historique, l’influence future, la sélection avant formulation, C0 et l’ablation ciblée pour G0-A2. Une hypothèse persistante et révisable est démontrée dans ce périmètre.
+
+**NO-GO vers G0-B : G0-A n’est pas complet.** Memory, `HumanHypothesis` et les autres conditions canoniques encore ouvertes doivent être validées avant un passage de phase. Les cases non cochées ci-dessus ne sont donc pas une omission mécanique : elles signalent explicitement l’absence de preuve dans le périmètre actuel.
 
 ---
 

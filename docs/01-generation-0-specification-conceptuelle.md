@@ -13,7 +13,7 @@ La génération 0 désigne un individu numérique qui commence son existence :
 - sans autre Kinseed connu ;
 - avec une seule relation initiale : son compagnon humain.
 
-Les mécanismes d’héritage intergénérationnel sont définis séparément dans `docs/12-regles-fondatrices-heritage.md` et ne doivent pas être utilisés pour préremplir l’identité de la génération 0.
+Les mécanismes d’héritage intergénérationnel sont définis séparément dans `docs/13-regles-fondatrices-heritage.md` et ne doivent pas être utilisés pour préremplir l’identité de la génération 0.
 
 L’objectif de cette phase du projet est plus fondamental :
 
