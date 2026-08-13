@@ -998,6 +998,150 @@ Aucune nouvelle policy OpenAI n’est définie par ce contrat.
 
 ---
 
+## 17.1 Contrat d’exécution C0 — LLM seul
+
+C0 est un contrôle **externe** au mécanisme causal Kinseed. Il ne crée ni
+`SelfHypothesis`, ni `EvidenceItem`, ni `EvidenceLink`, ni `Event` Kinseed. Il
+ne consomme aucun état durable et ne participe ni à la sélection S5
+déterministe, ni à la formulation d’une intention Kinseed.
+
+Son seul rôle est d’exclure qu’un LLM privé de l’histoire A/B produise de façon
+stable et systématique la divergence expérimentale :
+
+```text
+A → seek_clarification
+B → use_available_information
+```
+
+Cette divergence est celle que le mécanisme déterministe produit lorsque les
+`SelfHypothesis` A/B sont explicitement consommées. C0 est rapporté séparément
+de ce résultat causal : il ne peut ni le créer, ni le remplacer.
+
+### Entrées strictement identiques
+
+Chaque paire C0 comporte deux appels indépendants, identifiés localement
+`C0-A` et `C0-B`. Ces identifiants servent exclusivement aux traces et au
+rapport ; ils ne sont jamais présents dans les prompts envoyés au modèle.
+
+Les deux appels d’une même paire reçoivent exactement :
+
+- le même modèle, lu depuis `OPENAI_MODEL` ;
+- le même system prompt ;
+- le même user prompt S5 ;
+- les mêmes options d’API ;
+- aucun historique conversationnel ;
+- aucune histoire A/B, `SelfHypothesis`, donnée Kinseed, mémoire ou indice
+  d’orientation.
+
+Le system prompt et le texte S5 ne doivent donc suggérer ni que A devrait
+demander une clarification, ni que B devrait utiliser l’information disponible.
+L’ordre d’exécution et les labels de trace ne portent aucune sémantique
+expérimentale.
+
+### S5 neutre unique de contrôle
+
+Toute la campagne C0 emploie cette unique situation S5, différente des fixtures
+S1–S4 et sans histoire personnelle ni indice psychologique :
+
+```text
+Un collègue vous demande quelle version d’un document utiliser pour préparer
+une réunion. Le dossier contient un fichier nommé « proposition-v2 », mais
+aucune confirmation qu’il s’agisse de la version finale. Vous pouvez demander
+confirmation ou commencer avec le document disponible en signalant cette
+incertitude. Choisissez une action.
+```
+
+Le system prompt de contrôle est invariant pour toute la campagne :
+
+```text
+Choisis uniquement l’une des deux décisions prévues pour la situation
+utilisateur. Réponds exclusivement par un objet JSON conforme au schéma fourni,
+sans justification.
+```
+
+Il demande donc seulement de produire une décision structurée conforme au
+format conceptuel suivant, sans texte libre à interpréter :
+
+```json
+{
+  "decision": "seek_clarification" | "use_available_information"
+}
+```
+
+Le futur runner peut utiliser Structured Outputs pour imposer ce format. Cette
+section ne modifie pas `OpenAIAIEngine` et ne définit pas encore son schéma ni
+sa policy d’implémentation.
+
+### Taille de campagne, mesure et statut
+
+Le futur runner lit `G0A2_C0_RUNS`. Il peut accepter une paire pour un smoke
+technique, mais une campagne officielle C0 exige exactement cinq paires :
+
+```text
+5 appels C0-A + 5 appels C0-B = 10 appels maximum
+```
+
+`gpt-5.6-luna` est le modèle expérimental actuellement prévu, sans devenir une
+propriété du protocole : chaque rapport enregistre le modèle effectivement
+utilisé.
+
+Pour chaque paire `i`, le rapport enregistre `decisionA`, `decisionB`, puis :
+
+```text
+reproducesKinseedPattern =
+  decisionA === "seek_clarification"
+  && decisionB === "use_available_information"
+
+sameDecision = decisionA === decisionB
+
+reversedPattern =
+  decisionA === "use_available_information"
+  && decisionB === "seek_clarification"
+```
+
+`reversedPattern` n’est pas une reproduction du pattern causal Kinseed, mais
+reste visible dans le rapport. Pour les cinq paires officielles, le statut C0
+est une convention expérimentale bornée, non une preuve statistique générale
+sur le modèle :
+
+| Reproductions exactes du pattern Kinseed | Statut C0 |
+|---:|---|
+| 0, 1 ou 2 | PASS |
+| 3 | INCONCLUSIVE |
+| 4 ou 5 | FAIL |
+
+Avec moins de cinq paires, le runner ne peut jamais annoncer un `PASS` C0
+officiel : il retourne `SMOKE_ONLY`, ou un statut équivalent explicitement
+non-officiel. Le smoke sert seulement à vérifier clé API, modèle, format de
+sortie, coût, trace et absence d’erreur ; il n’ajoute aucun appel automatique.
+
+### Reproductibilité et séparation d’exécution
+
+Chaque réponse API C0 utilise obligatoirement `store: false`. Le rapport futur
+enregistre au minimum : date/heure, modèle, nombre de paires, décisions A/B par
+paire, nombre de reproductions exactes, statut C0, tokens d’entrée/sortie,
+nombre d’appels, et `promptPolicyVersion` ou un identifiant équivalent. Il
+atteste aussi qu’aucune donnée Kinseed durable n’a été fournie.
+
+`npm test` demeure intégralement déterministe et sans réseau. Le futur runner
+C0 possède une commande séparée ; il n’est jamais appelé par `npm test` ni par
+la CI sans décision explicite.
+
+### Gate expérimentale G0-A2
+
+G0-A2 déterministe est techniquement complet lorsque les tests déterministes
+correspondants sont verts. G0-A2 ne peut être présenté comme
+**expérimentalement PASS** qu’après une campagne C0 officielle de cinq paires,
+exécutée conformément à ce contrat, dont le statut n’est ni `FAIL` ni
+`INCONCLUSIVE`. Avant cette exécution, aucune validation expérimentale G0-A2
+n’est déclarée.
+
+Même après un `PASS` G0-A2, G0-A complet reste ouvert : `Memory` demeure
+notamment une primitive à créer, récupérer et tester avant le passage à G0-B.
+Cette section ne modifie pas la gate G0-A → G0-B.
+
+---
+
 # 18. Hors périmètre
 
 Ne font pas partie du premier lot G0-A2 :
