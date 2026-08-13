@@ -95,6 +95,7 @@ export async function readValidatedG0A2DisputeBoundary(
     throw new DomainInvariantError("G0-A2 revision cannot identify dispute completion");
   }
   validateCompletion(completion, checkpoint, plan, input);
+  await validateDurable(plan, prior, input, persistence);
   return { v1: prior, v2, checkpoint, completion };
 }
 

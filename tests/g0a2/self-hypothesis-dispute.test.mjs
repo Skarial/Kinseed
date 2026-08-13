@@ -41,6 +41,15 @@ function persistenceWithEvents(store, replacements, rejectAppend = false) {
     const value = Reflect.get(target, property, receiver); return typeof value === "function" ? value.bind(target) : value;
   } });
 }
+function persistenceWithForgedEvidenceLink(store, evidenceLinkId, mutate) {
+  return new Proxy(store, { get(target, property, receiver) {
+    if (property === "readEvidenceLink") return async (kinseedId, id) => {
+      const link = await target.readEvidenceLink(kinseedId, id);
+      return id === evidenceLinkId ? mutate(clone(link)) : link;
+    };
+    const value = Reflect.get(target, property, receiver); return typeof value === "function" ? value.bind(target) : value;
+  } });
+}
 async function completedDispute(kinseedId, includeS5 = false) {
   const scenario = await setup(kinseedId);
   const { store, initialEvents } = scenario;
@@ -263,4 +272,17 @@ test("G0-A2 revision rejects falsified dispute predecessor boundaries before v3 
     assert.equal(await state.store.getStateVersion(kinseedId), 5);
     assert.equal((await state.store.readEventsInSequence(kinseedId)).filter((event) => event.type === "validation_decision_recorded" && event.payload.consolidationId === "revision").length, 0);
   });
+});
+
+test("G0-A2 revision rejects a falsified durable dispute EvidenceLink before v3 checkpoint", async () => {
+  const kinseedId = "K-REV-DURABLE-LINK"; const state = await setup(kinseedId);
+  const r1 = await append(state.store, kinseedId, "R1", USE); const r2 = await append(state.store, kinseedId, "R2", USE); await materializeR(state.store, kinseedId, [r1, r2], "r12");
+  const dispute = await consolidateG0A2SelfHypothesisDispute(disputeInput(kinseedId, state.initialEvents, [r1, r2]), state.store);
+  const v2 = await state.store.readSelfHypothesis(kinseedId, dispute.selfHypothesisId); assert.ok(v2);
+  const r3 = await append(state.store, kinseedId, "R3", USE); await materializeR(state.store, kinseedId, [r3], "r3");
+  const forgedLinkId = v2.supportLinkIds[0]; assert.ok(forgedLinkId);
+  const persistence = persistenceWithForgedEvidenceLink(state.store, forgedLinkId, (link) => ({ ...link, targetId: "SH-FORGED" }));
+  await assert.rejects(() => consolidateG0A2SelfHypothesisRevision(revisionInput(kinseedId, state.initialEvents, [r1, r2, r3]), persistence), DomainInvariantError);
+  assert.equal(await state.store.getStateVersion(kinseedId), 5);
+  assert.equal((await state.store.readEventsInSequence(kinseedId)).filter((event) => event.type === "validation_decision_recorded" && event.payload.consolidationId === "revision").length, 0);
 });
