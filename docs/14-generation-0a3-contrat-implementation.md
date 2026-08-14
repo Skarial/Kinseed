@@ -1145,9 +1145,78 @@ causedByEventIds: [<situationEvent.id>]
 observedStateVersion: situationEvent.observedStateVersion
 ```
 
-Un replay par `turnId` valide et retourne l’intention historique. Il ne relit
-pas une autre version de `Memory`, ne resélectionne pas et conserve la version
-d’état observée par la situation, même si l’état courant a ensuite évolué.
+### 18.3.1 Identité de la situation future
+
+La situation future réutilise la convention générale d’entrée de tour déjà
+utilisée par `processTurn`. Cette convention évite une identité parallèle
+spécifique à G0-A3 et permet le replay déterministe par `turnId`.
+
+```text
+Event.id: E-<turnId>-input
+Event.idempotencyKey: <turnId>:input
+Event.type: human_message_received
+payloadSchemaVersion: 3
+turnId: <turnId> non null
+sourceId: <humanSourceId>
+actorRef: <humanActorRef>
+causedByEventIds: []
+observedStateVersion: version durable courante au premier enregistrement
+occurredAt: timestamp déterministe fourni pour ce tour
+engineVersion: version du moteur fournie au use case
+payload: le payload canonique de S-G0A3-CALIBRATION-02
+```
+
+Les six champs du payload canonique ne sont pas modifiés par cette identité.
+
+### 18.3.2 Situation enregistrée sans intention
+
+Le cas d'une situation future présente sans `intention_selected` pour le même
+`turnId` est un état partiel dont l'origine expérimentale ne peut pas être
+reconstruite. `includeMemory` sert à l'ablation expérimentale, mais n'est
+volontairement stocké ni dans le payload de situation, ni dans un événement
+d'ablation, ni dans l'état durable. Après une interruption, il est donc
+impossible de savoir si l'appel initial devait consommer la `Memory`.
+
+Le use case futur échoue fermé avec `DomainInvariantError` et ne reprend pas
+automatiquement la sélection pour ce `turnId`. Une nouvelle tentative
+expérimentale utilise un nouveau `turnId`.
+
+Il est interdit d'ajouter `includeMemory`, `memoryId`, une version de `Memory`
+ou une action attendue au payload, ainsi que de créer un événement ou un
+checkpoint d'ablation pour lever cette ambiguïté.
+
+### 18.3.3 Replay complet
+
+Si un même `turnId` possède une situation valide et un `intention_selected`
+valide, le replay :
+
+- valide les deux événements historiques ;
+- reconstruit l'intention historique ;
+- retourne `replayed: true` ;
+- ne rappelle pas `buildG0A3MemoryDecisionContext` ;
+- ne relit pas `readActiveMemoryByKey` ;
+- ne resélectionne pas l'intention ;
+- ne dépend pas du `stateVersion` courant ;
+- conserve `situationEvent.observedStateVersion` et les `triggerMemoryIds`
+  historiques.
+
+La valeur `includeMemory` fournie lors d'un nouvel appel n'a aucun effet sur un
+replay déjà complété. Une révision ultérieure de la `Memory` ne modifie pas la
+décision historique.
+
+### 18.3.4 États historiques impossibles
+
+Le use case de décision échoue fermé avec `DomainInvariantError` dans les cas
+suivants :
+
+- plusieurs `human_message_received` pour le même tour de décision G0-A3 ;
+- plusieurs `intention_selected` pour ce tour ;
+- `intention_selected` sans situation correspondante ;
+- situation présente sans intention lors d'une tentative de reprise ;
+- situation incompatible avec l'identité ou le payload canonique du `turnId` ;
+- intention historique incompatible avec la situation.
+
+Aucun comportement de formulation n'est défini dans cette frontière.
 
 ---
 
