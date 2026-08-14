@@ -3,14 +3,18 @@ import assert from "node:assert/strict";
 
 import { InMemoryStore } from "../../dist/adapters/in-memory-store.js";
 import { consolidateG0A3Memory } from "../../dist/application/consolidate-g0a3-memory.js";
+import { reviseG0A3Memory } from "../../dist/application/revise-g0a3-memory.js";
 import {
   buildG0A3CalibrationFailureTestimony,
   buildG0A3CalibrationFixtureEventId,
   buildG0A3CalibrationFixtureEventIdempotencyKey,
   buildG0A3InitialFailureCauseTestimony,
+  G0A3_CORRECTION_TEXT,
+  materializeG0A3CorrectionEvidence,
   materializeG0A3InitialCalibrationEvidence,
 } from "../../dist/application/materialize-g0a3-calibration-evidence.js";
 import { selectG0A3MemoryIntention } from "../../dist/application/select-g0a3-memory-intention.js";
+import { revisedIds } from "../../dist/application/validate-g0a3-memory.js";
 import { DomainInvariantError } from "../../dist/domain/errors.js";
 import { buildG0A3MemoryId, buildG0A3MemoryKey } from "../../dist/domain/memory.js";
 
@@ -39,13 +43,14 @@ async function createScenario({ memory = true } = {}) {
   for (const item of [request, intention, failure, explanation]) await store.appendEvent(item);
   await materializeG0A3InitialCalibrationEvidence({ lenoseedId, configurationRequestEventId: request.id, intentionEventId: intention.id, failureEventId: failure.id, initialExplanationEventId: explanation.id }, store);
   const result = memory ? await consolidateG0A3Memory(consolidationInput(), store) : null;
-  return { store, memory: result?.memory ?? null };
+  return { store, memory: result?.memory ?? null, initialExplanation: explanation };
 }
 
 function identity(suffix) { return { id: buildG0A3CalibrationFixtureEventId(lenoseedId, suffix), idempotencyKey: buildG0A3CalibrationFixtureEventIdempotencyKey(lenoseedId, suffix) }; }
 function humanFixture(suffix, sequence, fixtureKind, text) { return event({ ...identity(suffix), sequence, type: "human_message_received", sourceId: humanSourceId, actorRef: humanActorRef, payload: { text, protocol: "G0-A3", episodeKey, fixtureKind }, payloadSchemaVersion: 3 }); }
 function event(overrides) { return { id: overrides.id, lenoseedId, sequence: overrides.sequence, type: overrides.type, occurredAt: overrides.occurredAt ?? `2026-08-14T09:00:0${overrides.sequence}.000Z`, turnId: overrides.turnId ?? null, sourceId: overrides.sourceId, actorRef: overrides.actorRef ?? null, causedByEventIds: overrides.causedByEventIds ?? [], observedStateVersion: overrides.observedStateVersion ?? 0, payload: overrides.payload, payloadSchemaVersion: overrides.payloadSchemaVersion, engineVersion: overrides.engineVersion ?? engineVersion, idempotencyKey: overrides.idempotencyKey ?? overrides.id }; }
 function consolidationInput() { return { lenoseedId, episodeKey, systemSourceId, evidenceItemIds: [`EV-G0A3-OBS-${buildG0A3CalibrationFixtureEventId(lenoseedId, "calibration-01-intention")}`, `EV-G0A3-TESTIMONY-${buildG0A3CalibrationFixtureEventId(lenoseedId, "calibration-01-failure")}-outcome`, `EV-G0A3-TESTIMONY-${buildG0A3CalibrationFixtureEventId(lenoseedId, "calibration-01-initial-explanation")}-cause`], expectedStateVersion: 1, engineVersion: "lenoseed-g0a3-memory-consolidation-v1" }; }
+function revisionInput(expectedStateVersion) { const ids = revisedIds(lenoseedId); return { lenoseedId, episodeKey, systemSourceId, evidenceItemIds: [ids.e1Id, ids.e2Id, ids.e4Id, ids.e5Id], expectedStateVersion, engineVersion: "lenoseed-g0a3-memory-revision-v2" }; }
 function input(overrides = {}) { return { lenoseedId, turnId, humanSourceId, humanActorRef, systemSourceId, occurredAt: "2026-08-14T10:00:00.000Z", engineVersion, includeMemory: true, ...overrides }; }
 
 async function appendFutureV2(store, v1) {
@@ -144,6 +149,158 @@ test("G0-A3 v1 persists the canonical situation and Memory-driven intention with
   });
   assert.equal(await store.getStateVersion(lenoseedId), before);
   assert.deepEqual(await store.readActiveMemoryByKey(lenoseedId, buildG0A3MemoryKey(lenoseedId, episodeKey)), memory);
+});
+
+test("G0-A3 real revision causally changes the future structured intention from v1 to v2", async () => {
+  const { store, memory: v1, initialExplanation } = await createScenario();
+  const memoryKey = buildG0A3MemoryKey(lenoseedId, episodeKey);
+  assert.deepEqual(await store.readActiveMemoryByKey(lenoseedId, memoryKey), v1);
+  assert.deepEqual({ version: v1.version, status: v1.status }, { version: 1, status: "active" });
+
+  const first = await selectG0A3MemoryIntention(input(), store);
+  assert.equal(first.replayed, false);
+  assert.deepEqual(
+    {
+      kind: first.intention.kind,
+      motivation: first.intention.motivation,
+      triggerMemoryIds: first.intention.triggerMemoryIds,
+      status: first.intention.status,
+    },
+    {
+      kind: "use_configuration_b",
+      motivation: "apply_active_g0a3_memory_avoid_reported_incompatibility",
+      triggerMemoryIds: [v1.id],
+      status: "selected",
+    },
+  );
+  assert.deepEqual(
+    {
+      kind: first.intentionEvent.payload.kind,
+      motivation: first.intentionEvent.payload.motivation,
+      triggerMemoryIds: first.intentionEvent.payload.triggerMemoryIds,
+    },
+    {
+      kind: "use_configuration_b",
+      motivation: "apply_active_g0a3_memory_avoid_reported_incompatibility",
+      triggerMemoryIds: [v1.id],
+    },
+  );
+
+  const ids = revisedIds(lenoseedId);
+  const e3BeforeCorrection = await store.readEvidenceItem(lenoseedId, ids.e3Id);
+  assert.notEqual(e3BeforeCorrection, null);
+  const correction = {
+    ...humanFixture("calibration-01-correction", 10, "failure_explanation_correction", G0A3_CORRECTION_TEXT),
+    occurredAt: "2026-08-14T10:30:00.000Z",
+  };
+  await store.appendEvent(correction);
+  await materializeG0A3CorrectionEvidence({
+    lenoseedId,
+    initialExplanationEventId: initialExplanation.id,
+    correctionEventId: correction.id,
+  }, store);
+  const e3 = await store.readEvidenceItem(lenoseedId, ids.e3Id);
+  const e5 = await store.readEvidenceItem(lenoseedId, ids.e5Id);
+  assert.notEqual(e3, null);
+  assert.deepEqual(e3, e3BeforeCorrection);
+  assert.equal(e5?.supersedesId, e3.id);
+
+  const stateVersionBeforeRevision = await store.getStateVersion(lenoseedId);
+  assert.equal(stateVersionBeforeRevision, 3);
+  const revision = await reviseG0A3Memory(revisionInput(stateVersionBeforeRevision), store);
+  const v2 = revision.memory;
+  const revisedV1 = { ...v1, status: "revised" };
+  assert.deepEqual(await store.readMemoryHistoryByKey(lenoseedId, memoryKey), [revisedV1, v2]);
+  assert.deepEqual(await store.readActiveMemoryByKey(lenoseedId, memoryKey), v2);
+  assert.deepEqual({ version: v2.version, status: v2.status, revisionOf: v2.revisionOf }, {
+    version: 2,
+    status: "active",
+    revisionOf: v1.id,
+  });
+
+  const secondInput = input({
+    turnId: "T-G0A3-CALIBRATION-03",
+    occurredAt: "2026-08-14T11:00:00.000Z",
+  });
+  const second = await selectG0A3MemoryIntention(secondInput, store);
+  assert.equal(second.replayed, false);
+  assert.deepEqual(second.situationEvent.payload, first.situationEvent.payload);
+  assert.notEqual(second.situationEvent.turnId, first.situationEvent.turnId);
+  assert.notEqual(second.situationEvent.observedStateVersion, first.situationEvent.observedStateVersion);
+  assert.deepEqual(
+    {
+      kind: second.intention.kind,
+      motivation: second.intention.motivation,
+      triggerMemoryIds: second.intention.triggerMemoryIds,
+      status: second.intention.status,
+    },
+    {
+      kind: "use_configuration_a_after_checking_cable_c",
+      motivation: "apply_active_g0a3_memory_check_corrected_cable_cause",
+      triggerMemoryIds: [v2.id],
+      status: "selected",
+    },
+  );
+  assert.deepEqual(
+    {
+      kind: second.intentionEvent.payload.kind,
+      motivation: second.intentionEvent.payload.motivation,
+      triggerMemoryIds: second.intentionEvent.payload.triggerMemoryIds,
+    },
+    {
+      kind: "use_configuration_a_after_checking_cable_c",
+      motivation: "apply_active_g0a3_memory_check_corrected_cable_cause",
+      triggerMemoryIds: [v2.id],
+    },
+  );
+
+  const stateVersionBeforeAblation = await store.getStateVersion(lenoseedId);
+  const ablationPersistence = new Proxy(store, {
+    get(target, property, receiver) {
+      if (property === "readActiveMemoryByKey") {
+        return () => { throw new Error("v2 ablation must not consume active Memory"); };
+      }
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  const ablation = await selectG0A3MemoryIntention(input({
+    turnId: "T-G0A3-CALIBRATION-04",
+    occurredAt: "2026-08-14T11:30:00.000Z",
+    includeMemory: false,
+  }), ablationPersistence);
+  assert.deepEqual(
+    {
+      kind: ablation.intention.kind,
+      motivation: ablation.intention.motivation,
+      triggerMemoryIds: ablation.intention.triggerMemoryIds,
+    },
+    {
+      kind: "request_new_diagnostic",
+      motivation: "apply_neutral_g0a3_policy_without_memory",
+      triggerMemoryIds: [],
+    },
+  );
+  assert.equal(await store.getStateVersion(lenoseedId), stateVersionBeforeAblation);
+  assert.deepEqual(await store.readActiveMemoryByKey(lenoseedId, memoryKey), v2);
+  assert.equal((await store.readEventsInSequence(lenoseedId)).some((event) => event.type === "ablation_applied"), false);
+
+  const replay = await selectG0A3MemoryIntention(
+    { ...secondInput, includeMemory: false },
+    replayOnlyPersistence(store),
+  );
+  assert.equal(replay.replayed, true);
+  assert.deepEqual(replay.intention, second.intention);
+  assert.deepEqual(
+    {
+      kind: replay.intention.kind,
+      triggerMemoryIds: replay.intention.triggerMemoryIds,
+    },
+    {
+      kind: "use_configuration_a_after_checking_cable_c",
+      triggerMemoryIds: [v2.id],
+    },
+  );
 });
 
 test("G0-A3 reads the turn history before any new-turn dependency", async () => {
