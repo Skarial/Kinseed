@@ -11,7 +11,11 @@ import { buildG0A3MemoryKey, type Memory } from "../domain/memory.js";
 import type { EntityId } from "../domain/primitives.js";
 import type { Source } from "../domain/source.js";
 import type { PersistencePort } from "../ports/persistence.js";
-import { initialIds, validateG0A3Memory } from "./validate-g0a3-memory.js";
+import {
+  initialIds,
+  revisedIds,
+  validateG0A3MemoryCanonicalContent,
+} from "./validate-g0a3-memory.js";
 
 export interface BuildG0A3MemoryDecisionContextInput {
   readonly lenoseedId: EntityId;
@@ -46,35 +50,40 @@ export async function buildG0A3MemoryDecisionContext(
     return { situationEvent: input.situationEvent, memorySnapshot: null };
   }
 
-  const activeMemory = await persistence.readActiveMemoryByKey(
-    input.lenoseedId,
-    buildG0A3MemoryKey(input.lenoseedId, input.relevantEpisodeKey),
-  );
+  const memoryKey = buildG0A3MemoryKey(input.lenoseedId, input.relevantEpisodeKey);
+  const activeMemory = await persistence.readActiveMemoryByKey(input.lenoseedId, memoryKey);
   if (activeMemory === null) {
     return { situationEvent: input.situationEvent, memorySnapshot: null };
   }
-  if (activeMemory.version !== 1 || activeMemory.status !== "active") {
-    throw new DomainInvariantError("G0-A3 Memory decision retrieval supports only active version 1");
+  if (
+    activeMemory.lenoseedId !== input.lenoseedId ||
+    activeMemory.memoryKey !== memoryKey ||
+    activeMemory.episodeKey !== input.relevantEpisodeKey ||
+    activeMemory.status !== "active" ||
+    (activeMemory.version !== 1 && activeMemory.version !== 2)
+  ) {
+    throw new DomainInvariantError("G0-A3 Memory decision retrieval requires an active canonical v1 or v2");
   }
 
-  const { evidenceItemsById, eventsById, sourcesById } = await readV1Provenance(
+  const { evidenceItemsById, eventsById, sourcesById } = await readCanonicalProvenance(
     input.lenoseedId,
     activeMemory,
     persistence,
   );
-  validateG0A3Memory(activeMemory, {
+  validateG0A3MemoryCanonicalContent(activeMemory, {
     evidenceItemsById,
     eventsById,
     sourcesById,
-    memoryHistory: [activeMemory],
   });
   return {
     situationEvent: input.situationEvent,
-    memorySnapshot: buildV1Snapshot(activeMemory, evidenceItemsById),
+    memorySnapshot: activeMemory.version === 1
+      ? buildV1Snapshot(activeMemory, evidenceItemsById)
+      : buildV2Snapshot(activeMemory, evidenceItemsById),
   };
 }
 
-async function readV1Provenance(
+async function readCanonicalProvenance(
   lenoseedId: EntityId,
   memory: Memory,
   persistence: PersistencePort,
@@ -83,14 +92,27 @@ async function readV1Provenance(
   readonly eventsById: ReadonlyMap<EntityId, Event>;
   readonly sourcesById: ReadonlyMap<EntityId, Source>;
 }> {
-  const ids = initialIds(lenoseedId);
-  const eventIds = [
-    ids.requestEventId,
-    ids.intentionEventId,
-    ids.failureEventId,
-    ids.initialExplanationEventId,
+  const initial = initialIds(lenoseedId);
+  const revised = revisedIds(lenoseedId);
+  const eventIds = memory.version === 1 ? [
+    initial.requestEventId,
+    initial.intentionEventId,
+    initial.failureEventId,
+    initial.initialExplanationEventId,
+  ] : [
+    initial.requestEventId,
+    initial.intentionEventId,
+    initial.failureEventId,
+    initial.initialExplanationEventId,
+    revised.correctionEventId,
   ];
-  const evidenceIds = [ids.e1Id, ids.e2Id, ids.e3Id];
+  const evidenceIds = memory.version === 1 ? [initial.e1Id, initial.e2Id, initial.e3Id] : [
+    initial.e1Id,
+    initial.e2Id,
+    initial.e3Id,
+    revised.e4Id,
+    revised.e5Id,
+  ];
   const events = await Promise.all(eventIds.map((id) => requiredRead(persistence.readEventById(lenoseedId, id), "Event", id)));
   const evidence = await Promise.all(evidenceIds.map((id) => requiredRead(persistence.readEvidenceItem(lenoseedId, id), "EvidenceItem", id)));
   const sourceIds = [...new Set(events.map((event) => event.sourceId))];
@@ -129,5 +151,31 @@ function buildV1Snapshot(
     reportedOutcome,
     currentFailureAttribution,
     configurationACompatibility: "unknown",
+  };
+}
+
+function buildV2Snapshot(
+  memory: Memory,
+  evidenceItemsById: ReadonlyMap<EntityId, EvidenceItem>,
+): G0A3MemoryDecisionSnapshot {
+  const ids = revisedIds(memory.lenoseedId);
+  const selectedConfiguration = evidenceItemsById.get(ids.e1Id)?.proposition.value;
+  const reportedOutcome = evidenceItemsById.get(ids.e2Id)?.proposition.value;
+  const configurationACompatibility = evidenceItemsById.get(ids.e4Id)?.proposition.value;
+  const currentFailureAttribution = evidenceItemsById.get(ids.e5Id)?.proposition.value;
+  if (
+    selectedConfiguration !== "A" ||
+    reportedOutcome !== "failure" ||
+    configurationACompatibility !== "compatible" ||
+    currentFailureAttribution !== "cable_c_disconnected"
+  ) {
+    throw new DomainInvariantError("G0-A3 Memory v2 evidence does not support a decision snapshot");
+  }
+  return {
+    memory,
+    selectedConfiguration,
+    reportedOutcome,
+    currentFailureAttribution,
+    configurationACompatibility,
   };
 }

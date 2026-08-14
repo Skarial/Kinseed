@@ -29,10 +29,13 @@ export const G0A3_INITIAL_MEMORY_GIST =
 export const G0A3_REVISED_MEMORY_GIST =
   "Lors de l’épisode EP-G0A3-CALIBRATION-01, nous avons choisi la configuration A pour le test et l’opérateur a signalé l’échec de la calibration ; une correction ultérieure indique que A était compatible et que le câble C était débranché.";
 
-export interface G0A3MemoryValidationContext {
+export interface G0A3MemoryCanonicalContentContext {
   readonly sourcesById: ReadonlyMap<EntityId, Source>;
   readonly eventsById: ReadonlyMap<EntityId, Event>;
   readonly evidenceItemsById: ReadonlyMap<EntityId, EvidenceItem>;
+}
+
+export interface G0A3MemoryValidationContext extends G0A3MemoryCanonicalContentContext {
   readonly memoryHistory: readonly Memory[];
   /** Required for v2 so a pre-commit candidate cannot be confused with durable history. */
   readonly revisedMemoryValidationMode?: "planned" | "durable";
@@ -43,6 +46,32 @@ export function validateG0A3Memory(
   candidate: Memory,
   context: G0A3MemoryValidationContext,
 ): void {
+  const expectedV1 = validateCanonicalContent(candidate, context);
+  validateHistory(context.memoryHistory, expectedV1);
+
+  if (candidate.version === 1) {
+    validateInitialHistoryRole(candidate, context);
+    return;
+  }
+
+  validateRevisedHistoryRole(candidate, expectedV1, context);
+}
+
+/**
+ * Validates canonical G0-A3 Memory content and its directly referenced
+ * provenance without making any claim about the durable Memory history.
+ */
+export function validateG0A3MemoryCanonicalContent(
+  candidate: Memory,
+  context: G0A3MemoryCanonicalContentContext,
+): void {
+  validateCanonicalContent(candidate, context);
+}
+
+function validateCanonicalContent(
+  candidate: Memory,
+  context: G0A3MemoryCanonicalContentContext,
+): Memory {
   if (candidate.version !== 1 && candidate.version !== 2) {
     throw new DomainInvariantError("G0-A3 Memory supports only versions 1 and 2");
   }
@@ -58,11 +87,10 @@ export function validateG0A3Memory(
 
   validateInitialProvenance(context, request, intention, failure, initialExplanation, e1, e2, e3);
   const expectedV1 = buildG0A3InitialMemory(candidate.lenoseedId, initialExplanation.occurredAt);
-  validateHistory(context.memoryHistory, expectedV1);
 
   if (candidate.version === 1) {
-    validateInitialCandidate(candidate, expectedV1, context);
-    return;
+    validateInitialContent(candidate, expectedV1);
+    return expectedV1;
   }
 
   const revised = revisedIds(candidate.lenoseedId);
@@ -70,7 +98,8 @@ export function validateG0A3Memory(
   const e4 = requiredEvidence(context, revised.e4Id);
   const e5 = requiredEvidence(context, revised.e5Id);
   validateRevisedProvenance(context, correction, initialExplanation, e3, e4, e5);
-  validateRevisedCandidate(candidate, expectedV1, correction, context);
+  validateRevisedContent(candidate, expectedV1, correction);
+  return expectedV1;
 }
 
 export function buildG0A3InitialMemory(lenoseedId: EntityId, createdAt: string): Memory {
@@ -145,7 +174,7 @@ export function revisedIds(lenoseedId: EntityId) {
 }
 
 function validateInitialProvenance(
-  context: G0A3MemoryValidationContext,
+  context: G0A3MemoryCanonicalContentContext,
   request: Event,
   intention: Event,
   failure: Event,
@@ -172,14 +201,19 @@ function validateInitialProvenance(
   assertGroundedTestimony(e3, initialExplanation);
 }
 
-function validateInitialCandidate(
+function validateInitialContent(
   candidate: Memory,
   expected: Memory,
-  context: G0A3MemoryValidationContext,
 ): void {
   if (!sameMemoryExceptStatus(candidate, expected) || !["active", "revised"].includes(candidate.status)) {
     throw new DomainInvariantError("G0-A3 initial Memory has invalid immutable fields");
   }
+}
+
+function validateInitialHistoryRole(
+  candidate: Memory,
+  context: G0A3MemoryValidationContext,
+): void {
   if (candidate.status === "revised") {
     const [v1, v2] = context.memoryHistory;
     if (
@@ -201,7 +235,7 @@ function validateInitialCandidate(
 }
 
 function validateRevisedProvenance(
-  context: G0A3MemoryValidationContext,
+  context: G0A3MemoryCanonicalContentContext,
   correction: Event,
   initialExplanation: Event,
   e3: EvidenceItem,
@@ -220,14 +254,20 @@ function validateRevisedProvenance(
   assertGroundedTestimony(e5, correction);
 }
 
-function validateRevisedCandidate(
+function validateRevisedContent(
   candidate: Memory,
   expectedV1: Memory,
   correction: Event,
-  context: G0A3MemoryValidationContext,
 ): void {
   const expected = buildG0A3RevisedMemory(candidate.lenoseedId, correction.occurredAt, expectedV1.id);
   assertExact(candidate, expected, "G0-A3 revised Memory");
+}
+
+function validateRevisedHistoryRole(
+  candidate: Memory,
+  expectedV1: Memory,
+  context: G0A3MemoryValidationContext,
+): void {
   if (context.revisedMemoryValidationMode === "planned") {
     if (
       context.memoryHistory.length !== 1 ||
@@ -252,20 +292,20 @@ function validateRevisedCandidate(
   throw new DomainInvariantError("G0-A3 revised Memory requires an explicit planned or durable validation mode");
 }
 
-function requiredEvent(context: G0A3MemoryValidationContext, id: EntityId): Event {
+function requiredEvent(context: G0A3MemoryCanonicalContentContext, id: EntityId): Event {
   const event = context.eventsById.get(id);
   if (event === undefined) throw new DomainInvariantError(`G0-A3 Memory requires Event ${id}`);
   return event;
 }
 
-function requiredEvidence(context: G0A3MemoryValidationContext, id: EntityId): EvidenceItem {
+function requiredEvidence(context: G0A3MemoryCanonicalContentContext, id: EntityId): EvidenceItem {
   const evidence = context.evidenceItemsById.get(id);
   if (evidence === undefined) throw new DomainInvariantError(`G0-A3 Memory requires EvidenceItem ${id}`);
   return evidence;
 }
 
 function assertSource(
-  context: G0A3MemoryValidationContext,
+  context: G0A3MemoryCanonicalContentContext,
   event: Event,
   sourceId: EntityId,
   kind: Source["kind"],

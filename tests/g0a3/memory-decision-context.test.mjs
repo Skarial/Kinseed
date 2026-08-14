@@ -4,13 +4,17 @@ import assert from "node:assert/strict";
 import { InMemoryStore } from "../../dist/adapters/in-memory-store.js";
 import { buildG0A3MemoryDecisionContext } from "../../dist/application/build-g0a3-memory-decision-context.js";
 import { consolidateG0A3Memory } from "../../dist/application/consolidate-g0a3-memory.js";
+import { reviseG0A3Memory } from "../../dist/application/revise-g0a3-memory.js";
 import {
   buildG0A3CalibrationFailureTestimony,
   buildG0A3CalibrationFixtureEventId,
   buildG0A3CalibrationFixtureEventIdempotencyKey,
   buildG0A3InitialFailureCauseTestimony,
+  G0A3_CORRECTION_TEXT,
+  materializeG0A3CorrectionEvidence,
   materializeG0A3InitialCalibrationEvidence,
 } from "../../dist/application/materialize-g0a3-calibration-evidence.js";
+import { revisedIds } from "../../dist/application/validate-g0a3-memory.js";
 import { DomainInvariantError } from "../../dist/domain/errors.js";
 import {
   G0A3_FUTURE_SITUATION_ID,
@@ -34,7 +38,7 @@ const fixtureBuilderEvent = { id: "E-FIXTURE", lenoseedId, sourceId: operatorSou
 const failureText = buildG0A3CalibrationFailureTestimony(fixtureBuilderEvent).grounding.supportingExcerpt;
 const explanationText = buildG0A3InitialFailureCauseTestimony(fixtureBuilderEvent).grounding.supportingExcerpt;
 
-async function createScenario({ memory = true } = {}) {
+async function createScenario({ memory = true, revised = false } = {}) {
   const store = new InMemoryStore();
   await store.registerSource({ id: systemSourceId, kind: "system", actorRef: null, channel: "test", createdAt });
   await store.registerSource({ id: operatorSourceId, kind: "human", actorRef: operatorActorRef, channel: "test", createdAt });
@@ -49,8 +53,20 @@ async function createScenario({ memory = true } = {}) {
   const initialExplanation = humanFixture("calibration-01-initial-explanation", 5, "initial_failure_explanation", explanationText);
   for (const item of [request, intention, failure, initialExplanation]) await store.appendEvent(item);
   await materializeG0A3InitialCalibrationEvidence({ lenoseedId, configurationRequestEventId: request.id, intentionEventId: intention.id, failureEventId: failure.id, initialExplanationEventId: initialExplanation.id }, store);
-  const result = memory ? await consolidateG0A3Memory(consolidationInput(), store) : null;
-  return { store, memory: result?.memory ?? null };
+  const initial = memory ? (await consolidateG0A3Memory(consolidationInput(), store)).memory : null;
+  let corrected = null;
+  if (revised) {
+    if (initial === null) throw new Error("A G0-A3 v2 scenario requires v1");
+    const correction = humanFixture("calibration-01-correction", 8, "failure_explanation_correction", G0A3_CORRECTION_TEXT);
+    await store.appendEvent(correction);
+    await materializeG0A3CorrectionEvidence({
+      lenoseedId,
+      initialExplanationEventId: initialExplanation.id,
+      correctionEventId: correction.id,
+    }, store);
+    corrected = (await reviseG0A3Memory(revisionInput(), store)).memory;
+  }
+  return { store, memory: corrected ?? initial, initialMemory: initial, revisedMemory: corrected };
 }
 
 function identity(suffix) {
@@ -77,6 +93,18 @@ function consolidationInput() {
       `EV-G0A3-TESTIMONY-${buildG0A3CalibrationFixtureEventId(lenoseedId, "calibration-01-initial-explanation")}-cause`,
     ],
     expectedStateVersion: 1, engineVersion: "lenoseed-g0a3-memory-consolidation-v1",
+  };
+}
+
+function revisionInput() {
+  const ids = revisedIds(lenoseedId);
+  return {
+    lenoseedId,
+    episodeKey,
+    systemSourceId,
+    evidenceItemIds: [ids.e1Id, ids.e2Id, ids.e4Id, ids.e5Id],
+    expectedStateVersion: 3,
+    engineVersion: "lenoseed-g0a3-memory-revision-v2",
   };
 }
 
@@ -118,6 +146,8 @@ function noForbiddenReads(store, calls = {}) {
       };
       if (["readEventById", "readEvidenceItem", "readSource"].includes(property)) return async (...args) => {
         calls[String(property)] = (calls[String(property)] ?? 0) + 1;
+        const ids = `${String(property)}Ids`;
+        calls[ids] = [...(calls[ids] ?? []), args[1]];
         return target[property](...args);
       };
       const value = Reflect.get(target, property, receiver);
@@ -222,21 +252,104 @@ test("G0-A3 builder rejects a falsified v1 before it enters the decision snapsho
   assert.equal(await store.getStateVersion(lenoseedId), before);
 });
 
-test("G0-A3 decision builder does not claim to validate a production Memory v2", async () => {
-  const { store, memory } = await createScenario();
+test("G0-A3 active v2 is retrieved by targeted provenance and drives the corrected decision", async () => {
+  const { store, memory, initialMemory } = await createScenario({ revised: true });
   const before = await store.getStateVersion(lenoseedId);
-  const persistence = new Proxy(store, {
-    get(target, property, receiver) {
-      if (property === "readActiveMemoryByKey") return async () => ({ ...memory, version: 2, status: "active", revisionOf: memory.id });
-      if (["readEventById", "readEvidenceItem", "readSource"].includes(property)) {
-        return () => { throw new Error("v2 must be rejected before provenance reads"); };
-      }
-      const value = Reflect.get(target, property, receiver);
-      return typeof value === "function" ? value.bind(target) : value;
-    },
+  const calls = {};
+  const context = await buildG0A3MemoryDecisionContext(input(situation(before)), noForbiddenReads(store, calls));
+  assert.equal(memory.version, 2);
+  assert.equal((await store.readMemory(lenoseedId, initialMemory.id)).status, "revised");
+  assert.equal(calls.active, 1);
+  assert.equal(calls.key, buildG0A3MemoryKey(lenoseedId, episodeKey));
+  assert.equal(calls.readEventById, 5);
+  assert.equal(calls.readEvidenceItem, 5);
+  assert.equal(calls.readSource, 2);
+  const ids = revisedIds(lenoseedId);
+  assert.deepEqual(calls.readEventByIdIds, [
+    ids.requestEventId,
+    ids.intentionEventId,
+    ids.failureEventId,
+    ids.initialExplanationEventId,
+    ids.correctionEventId,
+  ]);
+  assert.deepEqual(calls.readEvidenceItemIds, [ids.e1Id, ids.e2Id, ids.e3Id, ids.e4Id, ids.e5Id]);
+  assert.deepEqual(context.memorySnapshot, {
+    memory,
+    selectedConfiguration: "A",
+    reportedOutcome: "failure",
+    currentFailureAttribution: "cable_c_disconnected",
+    configurationACompatibility: "compatible",
   });
-  await assert.rejects(() => buildG0A3MemoryDecisionContext(input(situation(before)), persistence), DomainInvariantError);
+  assert.deepEqual(selectG0A3MemoryDecision(context), {
+    selectedKind: "use_configuration_a_after_checking_cable_c",
+    motivation: "apply_active_g0a3_memory_check_corrected_cable_cause",
+    triggerMemoryIds: [memory.id],
+  });
+
+  const ablationCalls = {};
+  const ablation = await buildG0A3MemoryDecisionContext(
+    input(situation(before), false),
+    noForbiddenReads(store, ablationCalls),
+  );
+  assert.equal(ablation.memorySnapshot, null);
+  assert.equal(ablationCalls.active, undefined);
+  assert.deepEqual(selectG0A3MemoryDecision(ablation), {
+    selectedKind: "request_new_diagnostic",
+    motivation: "apply_neutral_g0a3_policy_without_memory",
+    triggerMemoryIds: [],
+  });
   assert.equal(await store.getStateVersion(lenoseedId), before);
+});
+
+test("G0-A3 builder rejects unsupported or falsified active v2 before a decision snapshot", async (t) => {
+  const cases = [
+    ["forged gist", (memory) => ({ ...memory, gist: "forged gist" })],
+    ["forged revisionOf", (memory) => ({ ...memory, revisionOf: "MEM-FORGED" })],
+    ["forged event ids", (memory) => ({ ...memory, eventIds: [...memory.eventIds].reverse() })],
+    ["forged evidence ids", (memory) => ({ ...memory, evidenceItemIds: [...memory.evidenceItemIds].reverse() })],
+    ["revised status", (memory) => ({ ...memory, status: "revised" })],
+    ["version zero", (memory) => ({ ...memory, version: 0 })],
+    ["version three", (memory) => ({ ...memory, version: 3 })],
+    ["other Lenoseed", (memory) => ({ ...memory, lenoseedId: otherLenoseedId })],
+  ];
+  for (const [name, mutateMemory] of cases) await t.test(name, async () => {
+    const { store, memory } = await createScenario({ revised: true });
+    const before = await store.getStateVersion(lenoseedId);
+    const persistence = new Proxy(store, {
+      get(target, property, receiver) {
+        if (property === "readActiveMemoryByKey") return async (...args) => mutateMemory(await target.readActiveMemoryByKey(...args));
+        const value = Reflect.get(target, property, receiver);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    await assert.rejects(() => buildG0A3MemoryDecisionContext(input(situation(before)), persistence), DomainInvariantError);
+    assert.equal(await store.getStateVersion(lenoseedId), before);
+    assert.deepEqual(await store.readActiveMemoryByKey(lenoseedId, memory.memoryKey), memory);
+  });
+
+  const provenanceCases = [
+    ["missing correction Event", "readEventById", (id, item) => id.endsWith("calibration-01-correction") ? null : item],
+    ["falsified correction Event", "readEventById", (id, item) => id.endsWith("calibration-01-correction") ? { ...item, payload: { ...item.payload, text: "forged correction" } } : item],
+    ["missing initial explanation Event", "readEventById", (id, item) => id === revisedIds(lenoseedId).initialExplanationEventId ? null : item],
+    ["missing E3", "readEvidenceItem", (id, item) => id === revisedIds(lenoseedId).e3Id ? null : item],
+    ["missing E4", "readEvidenceItem", (id, item) => id === revisedIds(lenoseedId).e4Id ? null : item],
+    ["falsified E4", "readEvidenceItem", (id, item) => id === revisedIds(lenoseedId).e4Id ? { ...item, proposition: { ...item.proposition, value: "incompatible" } } : item],
+    ["missing E5", "readEvidenceItem", (id, item) => id === revisedIds(lenoseedId).e5Id ? null : item],
+    ["falsified E5 supersession", "readEvidenceItem", (id, item) => id === revisedIds(lenoseedId).e5Id ? { ...item, supersedesId: "EV-FORGED" } : item],
+  ];
+  for (const [name, property, mutateRead] of provenanceCases) await t.test(name, async () => {
+    const { store } = await createScenario({ revised: true });
+    const before = await store.getStateVersion(lenoseedId);
+    const persistence = new Proxy(store, {
+      get(target, readProperty, receiver) {
+        if (readProperty === property) return async (...args) => mutateRead(args[1], await target[property](...args));
+        const value = Reflect.get(target, readProperty, receiver);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    await assert.rejects(() => buildG0A3MemoryDecisionContext(input(situation(before)), persistence), DomainInvariantError);
+    assert.equal(await store.getStateVersion(lenoseedId), before);
+  });
 });
 
 test("G0-A3 pure selector uses closed structured snapshots, never the gist", async () => {
