@@ -14,7 +14,7 @@ export const G0A3_CONFIGURATION_REQUEST_TEXT = "Utilise la configuration A pour 
 export const G0A3_CALIBRATION_FAILURE_TEXT = "La calibration a échoué.";
 export const G0A3_INITIAL_EXPLANATION_TEXT =
   "D’après le contrôle initial, la configuration A est incompatible avec ce capteur.";
-const CORRECTION_TEXT =
+export const G0A3_CORRECTION_TEXT =
   "Correction : la configuration A était compatible. L’échec venait du câble C, qui était débranché.";
 const E4_SUPPORTING_EXCERPT = "la configuration A était compatible";
 const E5_SUPPORTING_EXCERPT = "L’échec venait du câble C, qui était débranché.";
@@ -110,7 +110,7 @@ export async function materializeG0A3CorrectionEvidence(
   await validateHumanFixture(
     correction,
     "failure_explanation_correction",
-    CORRECTION_TEXT,
+    G0A3_CORRECTION_TEXT,
     persistence,
   );
   if (correction.sequence <= initialExplanation.sequence) {
