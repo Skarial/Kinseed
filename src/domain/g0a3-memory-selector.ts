@@ -49,10 +49,26 @@ export function validateG0A3FutureSituationEvent(event: Event): void {
   if (
     event.type !== "human_message_received" ||
     event.payloadSchemaVersion !== 3 ||
+    event.turnId === null ||
+    !hasExactOwnKeys(event.payload, Object.keys(expectedPayload)) ||
     !jsonEquals(event.payload, expectedPayload)
   ) {
     throw new DomainInvariantError(`Event ${event.id} is not a valid G0-A3 future situation`);
   }
+}
+
+function hasExactOwnKeys(value: unknown, expectedKeys: readonly string[]): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const ownKeys = Reflect.ownKeys(value);
+  return (
+    ownKeys.length === expectedKeys.length &&
+    ownKeys.every(
+      (key) =>
+        typeof key === "string" &&
+        expectedKeys.includes(key) &&
+        Object.prototype.hasOwnProperty.call(value, key),
+    )
+  );
 }
 
 export function selectG0A3MemoryDecision(

@@ -28,6 +28,7 @@ const operatorSourceId = "SRC-G0A3-OPERATOR";
 const operatorActorRef = "OP-G0A3-001";
 const createdAt = "2026-08-14T09:00:00.000Z";
 const episodeKey = G0A3_RELEVANT_EPISODE_KEY;
+const futureTurnId = "T-G0A3-CALIBRATION-02";
 const requestText = "Utilise la configuration A pour le test de calibration.";
 const fixtureBuilderEvent = { id: "E-FIXTURE", lenoseedId, sourceId: operatorSourceId, occurredAt: createdAt };
 const failureText = buildG0A3CalibrationFailureTestimony(fixtureBuilderEvent).grounding.supportingExcerpt;
@@ -64,7 +65,7 @@ function humanFixture(suffix, sequence, fixtureKind, text) {
 }
 
 function event(overrides) {
-  return { id: overrides.id, lenoseedId: overrides.lenoseedId ?? lenoseedId, sequence: overrides.sequence, type: overrides.type, occurredAt: overrides.occurredAt ?? `2026-08-14T09:00:0${overrides.sequence}.000Z`, turnId: null, sourceId: overrides.sourceId, actorRef: overrides.actorRef ?? null, causedByEventIds: overrides.causedByEventIds ?? [], observedStateVersion: overrides.observedStateVersion ?? 0, payload: overrides.payload, payloadSchemaVersion: overrides.payloadSchemaVersion, engineVersion: "g0a3-memory-decision-context-test", idempotencyKey: overrides.idempotencyKey ?? overrides.id };
+  return { id: overrides.id, lenoseedId: overrides.lenoseedId ?? lenoseedId, sequence: overrides.sequence, type: overrides.type, occurredAt: overrides.occurredAt ?? `2026-08-14T09:00:0${overrides.sequence}.000Z`, turnId: overrides.turnId ?? null, sourceId: overrides.sourceId, actorRef: overrides.actorRef ?? null, causedByEventIds: overrides.causedByEventIds ?? [], observedStateVersion: overrides.observedStateVersion ?? 0, payload: overrides.payload, payloadSchemaVersion: overrides.payloadSchemaVersion, engineVersion: "g0a3-memory-decision-context-test", idempotencyKey: overrides.idempotencyKey ?? overrides.id };
 }
 
 function consolidationInput() {
@@ -92,6 +93,7 @@ function situation(observedStateVersion, overrides = {}) {
   return event({
     id: "E-G0A3-CALIBRATION-02", sequence: 20, type: "human_message_received", sourceId: operatorSourceId,
     observedStateVersion, payload, payloadSchemaVersion: overrides.payloadSchemaVersion ?? 3,
+    turnId: Object.prototype.hasOwnProperty.call(overrides, "turnId") ? overrides.turnId : futureTurnId,
     lenoseedId: overrides.lenoseedId, ...overrides,
   });
 }
@@ -134,8 +136,20 @@ test("G0-A3 future situation validation is closed and canonical", () => {
     situation(2, { payload: { cableCanBeChecked: false } }),
     situation(2, { payload: { recommendation: "use_configuration_b" } }),
     situation(2, { payload: { relevantEpisodeKey: "EP-OTHER" } }),
+    situation(2, { turnId: null }),
   ];
   for (const item of invalid) assert.throws(() => validateG0A3FutureSituationEvent(item), DomainInvariantError);
+
+  const nonEnumerable = situation(2);
+  Object.defineProperty(nonEnumerable.payload, "recommendedAction", {
+    value: "use_configuration_b",
+    enumerable: false,
+  });
+  assert.throws(() => validateG0A3FutureSituationEvent(nonEnumerable), DomainInvariantError);
+
+  const symbol = situation(2);
+  symbol.payload[Symbol("recommendedAction")] = "use_configuration_b";
+  assert.throws(() => validateG0A3FutureSituationEvent(symbol), DomainInvariantError);
 });
 
 test("G0-A3 decision context validates Lenoseed and durable situation boundary", async () => {
