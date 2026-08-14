@@ -74,18 +74,94 @@ function withTurnEvents(store, transform) {
   }});
 }
 
+const replayForbiddenMethods = [
+  "getStateVersion",
+  "readSource",
+  "readEventsInSequence",
+  "readActiveMemoryByKey",
+  "readMemory",
+  "readMemoryHistoryByKey",
+  "readEvidenceItem",
+  "readEventById",
+  "atomicCommit",
+  "appendEvent",
+];
+
+function replayOnlyPersistence(store) {
+  return new Proxy(store, { get(target, property, receiver) {
+    if (replayForbiddenMethods.includes(property)) return () => { throw new Error(`${String(property)} must not be called during replay`); };
+    const value = Reflect.get(target, property, receiver);
+    return typeof value === "function" ? value.bind(target) : value;
+  }});
+}
+
 test("G0-A3 v1 persists the canonical situation and Memory-driven intention without a state commit", async () => {
   const { store, memory } = await createScenario();
   const before = await store.getStateVersion(lenoseedId);
   const result = await selectG0A3MemoryIntention(input(), store);
   assert.equal(result.replayed, false);
-  assert.deepEqual({ kind: result.intention.kind, motivation: result.intention.motivation, triggerMemoryIds: result.intention.triggerMemoryIds }, { kind: "use_configuration_b", motivation: "apply_active_g0a3_memory_avoid_reported_incompatibility", triggerMemoryIds: [memory.id] });
+  assert.deepEqual(result.intention, {
+    id: `I-${turnId}`,
+    lenoseedId,
+    kind: "use_configuration_b",
+    target: humanActorRef,
+    triggerEventIds: [result.situationEvent.id],
+    triggerEvidenceItemIds: [],
+    triggerBeliefIds: [],
+    triggerSelfHypothesisIds: [],
+    triggerMemoryIds: [memory.id],
+    motivation: "apply_active_g0a3_memory_avoid_reported_incompatibility",
+    observedStateVersion: before,
+    status: "selected",
+    createdAt: input().occurredAt,
+  });
   assert.deepEqual(result.situationEvent.payload, { text: "Une nouvelle calibration du même modèle de capteur doit être lancée.\nLes configurations A et B sont disponibles.\nLe câble C peut être vérifié avant le lancement.", protocol: "G0-A3", situationId: "S-G0A3-CALIBRATION-02", relevantEpisodeKey: episodeKey, availableConfigurations: ["A", "B"], cableCanBeChecked: true });
   assert.deepEqual({ id: result.situationEvent.id, idempotencyKey: result.situationEvent.idempotencyKey, type: result.situationEvent.type, turnId: result.situationEvent.turnId, sourceId: result.situationEvent.sourceId, actorRef: result.situationEvent.actorRef, causedByEventIds: result.situationEvent.causedByEventIds, observedStateVersion: result.situationEvent.observedStateVersion, payloadSchemaVersion: result.situationEvent.payloadSchemaVersion, occurredAt: result.situationEvent.occurredAt, engineVersion: result.situationEvent.engineVersion }, { id: `E-${turnId}-input`, idempotencyKey: `${turnId}:input`, type: "human_message_received", turnId, sourceId: humanSourceId, actorRef: humanActorRef, causedByEventIds: [], observedStateVersion: before, payloadSchemaVersion: 3, occurredAt: input().occurredAt, engineVersion });
-  assert.deepEqual(result.intentionEvent.payload, { intentionId: `I-${turnId}`, protocol: "G0-A3", situationId: "S-G0A3-CALIBRATION-02", kind: "use_configuration_b", motivation: "apply_active_g0a3_memory_avoid_reported_incompatibility", triggerEventIds: [result.situationEvent.id], triggerMemoryIds: [memory.id] });
-  assert.equal(result.intentionEvent.sequence, result.situationEvent.sequence + 1);
+  const { sequence: intentionSequence, ...intentionEvent } = result.intentionEvent;
+  assert.ok(intentionSequence > result.situationEvent.sequence);
+  assert.deepEqual(intentionEvent, {
+    id: `E-${turnId}-intention`,
+    lenoseedId,
+    type: "intention_selected",
+    occurredAt: input().occurredAt,
+    turnId,
+    sourceId: systemSourceId,
+    actorRef: null,
+    causedByEventIds: [result.situationEvent.id],
+    observedStateVersion: before,
+    payload: {
+      intentionId: `I-${turnId}`,
+      protocol: "G0-A3",
+      situationId: "S-G0A3-CALIBRATION-02",
+      kind: "use_configuration_b",
+      motivation: "apply_active_g0a3_memory_avoid_reported_incompatibility",
+      triggerEventIds: [result.situationEvent.id],
+      triggerMemoryIds: [memory.id],
+    },
+    payloadSchemaVersion: 3,
+    engineVersion,
+    idempotencyKey: `${turnId}:intention`,
+  });
   assert.equal(await store.getStateVersion(lenoseedId), before);
   assert.deepEqual(await store.readActiveMemoryByKey(lenoseedId, buildG0A3MemoryKey(lenoseedId, episodeKey)), memory);
+});
+
+test("G0-A3 reads the turn history before any new-turn dependency", async () => {
+  const { store } = await createScenario();
+  const calls = [];
+  const persistence = new Proxy(store, { get(target, property, receiver) {
+    const value = Reflect.get(target, property, receiver);
+    if (typeof value !== "function") return value;
+    return async (...args) => {
+      calls.push({ property, args });
+      return value.apply(target, args);
+    };
+  }});
+  await selectG0A3MemoryIntention(input(), persistence);
+  assert.deepEqual(calls[0], { property: "readEventsByTurn", args: [lenoseedId, turnId] });
+  for (const property of ["readSource", "getStateVersion", "readEventsInSequence", "readActiveMemoryByKey", "appendEvent"]) {
+    assert.ok(calls.findIndex((call) => call.property === property) > 0, `${property} follows readEventsByTurn`);
+  }
 });
 
 test("G0-A3 C1 and ablation are neutral without reconstructing or consuming Memory", async () => {
@@ -125,12 +201,7 @@ test("G0-A3 C1 and ablation are neutral without reconstructing or consuming Memo
 test("G0-A3 complete replay ignores current Memory access and includeMemory", async () => {
   const { store } = await createScenario();
   const first = await selectG0A3MemoryIntention(input(), store);
-  const replayPort = new Proxy(store, { get(target, property, receiver) {
-    if (["getStateVersion", "readActiveMemoryByKey", "readMemory", "readMemoryHistoryByKey", "readEvidenceItem", "readEventById", "atomicCommit"].includes(property)) return () => { throw new Error(`${String(property)} must not be called during replay`); };
-    const value = Reflect.get(target, property, receiver);
-    return typeof value === "function" ? value.bind(target) : value;
-  }});
-  const replay = await selectG0A3MemoryIntention(input({ includeMemory: false }), replayPort);
+  const replay = await selectG0A3MemoryIntention(input({ includeMemory: false }), replayOnlyPersistence(store));
   assert.equal(replay.replayed, true);
   assert.deepEqual(replay.intention, first.intention);
   assert.deepEqual(replay.intentionEvent, first.intentionEvent);
@@ -192,20 +263,19 @@ test("G0-A3 rejects an orphaned situation after an interrupted first attempt", a
   await assert.rejects(() => selectG0A3MemoryIntention(input(), interrupted), /interrupted Memory read/);
   assert.equal(situationWritten, true);
   assert.equal((await store.readEventsByTurn(lenoseedId, turnId)).filter((item) => item.type === "intention_selected").length, 0);
-  const retry = new Proxy(store, { get(target, property, receiver) {
-    if (["readSource", "getStateVersion", "readActiveMemoryByKey"].includes(property)) return () => { throw new Error("must not reselect"); };
-    const value = Reflect.get(target, property, receiver);
-    return typeof value === "function" ? value.bind(target) : value;
-  }});
-  await assert.rejects(() => selectG0A3MemoryIntention(input(), retry), DomainInvariantError);
+  const eventCountBeforeRetry = (await store.readEventsInSequence(lenoseedId)).length;
+  await assert.rejects(() => selectG0A3MemoryIntention(input(), replayOnlyPersistence(store)), DomainInvariantError);
+  assert.equal((await store.readEventsInSequence(lenoseedId)).length, eventCountBeforeRetry);
 });
 
 test("G0-A3 validates sources before it writes the situation", async (t) => {
   const replacements = [
     ["missing human", async (target, id) => id === humanSourceId ? null : target.readSource(id)],
     ["human actor mismatch", async (target, id) => id === humanSourceId ? { id, kind: "human", actorRef: "OP-FORGED", channel: "test", createdAt } : target.readSource(id)],
+    ["human source id mismatch", async (target, id) => id === humanSourceId ? { id: "SRC-FORGED", kind: "human", actorRef: humanActorRef, channel: "test", createdAt } : target.readSource(id)],
     ["missing system", async (target, id) => id === systemSourceId ? null : target.readSource(id)],
     ["non-system source", async (target, id) => id === systemSourceId ? { id, kind: "human", actorRef: humanActorRef, channel: "test", createdAt } : target.readSource(id)],
+    ["system source id mismatch", async (target, id) => id === systemSourceId ? { id: "SRC-FORGED", kind: "system", actorRef: null, channel: "test", createdAt } : target.readSource(id)],
   ];
   for (const [name, readSource] of replacements) {
     await t.test(name, async () => {
@@ -231,6 +301,8 @@ test("G0-A3 closes malformed historical decision payloads and impossible turn sh
     ["wrong kind", (events) => events.map((item) => item.type === "intention_selected" ? { ...item, payload: { ...item.payload, kind: "answer_question" } } : item)],
     ["wrong motivation", (events) => events.map((item) => item.type === "intention_selected" ? { ...item, payload: { ...item.payload, motivation: "forged" } } : item)],
     ["wrong trigger", (events) => events.map((item) => item.type === "intention_selected" ? { ...item, payload: { ...item.payload, triggerMemoryIds: [] } } : item)],
+    ["enumerable payload field", (events) => events.map((item) => item.type === "intention_selected" ? { ...item, payload: { ...item.payload, recommendedAction: "use_configuration_b" } } : item)],
+    ["missing payload field", (events) => events.map((item) => { if (item.type !== "intention_selected") return item; const { triggerMemoryIds, ...payload } = item.payload; return { ...item, payload }; })],
     ["hidden payload field", (events) => events.map((item) => { if (item.type !== "intention_selected") return item; const payload = { ...item.payload }; Object.defineProperty(payload, "hidden", { value: true, enumerable: false }); return { ...item, payload }; })],
     ["symbol payload field", (events) => events.map((item) => { if (item.type !== "intention_selected") return item; const payload = { ...item.payload }; payload[Symbol("hidden")] = true; return { ...item, payload }; })],
     ["wrong cause", (events) => events.map((item) => item.type === "intention_selected" ? { ...item, causedByEventIds: [] } : item)],
