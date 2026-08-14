@@ -78,6 +78,26 @@ function memoryKey() { return buildG0A3MemoryKey(lenoseedId, episodeKey); }
 function checkpoint(events) { return events.find((item) => item.type === "validation_decision_recorded" && item.payload.scope === "memory_consolidation"); }
 function completion(events) { return events.find((item) => item.type === "state_commit_completed" && item.payload.scope === "memory_consolidation"); }
 
+async function appendFutureV2(store) {
+  const first = await consolidateG0A3Memory(input(), store);
+  const revisedV1 = { ...first.memory, status: "revised" };
+  const v2 = {
+    ...first.memory,
+    id: first.memory.id.replace("-v1", "-v2"),
+    version: 2,
+    gist: "Future revision fixture.",
+    status: "active",
+    revisionOf: first.memory.id,
+  };
+  await store.atomicCommit(
+    lenoseedId,
+    2,
+    { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [], memories: [revisedV1, v2] },
+    "g0a3:future-v2-fixture",
+  );
+  return { first, v2 };
+}
+
 test("G0-A3 v1 consolidates only E1 E2 E3 into the exact active Memory", async () => {
   const { store, intention, failure, initialExplanation } = await createScenario();
   const result = await consolidateG0A3Memory(input(), store);
@@ -154,22 +174,7 @@ test("G0-A3 v1 recovery R4 replays checkpoint completion and durable state witho
 
 test("G0-A3 v1 R4 accepts its historical snapshot after a future v2 revision", async () => {
   const { store } = await createScenario();
-  const first = await consolidateG0A3Memory(input(), store);
-  const revisedV1 = { ...first.memory, status: "revised" };
-  const v2 = {
-    ...first.memory,
-    id: first.memory.id.replace("-v1", "-v2"),
-    version: 2,
-    gist: "Future revision fixture.",
-    status: "active",
-    revisionOf: first.memory.id,
-  };
-  await store.atomicCommit(
-    lenoseedId,
-    2,
-    { evidenceItems: [], evidenceLinks: [], beliefs: [], selfHypotheses: [], memories: [revisedV1, v2] },
-    "g0a3:future-v2-fixture",
-  );
+  const { first } = await appendFutureV2(store);
   const replay = await consolidateG0A3Memory(input(), store);
   assert.equal(replay.replayed, true);
   assert.equal(replay.memory.status, "active");
@@ -204,6 +209,84 @@ test("G0-A3 v1 rejects R5 completion without checkpoint and R6 falsified checkpo
     await assert.rejects(() => consolidateG0A3Memory(input(), persistence), DomainInvariantError);
     assert.equal(await store.getStateVersion(lenoseedId), 1);
   });
+  await t.test("hidden checkpoint snapshot field", async () => {
+    const { store } = await createScenario();
+    store.failNextAtomicCommitForTests();
+    await assert.rejects(() => consolidateG0A3Memory(input(), store));
+    const persistence = new Proxy(store, {
+      get(target, property, receiver) {
+        if (property === "readEventsInSequence") return async (id) => (await target.readEventsInSequence(id)).map((item) => item.type === "validation_decision_recorded" ? { ...item, payload: { ...item.payload, nextMemorySnapshot: { ...item.payload.nextMemorySnapshot, recommendedAction: "use_configuration_b" } } } : item);
+        const value = Reflect.get(target, property, receiver);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    await assert.rejects(() => consolidateG0A3Memory(input(), persistence), DomainInvariantError);
+    const events = await store.readEventsInSequence(lenoseedId);
+    assert.equal((await store.readMemoryHistoryByKey(lenoseedId, memoryKey())).length, 0);
+    assert.equal(await store.getStateVersion(lenoseedId), 1);
+    assert.equal(events.filter((item) => item.type === "validation_decision_recorded" && item.payload.scope === "memory_consolidation").length, 1);
+    assert.equal(completion(events), undefined);
+  });
+});
+
+test("G0-A3 v1 rejects falsified canonical human fixtures before checkpoint", async (t) => {
+  const cases = [
+    ["request text", async (target, id) => {
+      const event = await target.readEventById(lenoseedId, id);
+      return id.endsWith("calibration-01-request") ? { ...event, payload: { ...event.payload, text: "Utilise plutôt une autre configuration." } } : event;
+    }],
+    ["enriched failure text", async (target, id) => {
+      const event = await target.readEventById(lenoseedId, id);
+      return id.endsWith("calibration-01-failure") ? { ...event, payload: { ...event.payload, text: `${failureText} Mais ce résultat est peut-être faux.` } } : event;
+    }],
+  ];
+  for (const [name, readEventById] of cases) {
+    await t.test(name, async () => {
+      const { store } = await createScenario();
+      const persistence = new Proxy(store, {
+        get(target, property, receiver) {
+          if (property === "readEventById") return (id, eventId) => readEventById(target, eventId);
+          const value = Reflect.get(target, property, receiver);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+      });
+      await assert.rejects(() => consolidateG0A3Memory(input(), persistence), DomainInvariantError);
+      assert.equal((await store.readMemoryHistoryByKey(lenoseedId, memoryKey())).length, 0);
+      assert.equal(checkpoint(await store.readEventsInSequence(lenoseedId)), undefined);
+      assert.equal(await store.getStateVersion(lenoseedId), 1);
+    });
+  }
+  await t.test("operator actorRef", async () => {
+    const { store } = await createScenario();
+    const persistence = new Proxy(store, {
+      get(target, property, receiver) {
+        if (property === "readSource") return async (id) => {
+          const source = await target.readSource(id);
+          return id === operatorSourceId && source !== null ? { ...source, actorRef: "OP-FORGED" } : source;
+        };
+        const value = Reflect.get(target, property, receiver);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    await assert.rejects(() => consolidateG0A3Memory(input(), persistence), DomainInvariantError);
+    assert.equal((await store.readMemoryHistoryByKey(lenoseedId, memoryKey())).length, 0);
+    assert.equal(checkpoint(await store.readEventsInSequence(lenoseedId)), undefined);
+    assert.equal(await store.getStateVersion(lenoseedId), 1);
+  });
+});
+
+test("G0-A3 v1 recovery rejects a forged v2 predecessor", async () => {
+  const { store } = await createScenario();
+  const { v2 } = await appendFutureV2(store);
+  const persistence = new Proxy(store, {
+    get(target, property, receiver) {
+      if (property === "readMemoryHistoryByKey") return async (id, key) => (await target.readMemoryHistoryByKey(id, key)).map((memory) => memory.id === v2.id ? { ...memory, revisionOf: "MEM-FORGED" } : memory);
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  await assert.rejects(() => consolidateG0A3Memory(input(), persistence), DomainInvariantError);
+  assert.equal(await store.getStateVersion(lenoseedId), 3);
 });
 
 test("G0-A3 v1 R8 keeps the original commit and rejects another fingerprint", async () => {

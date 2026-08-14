@@ -12,6 +12,10 @@ import {
   buildG0A3CalibrationObservation,
   buildG0A3InitialFailureCauseTestimony,
   G0A3_CALIBRATION_EPISODE_KEY,
+  G0A3_CALIBRATION_FAILURE_TEXT,
+  G0A3_CONFIGURATION_REQUEST_TEXT,
+  G0A3_INITIAL_EXPLANATION_TEXT,
+  G0A3_OPERATOR_ACTOR_REF,
   G0A3_OPERATOR_SOURCE_ID,
   G0A3_SYSTEM_SOURCE_ID,
 } from "./materialize-g0a3-calibration-evidence.js";
@@ -43,16 +47,33 @@ export function validateG0A3Memory(
   const e2 = requiredEvidence(context, ids.e2Id);
   const e3 = requiredEvidence(context, ids.e3Id);
 
-  assertSource(context, request, G0A3_OPERATOR_SOURCE_ID, "human");
+  assertSource(context, request, G0A3_OPERATOR_SOURCE_ID, "human", G0A3_OPERATOR_ACTOR_REF);
   assertSource(context, intention, G0A3_SYSTEM_SOURCE_ID, "system");
-  assertSource(context, failure, G0A3_OPERATOR_SOURCE_ID, "human");
-  assertSource(context, initialExplanation, G0A3_OPERATOR_SOURCE_ID, "human");
-  assertFixtureEvent(request, "calibration-01-request", "configuration_request");
-  assertFixtureEvent(failure, "calibration-01-failure", "calibration_failure_report");
+  assertSource(context, failure, G0A3_OPERATOR_SOURCE_ID, "human", G0A3_OPERATOR_ACTOR_REF);
+  assertSource(
+    context,
+    initialExplanation,
+    G0A3_OPERATOR_SOURCE_ID,
+    "human",
+    G0A3_OPERATOR_ACTOR_REF,
+  );
+  assertFixtureEvent(
+    request,
+    "calibration-01-request",
+    "configuration_request",
+    G0A3_CONFIGURATION_REQUEST_TEXT,
+  );
+  assertFixtureEvent(
+    failure,
+    "calibration-01-failure",
+    "calibration_failure_report",
+    G0A3_CALIBRATION_FAILURE_TEXT,
+  );
   assertFixtureEvent(
     initialExplanation,
     "calibration-01-initial-explanation",
     "initial_failure_explanation",
+    G0A3_INITIAL_EXPLANATION_TEXT,
   );
   assertInitialIntention(intention, request);
   assertInitialEventOrder(request, intention, failure, initialExplanation);
@@ -148,9 +169,15 @@ function assertSource(
   event: Event,
   sourceId: EntityId,
   kind: Source["kind"],
+  actorRef?: EntityId,
 ): void {
   const source = context.sourcesById.get(event.sourceId);
-  if (event.sourceId !== sourceId || source?.kind !== kind) {
+  if (
+    event.sourceId !== sourceId ||
+    source?.id !== sourceId ||
+    source?.kind !== kind ||
+    (actorRef !== undefined && source?.actorRef !== actorRef)
+  ) {
     throw new DomainInvariantError(`G0-A3 Memory Event ${event.id} has invalid source provenance`);
   }
 }
@@ -165,16 +192,20 @@ function assertFixtureEvent(
   event: Event,
   suffix: "calibration-01-request" | "calibration-01-failure" | "calibration-01-initial-explanation",
   fixtureKind: string,
+  text: string,
 ): void {
+  const expectedPayload = {
+    text,
+    protocol: "G0-A3",
+    episodeKey: G0A3_CALIBRATION_EPISODE_KEY,
+    fixtureKind,
+  };
   if (
     event.id !== buildG0A3CalibrationFixtureEventId(event.lenoseedId, suffix) ||
     event.idempotencyKey !== buildG0A3CalibrationFixtureEventIdempotencyKey(event.lenoseedId, suffix) ||
     event.type !== "human_message_received" ||
     event.payloadSchemaVersion !== 3 ||
-    event.payload.protocol !== "G0-A3" ||
-    event.payload.episodeKey !== G0A3_CALIBRATION_EPISODE_KEY ||
-    event.payload.fixtureKind !== fixtureKind ||
-    typeof event.payload.text !== "string"
+    !jsonEquals(event.payload, expectedPayload)
   ) throw new DomainInvariantError(`G0-A3 Memory fixture ${event.id} is invalid`);
 }
 
@@ -211,8 +242,16 @@ function validateHistory(candidate: Memory, history: readonly Memory[]): void {
   if (ordered.some((memory, index) => memory.version !== index + 1)) {
     throw new DomainInvariantError("G0-A3 Memory history has a version gap or duplicate");
   }
-  if (ordered.some((memory) => memory.memoryKey !== candidate.memoryKey)) {
-    throw new DomainInvariantError("G0-A3 Memory history has another memoryKey");
+  for (const [index, memory] of ordered.entries()) {
+    if (
+      memory.lenoseedId !== candidate.lenoseedId ||
+      memory.episodeKey !== candidate.episodeKey ||
+      memory.memoryKey !== candidate.memoryKey ||
+      memory.id !== buildG0A3MemoryId(candidate.lenoseedId, candidate.episodeKey, memory.version) ||
+      (index === 0 ? memory.revisionOf !== null : memory.revisionOf !== ordered[index - 1]?.id)
+    ) {
+      throw new DomainInvariantError("G0-A3 Memory history has an invalid identity or predecessor");
+    }
   }
   const active = ordered.filter((memory) => memory.status === "active");
   if (active.length !== 1 || active[0]?.version !== ordered.length) {

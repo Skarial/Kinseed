@@ -352,7 +352,19 @@ async function requireEvidence(
 }
 
 function parseMemory(value: SerializableValue | undefined): Memory {
-  if (!isRecord(value) || !isStringArray(value.eventIds) || !isStringArray(value.evidenceItemIds)) {
+  const memoryFields = [
+    "id", "lenoseedId", "memoryKey", "episodeKey", "version", "eventIds", "evidenceItemIds",
+    "gist", "createdAt", "salience", "confidence", "status", "revisionOf", "lastRecalledAt",
+  ];
+  const ownKeys = isRecord(value) ? Reflect.ownKeys(value) : [];
+  if (
+    !isRecord(value) ||
+    ownKeys.length !== memoryFields.length ||
+    !ownKeys.every((key) => typeof key === "string" && memoryFields.includes(key)) ||
+    !memoryFields.every((field) => Object.hasOwn(value, field)) ||
+    !isStringArray(value.eventIds) ||
+    !isStringArray(value.evidenceItemIds)
+  ) {
     throw new DomainInvariantError("G0-A3 Memory checkpoint has an invalid snapshot");
   }
   if (
@@ -364,7 +376,22 @@ function parseMemory(value: SerializableValue | undefined): Memory {
     !(typeof value.revisionOf === "string" || value.revisionOf === null) ||
     !(typeof value.lastRecalledAt === "string" || value.lastRecalledAt === null)
   ) throw new DomainInvariantError("G0-A3 Memory checkpoint has an invalid snapshot");
-  return value as unknown as Memory;
+  return {
+    id: value.id,
+    lenoseedId: value.lenoseedId,
+    memoryKey: value.memoryKey,
+    episodeKey: value.episodeKey,
+    version: value.version,
+    eventIds: [...value.eventIds],
+    evidenceItemIds: [...value.evidenceItemIds],
+    gist: value.gist,
+    createdAt: value.createdAt,
+    salience: value.salience as Memory["salience"],
+    confidence: value.confidence as Memory["confidence"],
+    status: value.status as Memory["status"],
+    revisionOf: value.revisionOf,
+    lastRecalledAt: value.lastRecalledAt,
+  };
 }
 
 function checkpointPayload(plan: CreatePlan): Readonly<Record<string, SerializableValue>> {

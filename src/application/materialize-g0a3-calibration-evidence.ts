@@ -10,9 +10,9 @@ export const G0A3_SYSTEM_SOURCE_ID = "SRC-G0A3-SYSTEM";
 export const G0A3_OPERATOR_SOURCE_ID = "SRC-G0A3-OPERATOR";
 export const G0A3_OPERATOR_ACTOR_REF = "OP-G0A3-001";
 
-const CONFIGURATION_REQUEST_TEXT = "Utilise la configuration A pour le test de calibration.";
-const CALIBRATION_FAILURE_TEXT = "La calibration a échoué.";
-const INITIAL_EXPLANATION_TEXT =
+export const G0A3_CONFIGURATION_REQUEST_TEXT = "Utilise la configuration A pour le test de calibration.";
+export const G0A3_CALIBRATION_FAILURE_TEXT = "La calibration a échoué.";
+export const G0A3_INITIAL_EXPLANATION_TEXT =
   "D’après le contrôle initial, la configuration A est incompatible avec ce capteur.";
 const CORRECTION_TEXT =
   "Correction : la configuration A était compatible. L’échec venait du câble C, qui était débranché.";
@@ -87,7 +87,7 @@ export async function materializeG0A3CorrectionEvidence(
   await validateHumanFixture(
     initialExplanation,
     "initial_failure_explanation",
-    INITIAL_EXPLANATION_TEXT,
+    G0A3_INITIAL_EXPLANATION_TEXT,
     persistence,
   );
 
@@ -159,7 +159,7 @@ export function buildG0A3CalibrationFailureTestimony(sourceEvent: Event): Eviden
     predicate: "reported_calibration_outcome",
     value: "failure",
     context: { protocol: "G0-A3", episodeKey: G0A3_CALIBRATION_EPISODE_KEY },
-  }, CALIBRATION_FAILURE_TEXT, null);
+  }, G0A3_CALIBRATION_FAILURE_TEXT, null);
 }
 
 export function buildG0A3InitialFailureCauseTestimony(sourceEvent: Event): EvidenceItem {
@@ -168,7 +168,7 @@ export function buildG0A3InitialFailureCauseTestimony(sourceEvent: Event): Evide
     predicate: "attributed_calibration_failure_cause",
     value: "configuration_a_sensor_incompatibility",
     context: { protocol: "G0-A3", episodeKey: G0A3_CALIBRATION_EPISODE_KEY },
-  }, INITIAL_EXPLANATION_TEXT, null);
+  }, G0A3_INITIAL_EXPLANATION_TEXT, null);
 }
 
 export function buildG0A3ConfigurationCompatibilityTestimony(sourceEvent: Event): EvidenceItem {
@@ -251,14 +251,14 @@ async function readAndValidateInitialFixtures(
 ): Promise<{ readonly intention: Event; readonly failure: Event; readonly initialExplanation: Event }> {
   const request = await readEvent(input.lenoseedId, input.configurationRequestEventId, persistence);
   assertCanonicalG0A3FixtureIdentity(request, input.lenoseedId, "calibration-01-request");
-  await validateHumanFixture(request, "configuration_request", CONFIGURATION_REQUEST_TEXT, persistence);
+  await validateHumanFixture(request, "configuration_request", G0A3_CONFIGURATION_REQUEST_TEXT, persistence);
 
   const intention = await readEvent(input.lenoseedId, input.intentionEventId, persistence);
   await validateInitialIntention(intention, request, persistence);
 
   const failure = await readEvent(input.lenoseedId, input.failureEventId, persistence);
   assertCanonicalG0A3FixtureIdentity(failure, input.lenoseedId, "calibration-01-failure");
-  await validateHumanFixture(failure, "calibration_failure_report", CALIBRATION_FAILURE_TEXT, persistence);
+  await validateHumanFixture(failure, "calibration_failure_report", G0A3_CALIBRATION_FAILURE_TEXT, persistence);
   if (failure.sequence <= intention.sequence) {
     throw new DomainInvariantError("G0-A3 failure report must be strictly after the calibration intention");
   }
@@ -276,7 +276,7 @@ async function readAndValidateInitialFixtures(
   await validateHumanFixture(
     initialExplanation,
     "initial_failure_explanation",
-    INITIAL_EXPLANATION_TEXT,
+    G0A3_INITIAL_EXPLANATION_TEXT,
     persistence,
   );
   if (initialExplanation.sequence <= failure.sequence) {
