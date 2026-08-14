@@ -5,7 +5,11 @@ export type IntentionKind =
   | "acknowledge_correction"
   | "report_record_conflict"
   | "ask_clarification"
-  | "respond_with_available_information_under_uncertainty";
+  | "respond_with_available_information_under_uncertainty"
+  | "run_calibration_with_configuration_a"
+  | "use_configuration_a_after_checking_cable_c"
+  | "use_configuration_b"
+  | "request_new_diagnostic";
 
 export type IntentionStatus = "candidate" | "selected" | "expressed" | "completed" | "aborted";
 
