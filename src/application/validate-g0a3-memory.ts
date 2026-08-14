@@ -190,6 +190,13 @@ function validateInitialCandidate(
     ) {
       throw new DomainInvariantError("G0-A3 initial Memory may be revised only in durable v2 history");
     }
+    return;
+  }
+  if (
+    context.revisedMemoryValidationMode === "durable" &&
+    context.memoryHistory.some((memory) => memory.version > candidate.version)
+  ) {
+    throw new DomainInvariantError("G0-A3 initial Memory cannot be active after a durable revision");
   }
 }
 

@@ -179,6 +179,7 @@ test("G0-A3 revised Memory builder and both validation boundaries are exact", ()
     lastRecalledAt: null,
   });
   validateG0A3Memory(s.v1, context(s));
+  validateG0A3Memory(s.v1, context(s, { memoryHistory: [s.v1] }));
   validateG0A3Memory(s.v2, planned(s));
   const revisedV1 = { ...s.v1, status: "revised" };
   validateG0A3Memory(revisedV1, durable(s, revisedV1));
@@ -194,6 +195,11 @@ test("G0-A3 revised Memory rejects non-canonical version and history structures"
   await t.test("v1 modified outside status", () => { const s = scenario(); const v1 = { ...s.v1, status: "revised", gist: "forged" }; rejectsV2(s, s.v2, durable(s, v1)); });
   await t.test("two active", () => { const s = scenario(); rejectsV2(s, s.v2, durable(s, s.v1)); });
   await t.test("v1 active in durable history", () => { const s = scenario(); rejectsV2(s, s.v2, durable(s, s.v1)); });
+  await t.test("v1 active cannot reactivate a durable v2 history", () => {
+    const s = scenario();
+    const revisedV1 = { ...s.v1, status: "revised" };
+    assert.throws(() => validateG0A3Memory(s.v1, durable(s, revisedV1)), DomainInvariantError);
+  });
   await t.test("v2 revised", () => { const s = scenario(); rejectsV2(s, { ...s.v2, status: "revised" }, planned(s)); });
   await t.test("planned v2 already durable", () => { const s = scenario(); rejectsV2(s, s.v2, planned(s, { memoryHistory: [s.v1, s.v2] })); });
 });
