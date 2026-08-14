@@ -164,6 +164,7 @@ function buildIntention(
     triggerEvidenceItemIds: [],
     triggerBeliefIds: [],
     triggerSelfHypothesisIds: selection.triggerSelfHypothesisIds,
+    triggerMemoryIds: [],
     motivation: selection.favoredKind === null ? NEUTRAL_MOTIVATION : INFLUENCED_MOTIVATION,
     observedStateVersion: situationEvent.observedStateVersion,
     status: "selected",

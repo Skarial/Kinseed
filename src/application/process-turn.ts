@@ -591,6 +591,7 @@ function selectIntention(
     triggerEvidenceItemIds: [],
     triggerBeliefIds: currentBelief === null ? [] : [currentBelief.id],
     triggerSelfHypothesisIds: [],
+    triggerMemoryIds: [],
     motivation: noValidGroundedEvidence
       ? "no_valid_grounded_evidence"
       : motivationFor(input.message, kind),
@@ -714,6 +715,7 @@ function reconstructHistoricalIntention(
     triggerEvidenceItemIds: [],
     triggerBeliefIds: currentBelief === null ? [] : [currentBelief.id],
     triggerSelfHypothesisIds: [],
+    triggerMemoryIds: [],
     motivation,
     observedStateVersion: event.observedStateVersion,
     status: "selected",

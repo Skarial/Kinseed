@@ -22,6 +22,7 @@ export interface Intention {
   readonly triggerEvidenceItemIds: readonly EntityId[];
   readonly triggerBeliefIds: readonly EntityId[];
   readonly triggerSelfHypothesisIds: readonly EntityId[];
+  readonly triggerMemoryIds: readonly EntityId[];
   readonly motivation: string;
   readonly observedStateVersion: StateVersion;
   readonly status: IntentionStatus;
